@@ -36,6 +36,24 @@ function Footer({ className, startupConfig }: FooterProps) {
     </a>
   );
 
+  const brandRender = (
+    <div className="flex items-center gap-1.5">
+      <img
+        src="/assets/logo.svg"
+        alt=""
+        aria-hidden="true"
+        className="h-4 w-4 shrink-0 rounded-[3px]"
+      />
+      <span className="flex items-baseline gap-1 whitespace-nowrap">
+        <span className="font-bold tracking-tight text-text-primary">CYBERNETICS</span>
+        <span className="text-accent-primary">/</span>
+        <span className="font-mono lowercase text-accent-primary">
+          {localize('com_ui_footer_brand_tagline')}
+        </span>
+      </span>
+    </div>
+  );
+
   const mainContentParts = (
     typeof config?.customFooter === 'string'
       ? config.customFooter
@@ -79,16 +97,19 @@ function Footer({ className, startupConfig }: FooterProps) {
     </React.Fragment>
   ));
 
-  const footerElements = [...mainContentRender, privacyPolicyRender, termsOfServiceRender].filter(
-    Boolean,
-  );
+  const footerElements = [
+    brandRender,
+    ...mainContentRender,
+    privacyPolicyRender,
+    termsOfServiceRender,
+  ].filter(Boolean);
 
   return (
     <div className="relative w-full">
       <div
         className={
           className ??
-          'absolute bottom-0 left-0 right-0 hidden items-center justify-center gap-2 px-2 py-2 text-center text-xs text-text-primary sm:flex md:px-[60px]'
+          'absolute bottom-5 left-0 right-0 hidden items-center justify-center gap-2 px-2 py-2 text-center text-xs text-text-primary sm:flex md:px-[60px]'
         }
         role="contentinfo"
       >
