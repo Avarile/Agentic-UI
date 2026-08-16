@@ -63,7 +63,7 @@ function AuthLayout({
     <div className="relative flex min-h-screen flex-col bg-surface-primary">
       <Banner />
       <BlinkAnimation active={isFetching}>
-        <div className="mt-6 h-10 w-full bg-cover">
+        <div className="mt-6 flex h-10 w-full flex-col bg-cover">
           <img
             src="assets/logo.svg"
             className="h-full w-full object-contain"
@@ -71,6 +71,7 @@ function AuthLayout({
               0: startupConfig?.appTitle ?? 'Cybernetics - Agentic Centra',
             })}
           />
+          Text Text
         </div>
       </BlinkAnimation>
       <DisplayError />
