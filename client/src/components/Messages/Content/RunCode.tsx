@@ -130,7 +130,7 @@ const RunCode: React.FC<CodeBarProps & { iconOnly?: boolean }> = React.memo(
               isLoading ? 'opacity-100' : 'opacity-0',
             )}
           >
-            <Spinner className="animate-spin" size={18} />
+            <Spinner size={18} />
           </span>
           <Check size={18} className={iconClass(isSuccess)} />
           <X size={18} className={iconClass(isError)} />

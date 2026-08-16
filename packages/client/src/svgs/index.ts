@@ -7,6 +7,7 @@ export { default as DataIcon } from './DataIcon';
 export { default as Sidebar } from './Sidebar';
 export { default as MobileSidebar } from './MobileSidebar';
 export { default as Spinner } from './Spinner';
+export { default as CustomizedSpinner } from './CustomizedSpinner';
 export { default as Clipboard } from './Clipboard';
 export { default as CheckMark } from './CheckMark';
 export { default as CrossIcon } from './CrossIcon';

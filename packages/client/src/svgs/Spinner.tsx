@@ -1,67 +1,14 @@
-import { JSX } from 'react/jsx-runtime';
-import { cn } from '~/utils/';
-import './Spinner.css';
-
-interface SpinnerProps {
-  className?: string;
-  size?: string | number;
-  color?: string;
-  bgOpacity?: number;
-  speed?: number;
-}
-
 /**
- * Accessible loading spinner.
+ * The application spinner is the Cybernetics loading mark.
  *
- * Animation is defined in Spinner.css (extracted into the package style bundle),
- * never an embedded <style> tag: stylesheet text inside the SVG becomes part of
- * the ancestor's textContent, leaking raw CSS into label readouts of any control
- * that wraps a spinner.
+ * This module is kept as the compatibility name: `Spinner` is imported at ~120
+ * call sites, and `CustomizedSpinner` is prop-compatible with the geometry-only
+ * spinner it replaced, so the swap needs no changes at those sites.
+ *
+ * Note that almost every call site sizes the spinner with utility classes
+ * (`size-4`, `h-8 w-8`) rather than the `size` prop, and the tier heuristic can
+ * only read the prop. Those sites therefore resolve from the 20px default and
+ * render the inline ring, which is the correct mark at their rendered scale.
+ * Pass `size` or `variant` explicitly to reach the mark or GIF tiers.
  */
-export default function Spinner({
-  className = 'm-auto',
-  size = 20,
-  color = 'currentColor',
-  bgOpacity = 0.1,
-  speed = 0.75,
-}: SpinnerProps): JSX.Element {
-  const cssVars = {
-    '--spinner-speed': `${speed}s`,
-  } as React.CSSProperties;
-
-  return (
-    <svg
-      className={cn(className, 'spinner')}
-      width={size}
-      height={size}
-      viewBox="0 0 40 40"
-      xmlns="http://www.w3.org/2000/svg"
-      style={cssVars}
-      aria-hidden="true"
-      focusable="false"
-      role="presentation"
-    >
-      <circle
-        cx="20"
-        cy="20"
-        r="14.5"
-        pathLength="100"
-        strokeWidth="5"
-        fill="none"
-        stroke={color}
-        strokeOpacity={bgOpacity}
-      />
-      <circle
-        cx="20"
-        cy="20"
-        r="14.5"
-        pathLength="100"
-        strokeWidth="5"
-        fill="none"
-        stroke={color}
-        strokeDasharray="25 75"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+export { default } from './CustomizedSpinner';

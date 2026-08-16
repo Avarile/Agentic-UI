@@ -1,0 +1,112 @@
+/**
+ * Cybernetics loading mark animation. Ships in @librechat/client/style.css so
+ * consumers do not need the host app's Tailwind animation utilities.
+ *
+ * Keyframes live in this file rather than a <style> tag inside the SVG: inline
+ * stylesheet text joins the ancestor's textContent, leaking raw CSS into the
+ * accessible name of any control that wraps a spinner.
+ *
+ * The delivered brand SVGs carry the .ring/.core/.n1-.n4 class hooks but no
+ * animation; the timings below implement the spec in HOW-TO-USE.txt
+ * (ring 1.6s linear, interiors 1.4-1.6s ease-in-out, staggered).
+ */
+@keyframes cybernetics-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cybernetics-spinner-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes cybernetics-spinner-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.cybernetics-spinner {
+  overflow: visible;
+}
+
+/* transform-box is pinned so `center` resolves against the 0 0 32 32 viewBox
+   (i.e. 16,16 — the shared centre of every element) in every engine. */
+.cybernetics-spinner__ring {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: cybernetics-spinner-rotate var(--cyb-spinner-ring-speed, 1.6s) linear infinite;
+}
+
+.cybernetics-spinner__core {
+  animation: cybernetics-spinner-breathe var(--cyb-spinner-core-speed, 1.4s) ease-in-out infinite;
+}
+
+.cybernetics-spinner__node {
+  animation: cybernetics-spinner-pulse var(--cyb-spinner-node-speed, 1.6s) ease-in-out infinite;
+  animation-delay: var(--cyb-spinner-node-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cybernetics-spinner__ring,
+  .cybernetics-spinner__core,
+  .cybernetics-spinner__node {
+    animation: none;
+  }
+}
+
+/**
+ * Rendered-GIF tier (>=48px). The frames are baked at a fixed colour, so a
+ * light and a dark file are both emitted and the `.dark` ancestor picks one —
+ * the same swap the inline SVG gets for free from currentColor.
+ */
+.cybernetics-loader {
+  display: inline-block;
+  position: relative;
+  line-height: 0;
+}
+
+.cybernetics-loader__frames {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cybernetics-loader__frames--dark,
+.cybernetics-loader__static {
+  display: none;
+}
+
+.cybernetics-loader__frames--light:where(.dark, .dark *) {
+  display: none;
+}
+
+.cybernetics-loader__frames--dark:where(.dark, .dark *) {
+  display: block;
+}
+
+/* A GIF cannot be paused declaratively, so reduced motion swaps in the inline
+   mark, which the rule above has already frozen. Listed after the theme swap so
+   it wins on order at equal specificity, without resorting to !important. */
+@media (prefers-reduced-motion: reduce) {
+  .cybernetics-loader__frames--light,
+  .cybernetics-loader__frames--dark,
+  .cybernetics-loader__frames--light:where(.dark, .dark *),
+  .cybernetics-loader__frames--dark:where(.dark, .dark *) {
+    display: none;
+  }
+
+  .cybernetics-loader__static {
+    display: block;
+  }
+}
