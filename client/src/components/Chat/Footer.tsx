@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Constants } from 'librechat-data-provider';
 import type { TStartupConfig } from 'librechat-data-provider';
 import { useGetStartupConfig } from '~/data-provider';
+import { Brand } from '~/components/ui';
 import { useLocalize } from '~/hooks';
 
 type FooterProps = {
@@ -36,23 +37,7 @@ function Footer({ className, startupConfig }: FooterProps) {
     </a>
   );
 
-  const brandRender = (
-    <div className="flex items-center gap-1.5">
-      <img
-        src="/assets/logo.svg"
-        alt=""
-        aria-hidden="true"
-        className="h-4 w-4 shrink-0 rounded-[3px]"
-      />
-      <span className="flex items-baseline gap-1 whitespace-nowrap">
-        <span className="font-bold tracking-tight text-text-primary">CYBERNETICS</span>
-        <span className="text-accent-primary">/</span>
-        <span className="font-mono lowercase text-accent-primary">
-          {localize('com_ui_footer_brand_tagline')}
-        </span>
-      </span>
-    </div>
-  );
+  const brandRender = <Brand />;
 
   const mainContentParts = (
     typeof config?.customFooter === 'string'

@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { loginPage } from 'librechat-data-provider';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { useNavigate, useOutletContext, useLocation } from 'react-router-dom';
 import { useRegisterUserMutation } from 'librechat-data-provider/react-query';
@@ -238,17 +237,6 @@ const Registration: React.FC = () => {
               </Button>
             </div>
           </form>
-
-          <p className="my-4 text-center text-sm font-light text-text-secondary">
-            {localize('com_auth_already_have_account')}{' '}
-            <a
-              href={loginPage()}
-              aria-label="Login"
-              className="inline-flex p-1 text-sm font-medium text-accent-primary transition-colors hover:text-accent-primary-hover"
-            >
-              {localize('com_auth_login')}
-            </a>
-          </p>
         </>
       )}
     </>

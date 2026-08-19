@@ -118,14 +118,16 @@ function SocialLoginRender({
     startupConfig.socialLoginEnabled && (
       <>
         {startupConfig.emailLoginEnabled && (
-          <>
-            <div className="relative mt-6 flex w-full items-center justify-center border border-t border-border-medium uppercase">
-              <div className="absolute bg-surface-primary px-3 text-xs text-text-primary">
-                {localize('com_auth_or')}
-              </div>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <span className="w-full border-t border-border-medium" />
             </div>
-            <div className="mt-8" />
-          </>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-surface-primary px-3 text-text-secondary">
+                {localize('com_auth_or')}
+              </span>
+            </div>
+          </div>
         )}
         <div className="mt-2">
           {startupConfig.socialLogins?.map((provider) => providerComponents[provider] || null)}

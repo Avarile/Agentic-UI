@@ -1,5 +1,6 @@
 export * from './Accordion';
 export * from './AnimatedTabs';
+export * from './AnimatedGridPattern';
 export * from './Alert';
 export * from './AlertDialog';
 export * from './Breadcrumb';

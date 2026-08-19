@@ -46,7 +46,7 @@ const QUERY_DEVTOOLS_CHUNK_MODULES = [
   'node_modules/is-what',
 ];
 
-export default defineConfig(({ command }) => ({
+export default defineConfig(() => ({
   base: '',
   server: {
     allowedHosts:
@@ -187,7 +187,11 @@ export default defineConfig(({ command }) => ({
       'vite-plugin-node-polyfills/shims/global',
     ],
   },
-  publicDir: command === 'serve' ? './public' : false,
+  /**
+   * Copied by Vite during the build (not by a post-build step) so the files exist in `dist`
+   * before vite-plugin-pwa globs it in `closeBundle` to build the service worker precache.
+   */
+  publicDir: './public',
   build: {
     sourcemap: buildSourceMap,
     outDir: './dist',
