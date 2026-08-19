@@ -1,0 +1,1 @@
+ docker build -t agentic-ui:latest -f Dockerfile.multi .

@@ -68,19 +68,20 @@ function AuthLayout({
 
   return (
     <div className="relative flex min-h-screen flex-col bg-surface-primary">
-      <AnimatedGridPattern
-        className="fixed inset-0 z-0 stroke-text-tertiary/25 text-text-tertiary [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]"
-        width={40}
-        height={40}
-        numSquares={48}
-        maxOpacity={0.15}
-        duration={3}
-        repeatDelay={0.5}
-      />
-      <div className="relative z-10">
-        <Banner />
-      </div>
-      <div className="fixed bottom-0 left-0 z-20 md:m-4">
+      <Banner />
+      <BlinkAnimation active={isFetching}>
+        <div className="mt-6 h-10 w-full bg-cover">
+          <img
+            src="assets/logo.svg"
+            className="h-full w-full object-contain"
+            alt={localize('com_ui_logo', {
+              0: startupConfig?.appTitle ?? 'Cybernetics - Agentic Centra',
+            })}
+          />
+        </div>
+      </BlinkAnimation>
+      <DisplayError />
+      <div className="absolute bottom-0 left-0 md:m-4">
         <ThemeSelector />
       </div>
       <div className="relative z-10 flex flex-1">
