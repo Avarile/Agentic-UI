@@ -1,0 +1,58 @@
+# Deploy a locally-built image to the k3s server
+
+The cluster runs custom images with `imagePullPolicy: Never` and a bare image
+name, so there is no registry: the image must be streamed to the node and
+imported into k3s containerd by hand.
+
+```bash
+TAG=release.2026-08-20T12-50-18Z.1          # from scripts/build-image.sh
+IMG=cybernetics-agentic-ui-api:$TAG
+TAR=agentic-ui-api-$TAG.tar
+
+# 1. Stream to the server (verify the checksum matches on both sides)
+docker save "$IMG" | tee >(sha256sum) | ssh K3s-server "cat > ~/$TAR"
+ssh K3s-server "sha256sum ~/$TAR"
+
+# 2. Import into containerd — needs a sudo password, so this ssh gets -t
+ssh -t K3s-server "sudo k3s ctr -n k8s.io images import ~/$TAR"
+
+# 3. Confirm the node sees the tag before rolling out
+ssh K3s-server 'kubectl get node -o json | grep -o "cybernetics-agentic-ui-api:[^\"]*" | sort -u'
+
+# 4. Roll out and record why
+ssh K3s-server "kubectl -n librechat set image deploy/librechat librechat=$IMG"
+ssh K3s-server "kubectl -n librechat annotate deploy/librechat kubernetes.io/change-cause='$TAG' --overwrite"
+ssh K3s-server "kubectl -n librechat rollout status deploy/librechat --timeout=300s"
+
+# 5. Clean up the staged tar
+ssh K3s-server "rm ~/$TAR"
+```
+
+## Gotchas
+
+- **Pipe, never `&&`.** `docker save` writes the tar to stdout. With `&&` the
+  stream goes to your terminal instead, and Docker aborts with `cowardly
+  refusing to save to a terminal` — so the whole chain short-circuits and
+  nothing is transferred.
+- **No `-t` on the streaming ssh.** A pty translates `\n` to `\r\n` and
+  silently corrupts the tar. Only the sudo import needs `-t`.
+- **No colons in the tar filename.** Legal on ext4, but `scp` reads `:` as the
+  host/path separator, so such a path is unusable with scp.
+- **Don't stage in `/tmp`** — it is tmpfs (RAM-backed, 7.7G) on a host with
+  ~5Gi free. Use `~`, which sits on the 452G root volume.
+- **Skip compression.** Docker uses the containerd image store, so `docker
+  save` already emits compressed blobs (measured zstd ratio: 1.00x).
+- **Never run `kubectl apply -k ~/dev-ops/k3s-deployment/apps/librechat/`.**
+  That manifest has drifted: it still points at
+  `registry.librechat.ai/danny-avila/librechat-dev:latest` with no
+  `imagePullPolicy`, and its ConfigMap has 13 keys against ~100+ live. An
+  apply reverts the image and guts the live config. Use `kubectl set image`.
+- **Rollback needs no transfer** — the previous image stays in containerd:
+  `kubectl -n librechat rollout undo deploy/librechat`.
+
+## Notes
+
+- `strategy: Recreate` with 1 replica: the old pod dies before the new one
+  starts, so expect 30-40s of downtime. `startupProbe` allows up to 300s.
+- Verify with a *new-build* asset, not just `/health` — a healthy pod proves
+  nothing about which build is serving.
