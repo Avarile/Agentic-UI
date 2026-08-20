@@ -55,7 +55,7 @@ function HelpSubmenu({
         gutter={12}
         className="account-settings-popover popover-ui popover-from-left z-[126] w-[244px] rounded-lg"
       >
-        {hasHelpFaq && (
+        {/* {hasHelpFaq && (
           <Menu.MenuItem
             onClick={() => window.open(helpAndFaqURL, '_blank', 'noopener,noreferrer')}
             className="select-item text-sm"
@@ -63,7 +63,7 @@ function HelpSubmenu({
             <LifeBuoy className="icon-md" aria-hidden="true" />
             {localize('com_nav_help_faq')}
           </Menu.MenuItem>
-        )}
+        )} */}
         <Menu.MenuItem onClick={onShowShortcuts} className="select-item text-sm">
           <Keyboard className="icon-md" aria-hidden="true" />
           {localize('com_shortcut_keyboard_shortcuts')}

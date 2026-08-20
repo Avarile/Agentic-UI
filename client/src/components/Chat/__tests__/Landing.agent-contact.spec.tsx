@@ -24,6 +24,9 @@ jest.mock('@librechat/client', () => ({
   BirthdayIcon: () => <span data-testid="birthday-icon" />,
   TooltipAnchor: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
   SplitText: ({ text }: { text: string }) => <span>{text}</span>,
+  useTheme: () => ({ theme: 'light' }),
+  isDark: (theme: string) => theme === 'dark',
+  useMediaQuery: () => false,
 }));
 
 jest.mock('~/Providers', () => ({
@@ -78,8 +81,6 @@ jest.mock('~/utils', () => ({
     return { entity: undefined, isAgent: false, isAssistant: false };
   },
 }));
-
-jest.mock('~/components/Endpoints/ConvoIcon', () => () => <span data-testid="convo-icon" />);
 
 describe('Landing agent contact', () => {
   beforeEach(() => {
