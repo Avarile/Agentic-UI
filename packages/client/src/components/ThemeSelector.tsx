@@ -4,6 +4,7 @@ import { Sun, Moon, Monitor } from 'lucide-react';
 import { ThemeContext, isDark } from '../theme';
 import { useLocalize } from '../hooks';
 import { Button } from './Button';
+import { cn } from '~/utils';
 
 declare global {
   interface Window {
@@ -52,7 +53,14 @@ const Theme = ({ theme, onChange }: { theme: string; onChange: (value: string) =
   );
 };
 
-const ThemeSelector = ({ returnThemeOnly }: { returnThemeOnly?: boolean }): JSX.Element => {
+const ThemeSelector = ({
+  returnThemeOnly,
+  className,
+}: {
+  returnThemeOnly?: boolean;
+  /** Placement classes for the toggle; defaults to the bottom-left corner of the nearest positioned ancestor */
+  className?: string;
+}): JSX.Element => {
   const { theme, setTheme } = useContext(ThemeContext);
   const [announcement, setAnnouncement] = useState('');
   const localize = useLocalize();
@@ -87,10 +95,13 @@ const ThemeSelector = ({ returnThemeOnly }: { returnThemeOnly?: boolean }): JSX.
   }
 
   return (
-    <div className="flex flex-col items-center justify-center bg-surface-primary pt-6 sm:pt-0">
-      <div className="absolute bottom-0 left-0 m-4">
-        <Theme theme={theme} onChange={changeTheme} />
-      </div>
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center',
+        className ?? 'absolute bottom-0 left-0 m-4',
+      )}
+    >
+      <Theme theme={theme} onChange={changeTheme} />
       <div role="alert" aria-live="assertive" aria-atomic="true" className="sr-only">
         {announcement}
       </div>

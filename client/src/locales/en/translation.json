@@ -1285,6 +1285,8 @@
   "com_ui_fork_success": "Successfully forked conversation",
   "com_ui_fork_visible": "Visible messages only",
   "com_ui_footer_brand_tagline": "agentic centre",
+  "com_ui_footer_byline": "By Avarile.",
+  "com_ui_footer_copyright": "© {{0}} Cybernetics. All rights reserved.",
   "com_ui_generate_qrcode": "Generate QR Code",
   "com_ui_generating": "Generating...",
   "com_ui_generating_image": "Generating image...",

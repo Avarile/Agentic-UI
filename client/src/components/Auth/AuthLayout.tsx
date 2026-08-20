@@ -67,7 +67,7 @@ function AuthLayout({
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-surface-primary">
+    <div className="relative flex min-h-dvh flex-col bg-surface-primary">
       <AnimatedGridPattern
         className="fixed inset-0 z-0 stroke-text-tertiary/25 text-text-tertiary [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]"
         width={40}
@@ -80,43 +80,44 @@ function AuthLayout({
       <div className="relative z-10">
         <Banner />
       </div>
-      <div className="fixed bottom-0 left-0 z-20 md:m-4">
-        <ThemeSelector />
-      </div>
-      <div className="relative z-10 flex flex-1">
-        <div className="absolute left-5 top-5 z-20">
-          <BlinkAnimation active={isFetching}>
-            <Brand
-              className="gap-2 text-sm"
-              logoClassName="h-8 w-8 rounded-[2px]"
-              logoAlt={localize('com_ui_logo', {
-                0: startupConfig?.appTitle ?? 'Cybernetics - Agentic Centre',
-              })}
-            />
-          </BlinkAnimation>
-        </div>
-        <Showcase />
-        <main className="relative flex flex-1 shrink-0 flex-col items-center justify-center px-6">
-          {showTabs && (
-            <div className="absolute right-0 top-0 flex h-20 items-center justify-end px-5">
-              <AuthTabs pathname={pathname} />
+      <div className="relative z-10 flex flex-1 flex-col">
+        <header className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 sm:px-5 sm:py-5 lg:absolute lg:inset-x-0 lg:top-0 lg:z-20 lg:h-20 lg:flex-nowrap lg:py-0">
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center overflow-hidden">
+              <BlinkAnimation active={isFetching}>
+                <Brand
+                  className="gap-2 text-sm"
+                  logoClassName="h-8 w-8 rounded-[2px]"
+                  taglineClassName="hidden min-[360px]:flex"
+                  logoAlt={localize('com_ui_logo', {
+                    0: startupConfig?.appTitle ?? 'Cybernetics - Agentic Centre',
+                  })}
+                />
+              </BlinkAnimation>
             </div>
-          )}
-          <div className="w-authPageWidth max-w-full py-24">
-            <DisplayError />
-            {!hasStartupConfigError && !isFetching && header && (
-              <h1
-                className="mb-6 text-center text-2xl font-semibold text-text-primary"
-                style={{ userSelect: 'none' }}
-              >
-                {header}
-              </h1>
-            )}
-            {children}
-            {isEntryPage && <SocialLoginRender startupConfig={startupConfig} />}
-            <Footer startupConfig={startupConfig} />
+            <ThemeSelector className="shrink-0 lg:fixed lg:bottom-0 lg:left-0 lg:z-20 lg:m-4" />
           </div>
-        </main>
+          {showTabs && <AuthTabs pathname={pathname} />}
+        </header>
+        <div className="flex flex-1">
+          <Showcase />
+          <main className="flex flex-1 shrink-0 flex-col items-center justify-center px-4 sm:px-6">
+            <div className="w-full max-w-full py-10 sm:w-authPageWidth sm:py-16 lg:py-24">
+              <DisplayError />
+              {!hasStartupConfigError && !isFetching && header && (
+                <h1
+                  className="mb-6 text-center text-2xl font-semibold text-text-primary"
+                  style={{ userSelect: 'none' }}
+                >
+                  {header}
+                </h1>
+              )}
+              {children}
+              {isEntryPage && <SocialLoginRender startupConfig={startupConfig} />}
+              <Footer startupConfig={startupConfig} />
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

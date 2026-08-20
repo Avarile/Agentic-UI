@@ -5,6 +5,8 @@ interface BrandProps {
   className?: string;
   logoClassName?: string;
   wordmarkClassName?: string;
+  /** Classes for the `/ tagline` half of the wordmark, e.g. to drop it on narrow viewports */
+  taglineClassName?: string;
   /** Accessible name for the logo; when omitted the logo is treated as decorative */
   logoAlt?: string;
 }
@@ -13,6 +15,7 @@ export default function Brand({
   className,
   logoClassName,
   wordmarkClassName,
+  taglineClassName,
   logoAlt,
 }: BrandProps) {
   const localize = useLocalize();
@@ -27,9 +30,11 @@ export default function Brand({
       />
       <span className={cn('flex items-baseline gap-1 whitespace-nowrap', wordmarkClassName)}>
         <span className="font-bold tracking-tight text-text-primary">CYBERNETICS</span>
-        <span className="text-accent-primary">/</span>
-        <span className="font-mono lowercase text-accent-primary">
-          {localize('com_ui_footer_brand_tagline')}
+        <span className={cn('flex items-baseline gap-1', taglineClassName)}>
+          <span className="text-accent-primary">/</span>
+          <span className="font-mono lowercase text-accent-primary">
+            {localize('com_ui_footer_brand_tagline')}
+          </span>
         </span>
       </span>
     </div>
