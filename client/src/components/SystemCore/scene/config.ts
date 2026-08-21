@@ -64,12 +64,37 @@ export const TONE_ARC = 0.5;
  *  a backgrounded tab hands over one enormous delta and every strip jumps. */
 export const MAX_DELTA = 0.1;
 
-/** Camera framing: the model is fitted to its bounding sphere, then pulled in
- *  by this much. The reference arrived at 0.68 by eye. */
-export const FRAME_FILL = 0.68;
+/** Vertical field of view the scene is composed for. The canvas and the
+ *  framing pass share it, so the default view is stated once. */
+export const FRAME_FOV = 45;
 
-/** Direction the camera is framed along, before distance is applied. */
-export const FRAME_DIRECTION = [1, 0.55, 1.25] as const;
+/** Camera framing: the extent below is fitted to the frame, then pulled in by
+ *  this much. Close enough that the wide controller ring runs off the sides,
+ *  which is the composition — the stack is the subject, not the ring. */
+export const FRAME_FILL = 0.84;
 
-/** Slack past the fitted bounding sphere, so nothing touches the edges. */
+/** Direction the camera is framed along, before distance is applied. The y term
+ *  is the elevation: 0.85 against a horizontal reach of 1.6 looks down on the
+ *  stack at ~28°, high enough to open the cap rings into ellipses without
+ *  looking into the top of the column. */
+export const FRAME_DIRECTION = [1, 0.85, 1.25] as const;
+
+/** Slack past the fitted extent, so nothing touches the edges. */
 export const FRAME_MARGIN = 1.35;
+
+/** Half-diagonal of the box the two cap rings enclose.
+ *
+ *  This, and not the stack's measured bounding box, is what the camera frames
+ *  on. A module's radius is editable and its contact reaches out to the deck,
+ *  so a measured box moves with the data: widening one module, or adding one,
+ *  would silently pull the default view back. The cap rings are what mark the
+ *  stack's extent, and they hold still. */
+const FRAME_EXTENT = Math.hypot(
+  MAINFRAME.shellRadius + MAINFRAME.capThickness,
+  MAINFRAME.capY + MAINFRAME.capThickness,
+  MAINFRAME.shellRadius + MAINFRAME.capThickness,
+);
+
+/** How far the camera sits from the stack's centre in the default view. */
+export const FRAME_DISTANCE =
+  (FRAME_EXTENT / Math.tan((FRAME_FOV * Math.PI) / 360)) * FRAME_MARGIN * FRAME_FILL;

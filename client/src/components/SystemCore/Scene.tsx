@@ -27,7 +27,7 @@ import { MaterialRegistry } from './scene/materials';
 import { createToneBus } from './scene/audio';
 import { colorOf, gainOf, stripSpec } from './scene/resolve';
 import { LIGHTS, STAGE_BACKGROUND } from './scene/palette';
-import { SCANNER, FRAME_FILL, FRAME_MARGIN, FRAME_DIRECTION } from './scene/config';
+import { SCANNER, FRAME_FOV, FRAME_DISTANCE, FRAME_DIRECTION } from './scene/config';
 
 export interface SceneProps {
   modules: Module[];
@@ -40,22 +40,27 @@ export interface SceneProps {
   resetToken: number;
 }
 
+/** The one default view: the framing direction, at the framed distance, looking
+ *  at the stack's centre. The canvas opens on it and the reset button returns
+ *  to it, so there is a single composition to get right. */
+const DEFAULT_VIEW = new THREE.Vector3(...FRAME_DIRECTION).setLength(FRAME_DISTANCE);
+
 /**
- * Fits the camera to the stack, once, and again whenever the reset button asks.
+ * Puts the camera in the default view, once, and again whenever the reset
+ * button asks.
  *
- * Framed on the stack — mainframe, strips and their contacts — and NOT on the
- * scanner deck, which is a backdrop 10× wider than the thing worth looking at.
- * The reference fitted the whole model including the deck, which worked while
- * the deck's radius was 3.3 and broke when it was widened to 12: the fitted
- * distance ends up ~4× too far out and FRAME_FILL cannot make that up. Framing
- * on the stack keeps the composition independent of the deck's size.
+ * Composed against the cap rings rather than measured off the scene — see
+ * FRAME_EXTENT. A measured bounding box was what the reference fitted, and it
+ * cannot hold a composition still here: the deck is a backdrop 10× wider than
+ * the thing worth looking at, and a strip's contact reaches out to sit on that
+ * deck, so the box a measured fit sees is set by the widest module's contact.
+ * Editing one module's radius, or adding a module, would then move the default
+ * view.
  */
 function Frame({
-  stackRef,
   controlsRef,
   resetToken,
 }: {
-  stackRef: MutableRefObject<THREE.Group | null>;
   controlsRef: MutableRefObject<OrbitControls | null>;
   resetToken: number;
 }) {
@@ -63,30 +68,18 @@ function Frame({
   const invalidate = useThree((state) => state.invalidate);
 
   useEffect(() => {
-    const stack = stackRef.current;
     const controls = controlsRef.current;
-    if (!stack || !controls) {
+    if (!controls) {
       return;
     }
-    // Box3 reads world matrices, which have not been refreshed yet on the first
-    // pass after mount.
-    stack.updateWorldMatrix(true, true);
-    const box = new THREE.Box3().setFromObject(stack);
-    if (box.isEmpty()) {
-      return;
-    }
-    const sphere = box.getBoundingSphere(new THREE.Sphere());
-    const dist = (sphere.radius / Math.tan((camera.fov * Math.PI) / 360)) * FRAME_MARGIN;
-    const dir = new THREE.Vector3(...FRAME_DIRECTION).normalize();
-    camera.position.copy(sphere.center).add(dir.multiplyScalar(dist));
-    camera.position.multiplyScalar(FRAME_FILL);
-    camera.near = Math.max(dist / 100, 0.01);
-    camera.far = dist * 100;
+    camera.position.copy(DEFAULT_VIEW);
+    camera.near = Math.max(FRAME_DISTANCE / 100, 0.01);
+    camera.far = FRAME_DISTANCE * 100;
     camera.updateProjectionMatrix();
-    controls.target.copy(sphere.center);
+    controls.target.set(0, 0, 0);
     controls.update();
     invalidate();
-  }, [camera, invalidate, stackRef, controlsRef, resetToken]);
+  }, [camera, invalidate, controlsRef, resetToken]);
 
   return null;
 }
@@ -112,7 +105,6 @@ function Core({
   resetToken,
   animate,
 }: SceneProps & { animate: boolean }) {
-  const stackRef = useRef<THREE.Group | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const camera = useThree((state) => state.camera);
   const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy());
@@ -209,8 +201,7 @@ function Core({
         <group name="scanner-view" position-y={SCANNER.y} visible={scannerVisible}>
           <Scanner animate={animate} />
         </group>
-        {/* The camera frames on this group, so the deck above stays outside it. */}
-        <group ref={stackRef} name="stack">
+        <group name="stack">
           <Mainframe />
           {/* A sibling of the mainframe rather than a child of it: `mainframe`
               and `stack` are both untransformed, so this sits in exactly the same
@@ -236,7 +227,7 @@ function Core({
       </group>
 
       <Orbit controlsRef={controlsRef} damping={animate} />
-      <Frame stackRef={stackRef} controlsRef={controlsRef} resetToken={resetToken} />
+      <Frame controlsRef={controlsRef} resetToken={resetToken} />
       <Pulse mats={mats} active={selected != null} />
     </>
   );
@@ -255,7 +246,12 @@ export default function Scene(props: SceneProps) {
       frameloop={animate ? 'always' : 'demand'}
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: true }}
-      camera={{ fov: 45, near: 0.01, far: 500, position: [3, 2.2, 4] }}
+      camera={{
+        fov: FRAME_FOV,
+        near: 0.01,
+        far: 500,
+        position: [DEFAULT_VIEW.x, DEFAULT_VIEW.y, DEFAULT_VIEW.z],
+      }}
     >
       <Core {...props} animate={animate} />
     </Canvas>
