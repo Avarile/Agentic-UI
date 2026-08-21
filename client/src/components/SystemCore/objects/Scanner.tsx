@@ -107,9 +107,9 @@ export default function Scanner({ animate }: ScannerProps) {
           <planeGeometry args={[0.007, R * 2]} />
         </mesh>
       ))}
-      <mesh ref={sweepRef} name="scanner-sweep" material={mats.sweep}>
+      {/* <mesh ref={sweepRef} name="scanner-sweep" material={mats.sweep}>
         <circleGeometry args={[R * 0.995, 90, 0, SCANNER.sweepArc]} />
-      </mesh>
+      </mesh> */}
     </group>
   );
 }
