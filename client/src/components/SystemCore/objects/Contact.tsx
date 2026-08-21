@@ -39,7 +39,7 @@ export default function Contact({ spec, mats, visible, picked }: ContactProps) {
   // Contacts sit further out for wider modules, echoing the strip's own radius.
   // The lane comes from the scene's runtime state, not from a list position, so
   // deleting one module never shifts everyone else's contact in or out.
-  const d = 0.42 + (radius - 0.62) * 1.55 + spec.lane * 0.3;
+  const d = 0.42 + (radius + 2.62) * 1.55 + spec.lane * 0.3;
 
   return (
     <group name={`${id}-contact`} position-y={-reach} visible={visible}>

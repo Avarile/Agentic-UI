@@ -68,6 +68,8 @@ export function stripSpec(m: Module, rt: Runtime): StripSpec {
     label: m.appearance.labelVisible ? bandText(m) : null,
     labelScale: m.appearance.labelScale,
     speed: m.motion.speed,
+    tone: m.audio.hz,
+    toneLevel: m.audio.level,
     lane: rt.lane,
     selectable: m.layout.selectable,
   };

@@ -3,6 +3,8 @@
 //
 // Static furniture — nothing here changes once built, which is why it is the
 // one object in the scene with no per-frame work and no per-module anything.
+// Its hum is a sibling in the stack rather than a child here, so that stays true
+// — see Hum.tsx.
 //
 // The reference also built a containment shell here and then stopped adding it
 // to the group ("due to I dont like it"). It is left out rather than carried

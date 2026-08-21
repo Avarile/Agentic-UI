@@ -21,8 +21,10 @@ import Orbit from './objects/Orbit';
 import Strip from './objects/Strip';
 import Scanner from './objects/Scanner';
 import Mainframe from './objects/Mainframe';
+import Hum from './objects/Hum';
 import { LabelFactory, preloadLabelFont } from './scene/labels';
 import { MaterialRegistry } from './scene/materials';
+import { createToneBus } from './scene/audio';
 import { colorOf, gainOf, stripSpec } from './scene/resolve';
 import { LIGHTS, STAGE_BACKGROUND } from './scene/palette';
 import { SCANNER, FRAME_FILL, FRAME_MARGIN, FRAME_DIRECTION } from './scene/config';
@@ -112,12 +114,25 @@ function Core({
 }: SceneProps & { animate: boolean }) {
   const stackRef = useRef<THREE.Group | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
+  const camera = useThree((state) => state.camera);
   const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy());
 
   // One registry per scene. Materials are shared across modules that look
   // alike, and the dimming pass has to be able to reach every one of them.
   const mats = useMemo(() => new MaterialRegistry(), []);
   const labels = useMemo(() => new LabelFactory(maxAnisotropy), [maxAnisotropy]);
+  // Not built at all when the stack is holding still, which silences the
+  // mainframe's hum as well as the strips.
+  //
+  // This is a choice, not a technical limit, and worth saying so. Under reduced
+  // motion `frameloop` is "demand", but Orbit invalidates on every controls
+  // change and R3F renders once at mount, so a static voice would in fact be
+  // handed a correct level and would track zoom perfectly well. It is left silent
+  // because a continuous unmutable drone over a deliberately still frame, with no
+  // visible motion to account for it, is worse than nothing. Skipping the bus
+  // also means no AudioContext for a scene that was never going to use one, and
+  // null likewise covers a browser that refuses us one — see createToneBus.
+  const bus = useMemo(() => (animate ? createToneBus(camera) : null), [animate, camera]);
 
   useEffect(() => {
     return () => {
@@ -125,6 +140,16 @@ function Core({
       labels.dispose();
     };
   }, [mats, labels]);
+
+  // Its own effect rather than a line in the one above: the bus can be rebuilt
+  // without the materials being rebuilt, and folding it in would mean a change
+  // of `animate` disposed the material registry the live scene is still using.
+  useEffect(() => {
+    if (!bus) {
+      return;
+    }
+    return () => bus.dispose();
+  }, [bus]);
 
   // Band names are rasterised through the theme's UI face. Rather than block
   // the whole scene on the font, the stack renders immediately and labels
@@ -187,12 +212,18 @@ function Core({
         {/* The camera frames on this group, so the deck above stays outside it. */}
         <group ref={stackRef} name="stack">
           <Mainframe />
+          {/* A sibling of the mainframe rather than a child of it: `mainframe`
+              and `stack` are both untransformed, so this sits in exactly the same
+              place, and Mainframe stays propless with its claim to no per-frame
+              work intact. Mirrors the gate Strip uses for its own voice. */}
+          {bus && <Hum bus={bus} />}
           {strips.map((strip) => (
             <Strip
               key={strip.spec.id}
               spec={strip.spec}
               mats={strip.mats}
               labels={labels}
+              bus={bus}
               picked={selected === strip.spec.id}
               scannerVisible={scannerVisible}
               animate={animate}

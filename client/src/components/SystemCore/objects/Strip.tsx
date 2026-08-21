@@ -29,11 +29,13 @@
 import { useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import Tone from './Tone';
 import Contact from './Contact';
 import { SPIN } from '../scene/palette';
 import { SOFT, LABEL_H, LABEL_FILL, LABEL_LEAD, MAX_DELTA } from '../scene/config';
 import type { LabelFactory } from '../scene/labels';
 import type { ModuleMaterials } from '../scene/materials';
+import type { ToneBus } from '../scene/audio';
 
 export interface StripSpec {
   /** Names every mesh in the strip. Identity, not display text. */
@@ -54,6 +56,10 @@ export interface StripSpec {
   labelScale: number;
   /** Revolutions per second, before SPIN scales it. */
   speed: number;
+  /** Drone fundamental in Hz; null makes no sound at all. */
+  tone: number | null;
+  /** Share of the global ceiling this module's drone may use, 0 to 1. */
+  toneLevel: number;
   /** Which ring of the scanner deck this module's contact stands on. */
   lane: number;
   selectable: boolean;
@@ -63,6 +69,9 @@ interface StripProps {
   spec: StripSpec;
   mats: ModuleMaterials;
   labels: LabelFactory;
+  /** null when the scene is making no sound: reduced motion, or a browser that
+   *  refused us an AudioContext. */
+  bus: ToneBus | null;
   picked: boolean;
   /** Whether the scanner deck, and so this strip's contact, is showing. */
   scannerVisible: boolean;
@@ -79,6 +88,7 @@ export default function Strip({
   spec,
   mats,
   labels,
+  bus,
   picked,
   scannerVisible,
   animate,
@@ -228,12 +238,25 @@ export default function Strip({
         />
       </mesh>
 
-      <Contact
+      {/* Hidden means hidden: a strip nobody can see should not be heard
+          either, and hanging the check here rather than inside Tone means the
+          voice is released instead of left running behind an invisible band. */}
+      {bus && spec.tone != null && spec.visible && (
+        <Tone
+          bus={bus}
+          hz={spec.tone}
+          level={spec.toneLevel}
+          radius={radius}
+          arcDeg={spec.arcDeg}
+        />
+      )}
+
+      {/* <Contact
         spec={{ id, radius, y: spec.y, lane: spec.lane }}
         mats={mats}
         visible={scannerVisible}
         picked={picked}
-      />
+      /> */}
     </group>
   );
 }

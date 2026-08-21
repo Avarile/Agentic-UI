@@ -1,9 +1,9 @@
 // Every measurement in the scene, in one place.
 //
 // Ported from the reference implementation's per-object DEFAULTS blocks. These
-// are layout, not appearance — see ./palette.ts for the colours, and CLAUDE.md
-// on why feature geometry stays feature-owned rather than becoming theme
-// tokens.
+// are layout, not appearance — see ./palette.ts for the colours and ./tone.ts
+// for the sound, and CLAUDE.md on why feature geometry stays feature-owned
+// rather than becoming theme tokens.
 
 /** The central column and the cap rings that mark the stack's extent. */
 export const MAINFRAME = {
@@ -54,6 +54,11 @@ export const LABEL_FILL = 0.95;
  *  set flush left rather than centred, so names line up with each other as the
  *  stack turns instead of drifting with each strip's own arc length. */
 export const LABEL_LEAD = 0.05;
+
+/** Where along a strip's arc its sound comes from, as a fraction of that arc.
+ *  The midpoint, so a wide band is not heard from one of its own edges. Position
+ *  in the model, hence here rather than in ./tone.ts with the audible values. */
+export const TONE_ARC = 0.5;
 
 /** Longest frame the simulation will integrate. Without a clamp, returning to
  *  a backgrounded tab hands over one enormous delta and every strip jumps. */
