@@ -394,4 +394,15 @@ export default [
       ],
     },
   },
+  {
+    // **React Three Fiber scene components**
+    // R3F resolves JSX elements against the three.js namespace, not the DOM, so
+    // `<mesh material={…}>`, `<cylinderGeometry args={…}>` and dash-props like
+    // `position-y` are all valid. react/no-unknown-property only knows DOM
+    // attributes and flags every one of them.
+    files: ['./client/src/components/SystemCore/**/*.tsx'],
+    rules: {
+      'react/no-unknown-property': 'off',
+    },
+  },
 ];

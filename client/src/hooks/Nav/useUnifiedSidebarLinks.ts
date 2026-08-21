@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useRecoilValue } from 'recoil';
-import { MessagesSquare } from 'lucide-react';
+import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { Boxes, MessagesSquare } from 'lucide-react';
 import { useUserKeyQuery } from 'librechat-data-provider/react-query';
 import { getConfigDefaults, getEndpointField } from 'librechat-data-provider';
 import type { TEndpointsConfig } from 'librechat-data-provider';
@@ -18,6 +18,7 @@ export default function useUnifiedSidebarLinks() {
   const endpoint = useRecoilValue(store.conversationEndpointByIndex(0)) ?? undefined;
   const { data: startupConfig } = useGetStartupConfig();
   const { data: endpointsConfig = {} as TEndpointsConfig } = useGetEndpointsQuery();
+  const setShowSystemCore = useSetRecoilState(store.showSystemCore);
 
   const interfaceConfig = useMemo(
     () => startupConfig?.interface ?? defaultInterface,
@@ -59,8 +60,19 @@ export default function useUnifiedSidebarLinks() {
       Component: ConversationsSection,
     };
 
-    return [conversationLink, ...sideNavLinks];
-  }, [sideNavLinks]);
+    // An `onClick` and no `Component`: NavIconButton short-circuits on it, so
+    // this raises the modal instead of switching the expanded panel — and works
+    // unchanged in the mobile drawer.
+    const systemCoreLink: NavLink = {
+      title: 'com_ui_system_core',
+      label: '',
+      icon: Boxes,
+      id: 'system-core',
+      onClick: () => setShowSystemCore(true),
+    };
+
+    return [conversationLink, ...sideNavLinks, systemCoreLink];
+  }, [sideNavLinks, setShowSystemCore]);
 
   return links;
 }

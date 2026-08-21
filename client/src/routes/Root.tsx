@@ -20,6 +20,7 @@ import KeyboardShortcutsDialog from '~/components/Nav/KeyboardShortcutsDialog';
 import KeyboardDeleteDialog from '~/components/Nav/KeyboardDeleteDialog';
 import { useUserTermsQuery, useGetStartupConfig } from '~/data-provider';
 import useKeyboardShortcuts from '~/hooks/useKeyboardShortcuts';
+import { SystemCoreDialog } from '~/components/SystemCore';
 import { UnifiedSidebar } from '~/components/UnifiedSidebar';
 import { TermsAndConditionsModal } from '~/components/ui';
 import { useHealthCheck } from '~/data-provider';
@@ -102,6 +103,7 @@ export default function Root() {
               </div>
             </PromptGroupsProvider>
             <KeyboardShortcutsProvider />
+            <SystemCoreDialog />
           </AgentsMapContext.Provider>
           {config?.interface?.termsOfService?.modalAcceptance === true && (
             <TermsAndConditionsModal

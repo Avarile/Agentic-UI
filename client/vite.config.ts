@@ -229,6 +229,17 @@ export default defineConfig(() => ({
                   if (normalizedId.includes('@codesandbox/sandpack')) {
                     return 'sandpack';
                   }
+                  // three.js and the R3F reconciler share one chunk, for the
+                  // same reason mermaid does above: splitting a library from
+                  // the runtime that registers against it invites module
+                  // initialization-order bugs. Only reachable from the
+                  // lazily-loaded System Core scene.
+                  if (
+                    normalizedId.includes('/node_modules/three/') ||
+                    normalizedId.includes('@react-three/')
+                  ) {
+                    return 'three';
+                  }
                   if (normalizedId.includes('react-vtree')) {
                     return 'react-vtree';
                   }

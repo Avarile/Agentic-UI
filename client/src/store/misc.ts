@@ -62,6 +62,11 @@ const showShortcutsDialog = atom<boolean>({
   default: false,
 });
 
+const showSystemCore = atom<boolean>({
+  key: 'showSystemCore',
+  default: false,
+});
+
 export type KeyboardDeleteTarget = {
   conversationId: string;
   title: string;
@@ -96,6 +101,7 @@ export default {
   queriesEnabled,
   isEditingBadges,
   showShortcutsDialog,
+  showSystemCore,
   keyboardDeleteTarget,
   customShortcuts,
   chatBadges,
