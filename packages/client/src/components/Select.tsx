@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { CaretSortIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
+import { usePopoverZIndex } from './OriginalDialog';
 import { cn } from '~/utils';
 
 // @ts-ignore - Radix UI type conflicts with React types
@@ -80,35 +81,46 @@ const SelectContent: React.ForwardRefExoticComponent<
 > = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className = '', children, position = 'popper', ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        'relative z-40 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-border-light bg-surface-secondary text-text-primary shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-        position === 'popper'
-          ? 'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1'
-          : '',
-        className,
-      )}
-      position={position}
-      {...props}
-    >
-      <SelectScrollUpButton />
-      <SelectPrimitive.Viewport
+>(({ className = '', children, position = 'popper', style, ...props }, ref) => {
+  /* The content is portalled to document.body, so a fixed z-index leaves it
+   * behind any OGDialog (whose own content sits at 140 and climbs with nesting
+   * depth). usePopoverZIndex resolves the right layer for wherever this Select
+   * happens to be — 50 outside a dialog, above the dialog's content inside one.
+   * Radix hoists the content's computed z-index onto the popper wrapper, which
+   * is why setting it here is what moves the dropdown. */
+  const zIndex = usePopoverZIndex();
+
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={ref}
+        style={{ zIndex, ...style }}
         className={cn(
-          'p-1',
+          'relative max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-border-light bg-surface-secondary text-text-primary shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
           position === 'popper'
-            ? 'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
+            ? 'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1'
             : '',
+          className,
         )}
+        position={position}
+        {...props}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-));
+        <SelectScrollUpButton />
+        <SelectPrimitive.Viewport
+          className={cn(
+            'p-1',
+            position === 'popper'
+              ? 'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
+              : '',
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+        <SelectScrollDownButton />
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  );
+});
 SelectContent.displayName = SelectPrimitive.Content.displayName;
 
 const SelectLabel: React.ForwardRefExoticComponent<

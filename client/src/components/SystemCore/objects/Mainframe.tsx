@@ -40,11 +40,11 @@ export default function Mainframe() {
 
   return (
     <group name="mainframe">
-      <mesh name="mainframe-spine" material={spineMat}>
+      {/* <mesh name="mainframe-spine" material={spineMat}>
         <cylinderGeometry
           args={[MAINFRAME.spineRadius, MAINFRAME.spineRadius, MAINFRAME.spineHeight, 20]}
         />
-      </mesh>
+      </mesh> */}
       {CAPS.map((cap) => (
         <mesh
           key={cap.name}

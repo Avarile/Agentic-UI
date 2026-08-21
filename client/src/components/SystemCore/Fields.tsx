@@ -344,16 +344,30 @@ export function Field(props: Omit<ControlProps, 'id'>) {
     return null;
   }
   const id = `sysc-${props.path.replace(/\./g, '-')}`;
+  // Toggles put the caption and the control side by side, so they take the full
+  // width of the two-column grid: in one column the caption crowds the box out
+  // of the row, and the panel's `overflow-y-auto` then clips it away entirely —
+  // an unclickable checkbox.
   const inline = spec.ui.control === 'toggle';
   return (
     <div
       className={cn(
         'min-w-0',
-        spec.ui.wide === true ? 'col-span-2' : '',
+        spec.ui.wide === true || inline ? 'col-span-2' : '',
         inline ? 'flex items-center justify-between gap-2' : 'flex flex-col gap-1',
       )}
     >
-      <Label id={`${id}-label`} htmlFor={id} className="shrink-0 text-xs text-text-secondary">
+      {/* Label ships `w-full break-all`, which is right above a stacked control
+          and wrong beside an inline one — it leaves nothing for the control to
+          occupy. Beside one it flexes and is allowed to shrink instead. */}
+      <Label
+        id={`${id}-label`}
+        htmlFor={id}
+        className={cn(
+          'text-xs text-text-secondary',
+          inline ? 'w-auto min-w-0 flex-1 break-words' : '',
+        )}
+      >
         {spec.ui.label}
       </Label>
       <Control {...props} id={id} />

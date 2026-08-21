@@ -18,3 +18,11 @@ if (typeof globalThis.Request === 'undefined') {
     }
   };
 }
+
+/** jsdom does not expose structuredClone; the app uses it to deep-copy plain
+ *  data (prompt group caches, System Core module drafts). v8's serializer gives
+ *  the same semantics for the JSON-safe values those call sites pass. */
+if (typeof globalThis.structuredClone === 'undefined') {
+  const v8 = require('node:v8');
+  globalThis.structuredClone = (value) => v8.deserialize(v8.serialize(value));
+}
