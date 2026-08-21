@@ -20,9 +20,9 @@ function SystemCoreButton() {
           data-testid="system-core-button"
           aria-label={localize('com_ui_system_core_open')}
           onClick={open}
-          className="size-10 rounded-xl text-text-primary hover:bg-surface-hover"
+          className="inline-flex size-9 flex-shrink-0 items-center justify-center rounded-xl border border-border-light bg-presentation text-text-primary transition-all ease-in-out hover:bg-surface-tertiary disabled:pointer-events-none disabled:opacity-50 radix-state-open:bg-surface-tertiary"
         >
-          <Boxes className="size-5" aria-hidden="true" />
+          <Boxes className="icon-sm" aria-hidden="true" />
         </Button>
       }
     />
