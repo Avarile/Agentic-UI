@@ -3,13 +3,13 @@
 The client runs **two state libraries side by side**. That is a deliberate split,
 not drift.
 
-| | Recoil | Jotai |
-|---|---|---|
-| Holds | The conversation model | Preferences; high-frequency per-conversation values |
-| Shape | Atom *families* keyed by pane index or conversation id, plus derived selectors | Small independent atoms and atom families |
-| Why | `atomFamily`/`selectorFamily` and `useRecoilCallback` (read without subscribing) are what the chat machinery is built on | A write should re-render exactly one subscriber |
-| Export style | Modules default-export an object, spread into one `store` namespace | Named exports, re-exported with `export *` |
-| Import as | `store.isSubmittingFamily(index)` | `import { fontSizeAtom } from '~/store/fontSize'` |
+|              | Recoil                                                                                                                   | Jotai                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| Holds        | The conversation model                                                                                                   | Preferences; high-frequency per-conversation values |
+| Shape        | Atom _families_ keyed by pane index or conversation id, plus derived selectors                                           | Small independent atoms and atom families           |
+| Why          | `atomFamily`/`selectorFamily` and `useRecoilCallback` (read without subscribing) are what the chat machinery is built on | A write should re-render exactly one subscriber     |
+| Export style | Modules default-export an object, spread into one `store` namespace                                                      | Named exports, re-exported with `export *`          |
+| Import as    | `store.isSubmittingFamily(index)`                                                                                        | `import { fontSizeAtom } from '~/store/fontSize'`   |
 
 A name is exported once, from one library. Reaching for `store.x` and finding
 nothing usually means `x` is a Jotai atom that needs a named import.
@@ -59,7 +59,7 @@ last agent, spec, tools and endpoint settings reach localStorage, and where a
 brand-new conversation's settings are reflected into the URL. Keeping it in the
 effect means every writer persists identically and no call site can forget.
 
-This is also why `routes/ChatRoute.tsx` is so careful about *when* it creates a
+This is also why `routes/ChatRoute.tsx` is so careful about _when_ it creates a
 conversation: an early call writes half-loaded state, and the effect faithfully
 persists it as the next session's defaults.
 
@@ -73,7 +73,7 @@ The same reasoning produces the id-set atoms. `appliedSteerIdsByConvoId` records
 steer ids whose `on_steer_applied` event has landed; `acceptedSteerClientIdsByConvoId`
 records optimistic ids the server has acknowledged. The 202 ACK and the SSE event
 travel on different connections and arrive in either order, so "already handled"
-has to be *recorded*, not inferred. The applied set is capped rather than cleared,
+has to be _recorded_, not inferred. The applied set is capped rather than cleared,
 because a late event can arrive after the run's final frame and must still be
 recognized.
 
@@ -83,12 +83,12 @@ recognized.
 
 Four helpers, and the choice between them is a product decision:
 
-| Helper | Library | Persists | Cross-tab | Use for |
-|---|---|---|---|---|
-| `atomWithLocalStorage` | Recoil | yes | yes | Any persisted Recoil atom |
-| `createStorageAtom` | Jotai | yes | yes | User *preferences* — a font size should follow the user everywhere |
-| `createTabIsolatedAtom` | Jotai | yes | **no** | Per-tab working state |
-| `createStorageAtomWithEffect` | Jotai | yes | yes | Values that must also reach the DOM |
+| Helper                        | Library | Persists | Cross-tab | Use for                                                            |
+| ----------------------------- | ------- | -------- | --------- | ------------------------------------------------------------------ |
+| `atomWithLocalStorage`        | Recoil  | yes      | yes       | Any persisted Recoil atom                                          |
+| `createStorageAtom`           | Jotai   | yes      | yes       | User _preferences_ — a font size should follow the user everywhere |
+| `createTabIsolatedAtom`       | Jotai   | yes      | **no**    | Per-tab working state                                              |
+| `createStorageAtomWithEffect` | Jotai   | yes      | yes       | Values that must also reach the DOM                                |
 
 Tab isolation is achieved by omitting `subscribe` from the SyncStorage adapter —
 no `storage` event listener, no propagation. It exists for a concrete reason:

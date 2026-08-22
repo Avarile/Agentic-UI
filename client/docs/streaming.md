@@ -11,7 +11,7 @@ of one capability.
 
 **A generation is owned by the server, not by the tab that started it.** It
 survives a reload, a network drop, a tab switch, a second tab. The client
-*attaches* to a run and can re-attach later.
+_attaches_ to a run and can re-attach later.
 
 Everything below follows from that.
 
@@ -46,7 +46,7 @@ submission as "do nothing".
 `ask` mints messages with `v4()` ids and no timestamps. That shape is not an
 oversight; it is a signal. `data-provider/Messages/queries.ts` detects it
 (`isUnhydratedMessage`: no `createdAt`/`updatedAt`, or an id ending in `_`) to
-decide when *not* to trust a server response — see below.
+decide when _not_ to trust a server response — see below.
 
 A streaming message's id changes three times: client UUID → created-handler id →
 server id. Nothing downstream may assume it is stable.
@@ -61,7 +61,7 @@ features like same-id steer retry.
 
 Negotiation is **fail-closed**: only an exact numeric echo of `2` enables v2. An
 old server, a stripped field, the string `"2"`, or a future version all stay on
-the legacy path. The negotiated version is carried *per generation*
+the legacy path. The negotiated version is carried _per generation_
 (`activeGenerationProtocolVersionByConvoId`), not per session.
 
 `postGenerationRequest` exists rather than reusing the shared Axios helper
@@ -69,7 +69,7 @@ because these routes need `request.authenticatedFetch`, which preserves the
 protocol header across a transparent 401 token refresh. It re-shapes failures
 into an Axios-like error so existing retry logic keeps working, and stamps
 `ERR_NETWORK` on transport failures — `fetch` does not provide it, and the start
-retry loop uses it to tell an *ambiguous* transport failure from a definite
+retry loop uses it to tell an _ambiguous_ transport failure from a definite
 rejection.
 
 That distinction matters: a retry that is actually a duplicate start is much
@@ -98,7 +98,7 @@ network blip a bounded number of times, and reconcile on a predecessor mismatch.
 ## Reconnection means reconciliation, not replacement
 
 On re-attach the server sends its view of the run: content so far, pending
-steers, applied steer ids. Local optimistic state may be *ahead of* or *behind*
+steers, applied steer ids. Local optimistic state may be _ahead of_ or _behind_
 it, so the client merges. `hooks/SSE/useResumeOnLoad.ts` is the entry point:
 
 - it asks whether the conversation has a live stream (`fetchStreamStatus`, and
@@ -110,7 +110,7 @@ it, so the client merges. `hooks/SSE/useResumeOnLoad.ts` is the entry point:
 
 **It must not run against a half-loaded cache.** `ChatView` gates it on
 `!isLoading && !isFetching`, not just `!isLoading`, because navigation now
-*invalidates* rather than removes the message cache — so a warm conversation
+_invalidates_ rather than removes the message cache — so a warm conversation
 mounts with `isLoading: false` while its refetch is still in flight, and resuming
 from that builds the wrong tail.
 
@@ -127,16 +127,16 @@ persisted, so a refetch can return **fewer messages** than are on screen — or 
 Trusting the response there wipes the reply out from under the user. Two
 predicates encode when not to:
 
-| Predicate | Keeps the cache when |
-|---|---|
-| `getStableMessages` | the response is a strict *prefix* of the cache, a stream is live, and the cache ends in a pending assistant tail |
-| `shouldPreserveMessagesOnNotFound` | same conditions, for a 404 |
+| Predicate                          | Keeps the cache when                                                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `getStableMessages`                | the response is a strict _prefix_ of the cache, a stream is live, and the cache ends in a pending assistant tail |
+| `shouldPreserveMessagesOnNotFound` | same conditions, for a 404                                                                                       |
 
 Both are narrow on purpose — prefix-only, streaming-only, pending-tail-only. A
 response that is genuinely different (a fork, a deletion) still wins.
 
 `hasActiveJob` consults the active-jobs cache so the guard also holds after a
-reload, when nothing is streaming *in this tab* but the run continues. The cache
+reload, when nothing is streaming _in this tab_ but the run continues. The cache
 is re-read after the `await` and preferred if it changed, so a concurrent SSE
 write is never clobbered by an in-flight fetch.
 
@@ -157,8 +157,8 @@ Two specific hazards, both handled in `hooks/Chat/useChatHelpers.ts`:
 the pane has navigated to another conversation and armed its own interrupt. Every
 clear is identity-guarded on `(conversationId, generationCreatedAt)`.
 `hooks/Chat/abort.ts` is the minimal version of that guard: capture the
-submission *before* the round trip, clear only if it is still current. Without it,
-the abort response tears down the *next* run's stream before it attaches, and its
+submission _before_ the round trip, clear only if it is still current. Without it,
+the abort response tears down the _next_ run's stream before it attaches, and its
 placeholder finalizes empty — a bug that presents as "the model returned nothing".
 
 **A drain signal that never arrives.** Clearing submissions can tear down the SSE
@@ -192,7 +192,7 @@ risk a double injection.
 
 The recurring problem is **ordering across two transports**: the steer POST's ACK
 and the `on_steer_applied` SSE event travel on different connections, so "applied"
-can arrive *before* the ACK that would have created the local chip. The client
+can arrive _before_ the ACK that would have created the local chip. The client
 therefore records what has happened rather than assuming an order —
 `appliedSteerIdsByConvoId` and `acceptedSteerClientIdsByConvoId` — and every path
 consults those sets. This is also what stops a late POST error from resurrecting
@@ -236,12 +236,12 @@ appear in the sidebar, and a title must update there, without refetching.
 
 Specialized folders:
 
-| Handler | Folds |
-|---|---|
-| `useContentHandler` | text and reasoning deltas — the hot path, kept allocation-light |
-| `useStepHandler` | agent run steps: tool calls whose arguments stream as text fragments and must be accumulated before they are valid JSON, outputs arriving separately from their call, and steps that nest when a tool spawns a subagent |
-| `useAttachmentHandler` | attachments, so a file the model produced renders when announced |
-| `useUsageHandler` | token usage — accumulate then finalize (see [state.md](./state.md)) |
+| Handler                | Folds                                                                                                                                                                                                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useContentHandler`    | text and reasoning deltas — the hot path, kept allocation-light                                                                                                                                                         |
+| `useStepHandler`       | agent run steps: tool calls whose arguments stream as text fragments and must be accumulated before they are valid JSON, outputs arriving separately from their call, and steps that nest when a tool spawns a subagent |
+| `useAttachmentHandler` | attachments, so a file the model produced renders when announced                                                                                                                                                        |
+| `useUsageHandler`      | token usage — accumulate then finalize (see [state.md](./state.md))                                                                                                                                                     |
 
 `buildCreatedInitialResponse` is exported because the resumable path must
 reconstruct the same placeholder when re-attaching to a run whose `created` event

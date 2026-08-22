@@ -21,16 +21,16 @@ one of three renderers    by message shape
 ```
 
 Every streaming write produces fresh `children` arrays. That is what lets the
-recursion re-render only the *spine* leading to the changed message while settled
+recursion re-render only the _spine_ leading to the changed message while settled
 rows bail out of their memo comparators.
 
 ### The three renderers
 
-| Shape | Renderer | Lives in |
-|---|---|---|
-| assistants endpoint + `content[]` | `MessageParts` | `components/Chat/Messages/` |
-| `content[]` (standard endpoints) | `MessageContent` | `components/Messages/` |
-| legacy `text` only | `Message` | `components/Chat/Messages/` |
+| Shape                             | Renderer         | Lives in                    |
+| --------------------------------- | ---------------- | --------------------------- |
+| assistants endpoint + `content[]` | `MessageParts`   | `components/Chat/Messages/` |
+| `content[]` (standard endpoints)  | `MessageContent` | `components/Messages/`      |
+| legacy `text` only                | `Message`        | `components/Chat/Messages/` |
 
 The directory split is meaningful. `components/Chat/Messages/` is chat-specific
 row and tree machinery. `components/Messages/` holds the chat-**agnostic**
@@ -58,13 +58,13 @@ prop entirely.
 
 ### 2. Sibling selection reconciles by identity, not by reset
 
-Sibling selection is *positional* (a reversed index), so any change to a level's
+Sibling selection is _positional_ (a reversed index), so any change to a level's
 children array would silently change what is displayed. Blanket-resetting on
 change is wrong; so is ignoring the change. The effect distinguishes:
 
 - an **appended** newest child means a submission landed here — send, regenerate
   and edit-resubmit all append — so follow it (the long-standing behaviour). An
-  append is a newest-id change where the *prior* newest still exists.
+  append is a newest-id change where the _prior_ newest still exists.
 - a newest id that changed while the previous one **vanished** is the same row
   being re-keyed mid-stream, and must not move the selection.
 
@@ -73,7 +73,7 @@ change is wrong; so is ignoring the change. The effect distinguishes:
 
 ### 3. The child recursion is a sibling of the row, not nested inside it
 
-If the recursion were rendered *inside* the row, a row that bailed out via its
+If the recursion were rendered _inside_ the row, a row that bailed out via its
 memo comparator would sever the walk that delivers streaming updates to its
 descendants.
 
@@ -97,7 +97,7 @@ This is also why the index-assigning providers take a `baseIndex`:
 `ArtifactContext` and `CodeBlockContext` count artifacts and code fences in
 document order, and each block gets its own provider seeded with the running count
 from earlier blocks. A single shared counter would be defeated by memoization.
-`CodeBlockContext` keeps a *second* sequence for mermaid fences, which the
+`CodeBlockContext` keeps a _second_ sequence for mermaid fences, which the
 executable-code counter skips; both reset together, because a streaming block
 re-renders its fences on every token and restarting is what keeps a diagram's
 index tied to its position rather than drifting upward as the message grows.
@@ -110,13 +110,13 @@ never bails and the whole tree would re-render.
 
 ### 3. Narrow subscriptions
 
-| Seam | Why |
-|---|---|
-| `MessagesViewContext` | re-exports only the fields the list needs, in four separately memoized clusters (conversation, submission state, operations, message state), so a change in one does not produce new identities for the others |
-| `useLatestMessage` | split into `useLatestMessage` / `useLatestMessageId` / `useLatestMessageMeta`, so a consumer needing only an id for an equality check does not subscribe to a whole message |
-| `EditorContext` | split into `CodeContext` (every keystroke) and `MutationContext` (rare), so typing does not re-render the toolbar |
-| `MessageContext` | per-message identity and render flags, so `isSubmitting`/`isLatestMessage` cost is paid only by the streaming message |
-| `useMemoizedChatContext` | a memoized ChatContext slice for message subtrees |
+| Seam                     | Why                                                                                                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MessagesViewContext`    | re-exports only the fields the list needs, in four separately memoized clusters (conversation, submission state, operations, message state), so a change in one does not produce new identities for the others |
+| `useLatestMessage`       | split into `useLatestMessage` / `useLatestMessageId` / `useLatestMessageMeta`, so a consumer needing only an id for an equality check does not subscribe to a whole message                                    |
+| `EditorContext`          | split into `CodeContext` (every keystroke) and `MutationContext` (rare), so typing does not re-render the toolbar                                                                                              |
+| `MessageContext`         | per-message identity and render flags, so `isSubmitting`/`isLatestMessage` cost is paid only by the streaming message                                                                                          |
+| `useMemoizedChatContext` | a memoized ChatContext slice for message subtrees                                                                                                                                                              |
 
 ### 4. Isolated re-render hosts
 
@@ -153,7 +153,7 @@ per-frame following resumes, so the two do not fight, and `prefersReducedMotion`
 swaps glides for jumps.
 
 `hooks/Messages/useMessageProcess.tsx` is the handover: a throttled scroll handler
-sets `abortScroll` to whatever `isSubmitting` currently is — so a scroll *during*
+sets `abortScroll` to whatever `isSubmitting` currently is — so a scroll _during_
 generation stops the follow and a scroll after it finishes does not.
 `isSubmitting` is read through a ref so the throttled handler keeps a stable
 identity; re-creating it would reset the throttle window.
@@ -161,7 +161,7 @@ identity; re-creating it would reset the throttle window.
 ### Content that changes size after layout
 
 `hooks/Messages/messageLayout.ts`. Expanding a tool output or a code block changes
-a message's height *after* the browser has laid out the scroll container, so the
+a message's height _after_ the browser has laid out the scroll container, so the
 follow logic would compute against a stale maximum.
 `getRenderedContentMaxScrollTop` measures what is actually rendered rather than
 trusting `scrollHeight`, and a **custom DOM event**
@@ -180,16 +180,16 @@ providers wrap this rather than individual parts.
 
 Grouping happens before rendering, so long runs stay readable:
 
-| Helper | Collapses |
-|---|---|
-| `utils/groupToolCalls.ts` | consecutive tool calls into one block |
-| `utils/activityLabels.ts` | consecutive activity labels into named phases with start/end indices |
-| `ParallelContent.tsx` | parts sharing a `groupId`, laid out side by side (detected by `useContentMetadata`) |
+| Helper                    | Collapses                                                                           |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `utils/groupToolCalls.ts` | consecutive tool calls into one block                                               |
+| `utils/activityLabels.ts` | consecutive activity labels into named phases with start/end indices                |
+| `ParallelContent.tsx`     | parts sharing a `groupId`, laid out side by side (detected by `useContentMetadata`) |
 
 Error containment is per-part, not per-message: `MarkdownErrorBoundary` and
 `MermaidErrorBoundary` exist because streaming content is frequently mid-syntax.
 Without them one malformed fence would blank the conversation. For mermaid
-specifically, failures are *expected* — the diagram source streams in, so most
+specifically, failures are _expected_ — the diagram source streams in, so most
 intermediate states are invalid — and are rendered as a quiet placeholder rather
 than an error.
 
@@ -202,7 +202,7 @@ window:
 
 - **Search results** (`routes/Search.tsx`) — `react-virtualized` with a
   `CellMeasurerCache`. Every way a row's height can change after measurement needs
-  an explicit invalidation: a new query (drop all *and* scroll to top, since
+  an explicit invalidation: a new query (drop all _and_ scroll to top, since
   `keepPreviousData` leaves the old list at its old scrollTop), a font-size change
   (drop all, keep position), an appended page (keep measures), any other content
   change at the same row count (drop all), a container width change (the cache is

@@ -9,11 +9,11 @@ it is, and what it connects to — read the file's header before reading the fil
 
 Deep dives live in [`docs/`](./docs):
 
-| Document | Covers |
-|---|---|
-| [`docs/state.md`](./docs/state.md) | The Recoil/Jotai split, keying conventions, persistence |
+| Document                                   | Covers                                                   |
+| ------------------------------------------ | -------------------------------------------------------- |
+| [`docs/state.md`](./docs/state.md)         | The Recoil/Jotai split, keying conventions, persistence  |
 | [`docs/streaming.md`](./docs/streaming.md) | The generation lifecycle: send → stream → resume → abort |
-| [`docs/rendering.md`](./docs/rendering.md) | The message tree and why it renders the way it does |
+| [`docs/rendering.md`](./docs/rendering.md) | The message tree and why it renders the way it does      |
 
 ---
 
@@ -22,17 +22,17 @@ Deep dives live in [`docs/`](./docs):
 Nine directories under `src/`, in dependency order. Each layer may import from
 the layers above it in this table, and should not import downward.
 
-| Layer | Directory | Files | Owns |
-|---|---:|---:|---|
-| Pure functions | `utils/` | 78 | Tree building, cache reconciliation, parsing, sanitizing, formatting. React-free. |
-| Types | `common/`, `@types/` | 11 | Client-only types. Wire types come from `librechat-data-provider`. |
-| State | `store/` | 27 | Atoms and selectors. Values, not orchestration. |
-| Data access | `data-provider/` | 46 | React Query hooks: keys, staleness, invalidation, optimistic updates. |
-| Behaviour | `hooks/` | 218 | Everything that coordinates state, queries and effects. |
-| Contexts | `Providers/` | 28 | The seams that share behaviour down a subtree. |
-| Components | `components/` | 861 | Rendering. |
-| Routes | `routes/` | 11 | URL → state resolution and the auth boundary. |
-| Cross-cutting | `a11y/`, `lib/`, `locales/` | 16 | Live regions, RUM, i18n. |
+| Layer          |                   Directory | Files | Owns                                                                              |
+| -------------- | --------------------------: | ----: | --------------------------------------------------------------------------------- |
+| Pure functions |                    `utils/` |    78 | Tree building, cache reconciliation, parsing, sanitizing, formatting. React-free. |
+| Types          |        `common/`, `@types/` |    11 | Client-only types. Wire types come from `librechat-data-provider`.                |
+| State          |                    `store/` |    27 | Atoms and selectors. Values, not orchestration.                                   |
+| Data access    |            `data-provider/` |    46 | React Query hooks: keys, staleness, invalidation, optimistic updates.             |
+| Behaviour      |                    `hooks/` |   218 | Everything that coordinates state, queries and effects.                           |
+| Contexts       |                `Providers/` |    28 | The seams that share behaviour down a subtree.                                    |
+| Components     |               `components/` |   861 | Rendering.                                                                        |
+| Routes         |                   `routes/` |    11 | URL → state resolution and the auth boundary.                                     |
+| Cross-cutting  | `a11y/`, `lib/`, `locales/` |    16 | Live regions, RUM, i18n.                                                          |
 
 Imports use the `~/` alias for `src/` (configured in both `vite.config.ts` and
 `tsconfig.json`), so `~/hooks`, `~/store`, `~/utils` are the canonical forms.
@@ -84,7 +84,7 @@ Two boot details that are easy to break:
 
 ## 3. Routing and the auth boundary
 
-`routes/index.tsx` expresses authentication as *structure*, not as conditionals.
+`routes/index.tsx` expresses authentication as _structure_, not as conditionals.
 Three sibling trees, in decreasing publicness:
 
 ```
@@ -136,7 +136,7 @@ Providers/                shared down a subtree
 components/               render
 ```
 
-`data-provider/` is *not* the same thing as the `librechat-data-provider`
+`data-provider/` is _not_ the same thing as the `librechat-data-provider`
 package. The package owns the wire contract. This directory owns what the package
 cannot know: cache keys, invalidation after a mutation, polling and backoff, and
 query gating on auth or permission.
@@ -171,7 +171,7 @@ it; `hooks/SSE/` reads it and writes messages back. See
 
 ## 5. Conventions worth knowing before you read code
 
-**Keying.** `*ByIndex` / `*Family` atoms are keyed by *pane index* — 0 is the
+**Keying.** `*ByIndex` / `*Family` atoms are keyed by _pane index_ — 0 is the
 primary chat, 1..n are the extra panes of a multi-response run. `*ByConvoId`
 atoms are keyed by conversation id, for state that must survive a pane being
 reused for a different conversation.
@@ -179,13 +179,13 @@ reused for a different conversation.
 **"Unknown" is not "empty".** Several contexts default to `undefined` rather
 than `{}` — most importantly `AgentsMapContext`. Consumers ask "is this id in the
 map?" to decide whether a stored selection is still valid, so an empty-object
-default reads as a *loaded but empty* catalogue and silently discards every valid
+default reads as a _loaded but empty_ catalogue and silently discards every valid
 stored pick. The same distinction drives the use of `isNotFoundError` throughout:
 a 404 means gone, a 500 means try again, and the two must not collapse.
 
 **Terminal signals are queues, not slots.** `runEndsByIndex` and
 `pendingRunEndsByConvoId` hold arrays. A pane can receive conversation A's final
-frame *after* the user has navigated to B and started a run there; a single
+frame _after_ the user has navigated to B and started a run there; a single
 replaceable slot loses A. For the same reason, "already handled" is recorded
 rather than inferred (`appliedSteerIdsByConvoId`) — a 202 ACK and its SSE event
 travel on different connections and arrive in either order.
@@ -196,7 +196,7 @@ and then writes state is fenced on `(conversationId, generationCreatedAt)`. See
 
 **Two message renderers under two directories.** `components/Chat/Messages/` is
 the chat-specific row and tree machinery. `components/Messages/` is the
-chat-*agnostic* rendering primitives — code blocks, mermaid, markdown container,
+chat-_agnostic_ rendering primitives — code blocks, mermaid, markdown container,
 the standard content renderer — reused by the share route, search results and
 the artifacts panel, none of which have a live chat around them.
 
@@ -218,16 +218,16 @@ site. Widening an allowlist widens what any config on any deployment can inject.
 
 ## 6. Where to add things
 
-| You want to… | Put it… |
-|---|---|
-| Call a new endpoint | `data-provider/<Feature>/queries.ts` or `mutations.ts`, re-exported through `<Feature>/index.ts` then `data-provider/index.ts` |
-| Hold new state | `store/` — a value or selector only. Recoil for conversation-shaped state, Jotai for preferences and high-frequency per-conversation values |
-| Coordinate state, queries or effects | `hooks/<Domain>/` — the folder named after the thing being manipulated |
-| Share behaviour down a subtree | `Providers/`, typed as `ReturnType<typeof theHook>` so it cannot drift |
-| Add a pure decision | `utils/` — and unit-test it there rather than through a component |
-| Add UI | the feature directory under `components/`; a genuinely new primitive goes in `@librechat/client`, not `components/ui/` |
-| Add a route | `routes/index.tsx`, under the correct auth subtree; use `lazy:` if it pulls a heavy dependency tree |
-| Add user-facing text | `locales/en/translation.json` with a `com_*` key, read via `useLocalize()` |
+| You want to…                         | Put it…                                                                                                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Call a new endpoint                  | `data-provider/<Feature>/queries.ts` or `mutations.ts`, re-exported through `<Feature>/index.ts` then `data-provider/index.ts`              |
+| Hold new state                       | `store/` — a value or selector only. Recoil for conversation-shaped state, Jotai for preferences and high-frequency per-conversation values |
+| Coordinate state, queries or effects | `hooks/<Domain>/` — the folder named after the thing being manipulated                                                                      |
+| Share behaviour down a subtree       | `Providers/`, typed as `ReturnType<typeof theHook>` so it cannot drift                                                                      |
+| Add a pure decision                  | `utils/` — and unit-test it there rather than through a component                                                                           |
+| Add UI                               | the feature directory under `components/`; a genuinely new primitive goes in `@librechat/client`, not `components/ui/`                      |
+| Add a route                          | `routes/index.tsx`, under the correct auth subtree; use `lazy:` if it pulls a heavy dependency tree                                         |
+| Add user-facing text                 | `locales/en/translation.json` with a `com_*` key, read via `useLocalize()`                                                                  |
 
 ---
 
