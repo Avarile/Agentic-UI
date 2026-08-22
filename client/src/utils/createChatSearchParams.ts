@@ -1,3 +1,9 @@
+// Serializes conversation settings to URL query params, and validates them back.
+//
+// What makes a conversation's configuration shareable as a link. `processValidSettings`
+// is the inbound half and is deliberately strict — an unrecognized or malformed
+// param is dropped rather than applied, since these values reach the request.
+
 import {
   EModelEndpoint,
   isAgentsEndpoint,

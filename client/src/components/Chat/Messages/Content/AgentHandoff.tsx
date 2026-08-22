@@ -1,3 +1,5 @@
+// The marker where one agent hands control to another.
+
 import React, { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { EModelEndpoint, Constants } from 'librechat-data-provider';

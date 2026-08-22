@@ -1,3 +1,42 @@
+/**
+ * Builds the tool set for a run: manifest tools, Actions, MCP tools, and built-ins.
+ *
+ * The single place that answers "what tools can this agent actually call, and how are they
+ * executed". Splits into definition loading (schemas for the model) and execution loading
+ * (callable implementations).
+ *
+ * Design:
+ * - Definitions and executables are loaded separately (`loadToolDefinitionsWrapper` /
+ *   `loadAgentTools` vs. `loadToolsForExecution` / `loadActionToolsForExecution`). The model
+ *   only needs schemas to decide what to call, and instantiating every executable — each of
+ *   which may resolve credentials or open a connection — for tools that are never invoked is
+ *   wasted work on every turn.
+ * - Action tools: `normalizeActionToolName` keeps generated names within provider constraints,
+ *   `registerActionTools` binds them, and `isActionDomainAllowed` enforces the domain
+ *   allow-list at execution time as well as at save time.
+ * - MCP failures are classified rather than thrown blindly:
+ *   `isExpectedMCPTool`/`isExpectedMCPToolsUnavailableError`/`createExpectedMCPToolsUnavailableError`
+ *   distinguish "this server is down" from a real bug, so a temporarily unavailable server
+ *   degrades the run instead of failing it with a stack trace.
+ * - `isBuiltInTool` separates tools implemented in-process (bash execution, tool search) from
+ *   externally-provided ones; built-ins come from `@librechat/agents`
+ *   (`createBashExecutionTool`, `createToolSearch`,
+ *   `createBashProgrammaticToolCallingTool`).
+ * - `resolveAgentCapabilities` gates tool availability on the agent's configured capabilities,
+ *   so disabling a capability actually removes the tool rather than only hiding it in the UI.
+ * - `processRequiredActions` is the Assistants-API path: OpenAI pauses a run awaiting tool
+ *   outputs, and this submits them. `processVisionRequest` injects the vision shim for
+ *   assistants that lack native support.
+ * - Credentials are resolved per call (`getUserMCPAuthMap`, `loadAuthValues`), never cached in
+ *   the tool object, so a revoked key takes effect immediately.
+ * - Errors are redacted (`redactMessage`, `logToolError`) before logging — tool errors routinely
+ *   echo API keys back in provider messages.
+ *
+ * Connections:
+ * - manifest/structured tools: `app/clients/tools/`; MCP: `server/services/MCP.js`
+ * - actions: `server/services/ActionService.js`; credentials: `services/Tools/credentials.js`
+ * - consumers: `server/controllers/agents/client.js`, `services/AssistantService.js`
+ */
 const { logger, redactMessage } = require('@librechat/data-schemas');
 const { tool: toolFn, DynamicStructuredTool } = require('@librechat/agents/langchain/tools');
 const {

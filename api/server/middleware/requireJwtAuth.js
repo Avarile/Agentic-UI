@@ -1,3 +1,30 @@
+/**
+ * The standard authentication gate for API routes.
+ *
+ * Authenticates with the `jwt` Passport strategy, or `openidJwt` when the request carries a
+ * `token_provider=openid` cookie and `OPENID_REUSE_TOKENS` is enabled, then establishes tenant
+ * async-local context via `tenantContextMiddleware`.
+ *
+ * Design:
+ * - Strategy selection is per-request, driven by a cookie, so a deployment can serve both
+ *   LibreChat-issued and IdP-issued tokens at once. `hasPassportStrategy` guards the case where
+ *   `openidJwt` was never registered, so a stray cookie cannot 500 the request.
+ * - `openid_user_id` is a *signed* cookie verified against `JWT_REFRESH_SECRET` — the raw
+ *   value would be client-controlled and trusting it would be an impersonation vector.
+ * - Failures are categorized (`getAuthFailureReasonCategory`) and logged through
+ *   `buildSafeAuthLogContext`, which strips token material — auth logs must be safe to ship.
+ * - Tenant context is established *after* authentication so the ALS scope always reflects a
+ *   verified user.
+ * - Also exports `requireRumProxyAuth` for the RUM ingest proxy, which authenticates
+ *   differently (`recordRumProxyRequest`) because browser beacons cannot carry a bearer token.
+ * - CloudFront auth cookies are refreshed opportunistically here so signed media URLs keep
+ *   working through a long session.
+ *
+ * Connections:
+ * - strategies: `strategies/jwtStrategy.js`, `strategies/openIdJwtStrategy.js`
+ * - optional variant: `server/middleware/optionalJwtAuth.js`
+ * - applied by most routers under `server/routes/`
+ */
 const cookies = require('cookie');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');

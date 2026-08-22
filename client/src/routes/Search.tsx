@@ -1,3 +1,27 @@
+// The message-search results page.
+//
+// A virtualized list rather than a plain map, because a search can match thousands
+// of messages and each row renders full message content — markdown, code blocks,
+// tool output, images. Everything below the surface here is about keeping
+// `CellMeasurerCache` honest: it caches row heights, and every way a row's height
+// can change after measurement needs an explicit invalidation.
+//
+// The cases, all handled below: a new query (drop all heights *and* scroll to top,
+// since keepPreviousData leaves the old list mounted at its old scrollTop), a
+// font-size change (drop all, keep position), an appended page (keep measures),
+// any other content change at the same row count (drop all), a container width
+// change (the cache is `fixedWidth`, so heights are keyed by row only), and a
+// single row growing later — a ResizeObserver per row catches the late image or
+// expanded tool output.
+//
+// Rows are keyed by `messageId`, not by react-virtualized's positional `key`, so
+// React reconciles by message instead of by slot; otherwise scrolling reuses a row
+// instance for a different result and re-parses its whole subtree.
+//
+// `showingStale` combines two different "the results on screen are outgoing"
+// signals — mid-debounce typing and `isPreviousData` — and gates both the dimming
+// and pagination, so the outgoing list cannot fetch page 2 of the new query.
+
 import { memo, useCallback, useEffect, useMemo, useRef, type FC } from 'react';
 import { useAtomValue } from 'jotai';
 import throttle from 'lodash/throttle';

@@ -1,3 +1,15 @@
+/**
+ * Factories for file-upload rate limits: `createFileLimiters` and `createFileUsageLimiter`.
+ *
+ * IP and per-user limits (defaults 100 and 50 per 15 minutes) on upload endpoints. Exported as
+ * factories rather than instances because upload limits are read from config at mount time.
+ *
+ * Two separate concerns: `createFileLimiters` bounds *request* rate, while
+ * `createFileUsageLimiter` bounds aggregate usage — request count alone does not bound bytes,
+ * and file storage is the expensive resource.
+ *
+ * Connections: mounted in `server/routes/files/index.js`
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

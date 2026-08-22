@@ -1,3 +1,10 @@
+/**
+ * Shared test doubles for the conversations router tests.
+ *
+ * Kept in `__test-utils__` (not `__tests__`) so Jest does not collect it as a test file while
+ * several spec files still import the same mocks — one definition of the conversation fixtures
+ * and model stubs rather than a copy per spec.
+ */
 module.exports = {
   agents: () => ({ sleep: jest.fn() }),
 

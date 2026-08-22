@@ -1,3 +1,27 @@
+/**
+ * Current-user operations: profile, terms, plugin credentials, email verification, account deletion.
+ *
+ * `deleteUserController` is the heaviest path — deleting an account must not leave orphaned
+ * data or, worse, publicly reachable content. It fans out to files
+ * (`deleteUserFiles`/`processDeleteRequest`), MCP servers and their stored OAuth state
+ * (`deleteUserMcpServers`, `clearStoredMCPOAuthState`), agent checkpoints, and shared links
+ * (`deleteAllSharedLinksWithCleanup`). A stale share would otherwise keep serving a deleted
+ * user's conversation.
+ *
+ * `updateUserPluginsController` manages BYOK plugin credentials. Uninstalling an
+ * OAuth-backed MCP plugin (`maybeUninstallOAuthMCP`) also revokes/clears its tokens and
+ * invalidates the tool cache (`invalidateCachedTools`), because a stale cached tool list would
+ * keep advertising a plugin the user no longer has credentials for. Web-search keys are
+ * handled specially via `extractWebSearchEnvVars`/`webSearchKeys`, since that feature spans
+ * several provider keys.
+ *
+ * `sanitizeUserForResponse` is applied to every user payload.
+ *
+ * Connections:
+ * - `server/services/PluginService.js`, `AuthService.js`, `twoFactorService.js`,
+ *   `Files/process.js`, `Config/getCachedTools.js`
+ * - MCP managers from `config/index.js`; route `server/routes/user.js`
+ */
 const mongoose = require('mongoose');
 const { logger, getTenantId, webSearchKeys } = require('@librechat/data-schemas');
 const {

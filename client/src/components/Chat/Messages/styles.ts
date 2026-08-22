@@ -1,3 +1,6 @@
+// Shared class strings for message rows: hover-reveal and footer treatments.
+// Extracted so the three renderers cannot drift apart visually.
+
 import { cn } from '~/utils';
 
 /**

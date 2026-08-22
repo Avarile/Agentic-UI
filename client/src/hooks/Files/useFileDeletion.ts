@@ -1,3 +1,6 @@
+// Deletion with optimistic removal, shared by the file tables and the attachment
+// chips.
+
 import { useCallback, useState, useEffect } from 'react';
 import debounce from 'lodash/debounce';
 import { FileSources, EToolResources, removeNullishValues } from 'librechat-data-provider';

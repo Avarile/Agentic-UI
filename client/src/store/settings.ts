@@ -1,3 +1,19 @@
+// Every user preference, in one place.
+//
+// Two groups: `staticAtoms` for session-only UI state, and `localStorageAtoms` for
+// anything that must survive a reload. Membership in the second group is the
+// meaningful decision — it is the difference between a preference and a transient.
+//
+// `atomWithLocalStorage` (store/utils.ts) takes an optional normalizer, and the
+// speech engine atoms use it as a migration seam: `normalizeSavedSpeechEngine`
+// maps historical stored values ('openai', 'azureOpenAI', 'elevenlabs', 'localai')
+// onto the current browser/external split and rewrites the stored value in place.
+// That is why old installs do not need a migration script.
+//
+// `sidebarExpanded` computes its default from a media query so a phone opens
+// collapsed and a desktop opens expanded, on first visit only — afterwards the
+// stored value wins.
+
 import { atom } from 'recoil';
 import { SettingsViews, LocalStorageKeys } from 'librechat-data-provider';
 import type { TOptionSettings } from '~/common';

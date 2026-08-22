@@ -1,3 +1,14 @@
+/**
+ * Returns the caller's token balance.
+ *
+ * Design: reads `res.locals.balanceData` when `setBalanceConfig` already loaded it, avoiding a
+ * second query on the common path, and returns 204 (not 404) when the balance feature is
+ * disabled — "no balance system" is different from "no balance record". Auto-refill fields are
+ * stripped when auto-refill is off, so the client cannot render a refill schedule that will
+ * never run. `_id` is always removed.
+ *
+ * Connections: `setBalanceConfig` from `packages/api`; route `server/routes/balance.js`
+ */
 const { findBalanceByUser } = require('~/models');
 
 async function balanceController(req, res) {

@@ -1,3 +1,16 @@
+// The scroll container for the message tree.
+//
+// Owns scrolling, not rendering: `useMessageScrolling` provides the follow/detach
+// behaviour and `MultiMessage` walks the tree. The nested `ScrollButton` component
+// exists purely to isolate re-renders — it owns the IntersectionObserver and the
+// button's visibility state, so a scroll-position flip re-renders a button rather
+// than the whole message tree. Intersection is reported upward because the
+// resize-follow logic needs it too.
+//
+// Bottom padding is reserved from `steerOverlayHeightFamily` so the newest message
+// clears the floating in-flight steer overlay at rest while older messages scroll
+// behind it (see store/steer.ts).
+
 import { memo, useState, useRef, useEffect } from 'react';
 import { useAtomValue } from 'jotai';
 import { useRecoilValue } from 'recoil';

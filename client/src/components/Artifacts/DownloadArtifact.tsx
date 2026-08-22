@@ -1,3 +1,5 @@
+// Downloads an artifact as a file.
+
 import React, { useState } from 'react';
 import { Button } from '@librechat/client';
 import { Download, CircleCheckBig } from 'lucide-react';

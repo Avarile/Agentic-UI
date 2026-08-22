@@ -1,3 +1,6 @@
+// Automatic playback of new assistant messages when the preference is on, including
+// the once-per-message guard.
+
 import { useMemo, useCallback } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import type { TMessage } from 'librechat-data-provider';

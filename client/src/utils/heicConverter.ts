@@ -1,3 +1,8 @@
+// Converts HEIC/HEIF uploads to a web-renderable format.
+//
+// Necessary rather than nice: iOS photos are HEIC by default and no browser renders
+// them, so without this every iPhone upload would appear broken.
+
 const HEIC_MIME_TYPES = new Set(['image/heic', 'image/heif']);
 const HEIC_EXTENSION_REGEX = /\.(heic|heif)$/i;
 type HeicToModule = typeof import('heic-to');

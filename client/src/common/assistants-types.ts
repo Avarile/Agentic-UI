@@ -1,3 +1,6 @@
+// Assistant builder form types, kept separate because the assistants API's shape
+// differs enough that sharing one form type would mean branching everywhere.
+
 import { Capabilities, EModelEndpoint } from 'librechat-data-provider';
 import type { Assistant, AssistantsEndpoint } from 'librechat-data-provider';
 import type { Option, ExtendedFile } from './types';

@@ -1,3 +1,6 @@
+// Per-endpoint assistant lists. ChatRoute waits on both assistants endpoints being
+// present here before initializing an assistants conversation.
+
 import { useMemo } from 'react';
 import { EModelEndpoint } from 'librechat-data-provider';
 import type { AssistantListResponse, AssistantsEndpoint } from 'librechat-data-provider';

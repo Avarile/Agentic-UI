@@ -1,3 +1,17 @@
+/**
+ * Tracks and dispatches Assistants run steps in the polling (non-streaming) path.
+ *
+ * Maintains `seenSteps` so each step is processed exactly once, and dispatches to per-status
+ * step handlers.
+ *
+ * Design: polling returns the *entire* step list on every tick, so deduplication is essential —
+ * without it every handler would fire repeatedly. Identity is not enough either: a step's
+ * contents change as it progresses, so `getToolCallSignature`/`getDetailsSignature` build a
+ * content signature and a step is reprocessed only when its signature actually changes. That is
+ * what prevents duplicate tool-call events while still surfacing genuine updates.
+ *
+ * Connections: `./handle.js`, `server/services/AssistantService.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { ToolCallTypes } = require('librechat-data-provider');
 

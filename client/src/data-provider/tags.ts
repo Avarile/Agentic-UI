@@ -1,3 +1,8 @@
+// Conversation tag reads.
+//
+// A single hook, kept separate from the tag *mutations* in mutations.ts by history
+// rather than design. Backs Providers/BookmarkContext.
+
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions, QueryObserverResult } from '@tanstack/react-query';
 import type { TConversationTagsResponse } from 'librechat-data-provider';

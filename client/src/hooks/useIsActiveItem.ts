@@ -1,3 +1,13 @@
+// Mirrors Ariakit's composite `data-active-item` attribute into React state.
+//
+// Ariakit tracks the active item of a composite widget (menu, combobox) by writing
+// a DOM attribute, which is invisible to React. This observes it so a child can
+// render differently while active without the parent having to thread the
+// selection down.
+//
+// The ref must be on an element that mounts synchronously with the first render —
+// a late-mounting ref is never observed.
+
 import { useRef, useState, useEffect } from 'react';
 import type { RefObject } from 'react';
 

@@ -1,3 +1,6 @@
+// Exports a conversation to markdown, JSON, CSV or plain text, walking the selected
+// branch of the message tree rather than the flat list.
+
 import { useCallback } from 'react';
 import download from 'downloadjs';
 import { useParams } from 'react-router-dom';

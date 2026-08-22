@@ -1,3 +1,5 @@
+// Role and permission helpers used by the access checks.
+
 import type { AccessRoleIds } from 'librechat-data-provider';
 import type { TranslationKeys } from '~/hooks/useLocalize';
 

@@ -1,3 +1,21 @@
+/**
+ * Clustered variant of `server/index.js`, kept for experimenting with multi-process serving.
+ *
+ * Forks `CLUSTER_WORKERS` (default 4) workers via `cluster`, adds a Redis cache flush on
+ * boot, and otherwise reproduces the same middleware and route wiring as `server/index.js`.
+ *
+ * Design: this is intentionally a *copy* rather than a refactor of `server/index.js` into a
+ * shared factory. The boot order in the primary entry point is delicate and load-bearing; a
+ * shared abstraction would couple the stable path to changes made while experimenting here.
+ * The cost is that fixes must be mirrored — the fail-fast boot comment in `server/index.js`
+ * explicitly references this file.
+ *
+ * Not the default entry point. Treat `server/index.js` as authoritative; if the two diverge,
+ * `server/index.js` wins.
+ *
+ * Connections:
+ * - mirrors `server/index.js` (same routes, middleware, strategies, config)
+ */
 require('../config/credentials');
 const fs = require('fs');
 const path = require('path');

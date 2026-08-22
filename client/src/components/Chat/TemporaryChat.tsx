@@ -1,3 +1,6 @@
+// The temporary-chat toggle: conversations that are never persisted server-side.
+// Writes `store.isTemporary`, which the submit path carries into the request.
+
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { TooltipAnchor } from '@librechat/client';

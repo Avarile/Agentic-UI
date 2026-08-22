@@ -1,3 +1,16 @@
+/**
+ * The shadcn/ui component catalog: import paths and usage snippets, as prompt data.
+ *
+ * Split into `essentialComponents` and `extraComponents`, merged into `components`.
+ *
+ * Design: the split is a token budget. The full catalog is large, and including all of it in
+ * every artifacts prompt would consume context that belongs to the conversation — so the
+ * essential set can be sent alone when the budget is tight. Entries are pure data (no logic), so
+ * adding a component is a catalog edit, and the snippets are deliberately minimal: they exist to
+ * teach the API surface, not to demonstrate design.
+ *
+ * Connections: consumed by `./generate.js` via `app/clients/prompts/artifacts.js`
+ */
 // Essential Components
 const essentialComponents = {
   avatar: {

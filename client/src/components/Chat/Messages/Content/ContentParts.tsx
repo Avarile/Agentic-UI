@@ -1,3 +1,10 @@
+// Dispatches a message's content parts to their renderers.
+//
+// The fan-out point for everything a message can contain: text, reasoning, tool
+// calls, artifacts, images, search results, approvals, questions. Part order is
+// document order, which is why the index-assigning providers (ArtifactContext,
+// CodeBlockContext) wrap this rather than individual parts.
+
 import { memo, useRef, useMemo, useCallback, Fragment } from 'react';
 import { ContentTypes } from 'librechat-data-provider';
 import type {

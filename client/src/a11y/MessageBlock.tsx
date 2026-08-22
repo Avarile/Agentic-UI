@@ -1,3 +1,6 @@
+// A block of announced content, used for multi-part announcements that should be
+// read as one utterance.
+
 import React from 'react';
 
 const offScreenStyle: React.CSSProperties = {

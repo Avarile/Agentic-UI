@@ -1,3 +1,14 @@
+// Factory for narrow react-hook-form contexts.
+//
+// react-hook-form's own `FormProvider` publishes the entire `useForm` return,
+// which changes identity constantly. This exposes only the seven methods
+// consumers actually use and memoizes them, so a keystroke in the composer does
+// not re-render every subscriber.
+//
+// The non-throwing `useOptionalCustomFormContext` is what allows message content
+// to render in hosts that have no form at all — the share route and search
+// results — with the same components used inside a live chat.
+
 import React, { createContext, PropsWithChildren, ReactElement, useContext, useMemo } from 'react';
 import type {
   Control,

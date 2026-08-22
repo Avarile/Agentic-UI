@@ -1,3 +1,16 @@
+/**
+ * GitHub OAuth2 provider binding.
+ *
+ * Supplies the profile normalizer only; account logic lives in `strategies/socialLogin.js`.
+ *
+ * Design: when `GITHUB_ENTERPRISE_BASE_URL` is set, the authorization, token, profile and
+ * email endpoints are all re-pointed at the GitHub Enterprise Server instance (and an
+ * optional custom user agent applied). Those overrides are spread conditionally so a
+ * public-github deployment keeps the library defaults.
+ *
+ * Exports the user strategy as the default and the admin (`existingUsersOnly`) variant as
+ * `.githubAdminLogin`.
+ */
 const { Strategy: GitHubStrategy } = require('passport-github2');
 const socialLogin = require('./socialLogin');
 

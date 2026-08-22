@@ -1,3 +1,6 @@
+// Exports a rendered diagram to SVG or PNG, normalizing the SVG first (fonts,
+// dimensions, theme colors) so the file looks the same outside the app.
+
 import React, { memo, useCallback, useId, useMemo, useRef, useState } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { FileCode2, FileImage, ImageDown, LoaderCircle } from 'lucide-react';

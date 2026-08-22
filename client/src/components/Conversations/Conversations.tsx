@@ -1,3 +1,5 @@
+// The grouped conversation list (by date), fed by the paginated query.
+
 import { useMemo, memo, type FC, useCallback, useEffect, useRef } from 'react';
 import throttle from 'lodash/throttle';
 import { useRecoilValue } from 'recoil';

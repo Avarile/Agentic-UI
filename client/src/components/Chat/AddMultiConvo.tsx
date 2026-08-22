@@ -1,3 +1,7 @@
+// Adds a second response pane, starting a parallel conversation against another
+// model. The entry point for everything `AddedChatContext` and the `byIndex` atom
+// families exist to support.
+
 import { useCallback } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { PlusCircle } from 'lucide-react';

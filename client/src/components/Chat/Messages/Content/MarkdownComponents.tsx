@@ -1,3 +1,6 @@
+// The element overrides handed to the markdown renderer — links, tables, code,
+// headings — mapped onto the design system's primitives.
+
 import React, { memo, useMemo, useRef, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useToastContext } from '@librechat/client';

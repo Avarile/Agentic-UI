@@ -1,3 +1,6 @@
+// Reads the per-conversation usage atoms into the shape the usage UI renders. Kept
+// out of store/usage.ts so the atoms stay values and the derivation stays a hook.
+
 import { useEffect, useMemo, useRef } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useQueryClient } from '@tanstack/react-query';

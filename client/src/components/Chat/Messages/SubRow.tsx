@@ -1,3 +1,6 @@
+// The row beneath a message's content that holds the sibling switcher and hover
+// buttons — a shared shell so the three message renderers align identically.
+
 import { cn } from '~/utils';
 
 type TSubRowProps = {

@@ -4,6 +4,31 @@
  *
  * @import { MCPServerRegistry } from '@librechat/api'
  * @import { MCPServerDocument } from 'librechat-data-provider'
+ *
+ * Design and the non-obvious safeguards:
+ * - `handleMCPError` maps MCP failure modes to distinct HTTP responses (domain not
+ *   allowed, inspection failed, OAuth secret re-entry required). These are
+ *   user-actionable and must not collapse into one 500.
+ * - Secrets are redacted on every read path (`redactServerSecrets`,
+ *   `redactAllServerSecrets`) — an MCP server config holds headers, tokens and env values.
+ * - `fenceCommittedMCPMutation` + `restoreRetainedServerCatalog`: mutating a server
+ *   disconnects it and clears its cached tool catalog. If the subsequent
+ *   reconnect/inspection fails, the retained catalog is restored so a failed edit does not
+ *   silently strip the user's tools.
+ * - `disconnectLocalMCPServer` tears down the per-user connection before a config change,
+ *   so the next call cannot reuse a connection built from the old config.
+ * - OBO (on-behalf-of) lockdown: `configHasObo`, `violatesOboLockdown` and
+ *   `callerCanConfigureObo` prevent a non-privileged user from adding or altering an
+ *   identity-delegation config — that would let them exchange tokens for other users.
+ * - `computeCanEditByServer` resolves editability per server in one pass so the listing
+ *   does not run a capability check per row.
+ * - `findShadowedServerNames` surfaces user-defined servers masked by an operator-defined
+ *   one of the same name; `normalizeServerName` keeps config and DB naming consistent.
+ *
+ * Connections:
+ * - route: `server/routes/mcp.js`; service: `server/services/MCP.js`
+ * - managers/registry: `config/index.js`; tool cache: `services/Config/getCachedTools.js`
+
  */
 const { randomUUID } = require('crypto');
 const { logger, SystemCapabilities } = require('@librechat/data-schemas');

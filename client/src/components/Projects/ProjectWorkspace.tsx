@@ -1,3 +1,5 @@
+// A single project: its conversations, and starting a new one scoped to it.
+
 import { useCallback, useId, useMemo, useState } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { useRecoilValue } from 'recoil';

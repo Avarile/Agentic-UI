@@ -1,3 +1,6 @@
+// Dictation entry point: picks the browser or external STT implementation from the
+// user's engine preference and presents one interface.
+
 import useSpeechToTextExternal from './useSpeechToTextExternal';
 import useSpeechToTextBrowser from './useSpeechToTextBrowser';
 import useGetAudioSettings from './useGetAudioSettings';

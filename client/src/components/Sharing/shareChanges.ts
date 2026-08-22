@@ -1,3 +1,6 @@
+// Diffs a sharing dialog's pending state against the server's, so the mutation
+// sends only what actually changed.
+
 import type { TPrincipal } from 'librechat-data-provider';
 
 /**

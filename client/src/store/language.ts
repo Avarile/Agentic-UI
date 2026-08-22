@@ -1,3 +1,17 @@
+// The UI language, resolved from the most specific source available.
+//
+// Precedence in `defaultLang()`: an explicit cookie (set server-side, so it can
+// follow an account), then localStorage, then the browser's own preference, then
+// 'en'. The cookie comes first so a server-side choice is not overridden by a
+// stale local value.
+//
+// `readStoredLang` tolerates both raw and JSON-encoded values because the key has
+// been written by both `atomWithLocalStorage` (which stringifies) and older code
+// (which did not).
+//
+// `languageLoading` gates rendering while a catalogue is fetched — see
+// components/System/LanguageSync.tsx.
+
 import { atom } from 'recoil';
 import Cookies from 'js-cookie';
 import { atomWithLocalStorage } from './utils';

@@ -1,3 +1,6 @@
+// The skill file tree editor. Content is fetched per node on selection rather than
+// with the tree, so opening a skill with many files stays cheap.
+
 import { useState, useCallback, useRef } from 'react';
 import { Save, FileText, Circle } from 'lucide-react';
 import { Button, Spinner, Textarea } from '@librechat/client';

@@ -1,3 +1,31 @@
+// Session ownership: the user, their token, their roles, and login/logout.
+//
+// Mounted once, on the AuthLayout route (see routes/index.tsx) rather than in
+// App.jsx, so the public share and OAuth routes never instantiate it and never
+// provoke a token refresh.
+//
+// The design points worth knowing before changing anything here:
+//
+//   Roles are fetched, not derived. Three separate `useGetRole` calls — the USER
+//   role, the ADMIN role when applicable, and a custom role when the user's role
+//   name is not a system one — because permissions are server-defined and
+//   `useHasAccess` needs the resolved permission set, not the role name.
+//
+//   `setUserContext` is debounced. Login, refresh and logout can all land close
+//   together (a refresh racing a navigation), and each one sets user, token, auth
+//   flag, and possibly a redirect. Debouncing collapses that into one coherent
+//   transition instead of several partial ones.
+//
+//   Redirects are resolved by precedence, not by whoever writes last: an explicit
+//   logout target, then a pending post-login redirect, then the default. Targets
+//   pass through `isSafeRedirect` — this is the open-redirect boundary.
+//
+//   Flipping `queriesEnabled` on authentication is what releases the query gate
+//   described in routes/Layouts/Login.tsx.
+//
+// The `import.meta.hot` dance keeps one context identity across hot reloads;
+// without it every HMR update would remount the tree as unauthenticated.
+
 import {
   useRef,
   useMemo,

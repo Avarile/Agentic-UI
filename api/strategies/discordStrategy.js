@@ -1,3 +1,16 @@
+/**
+ * Discord OAuth2 provider binding.
+ *
+ * Supplies the profile normalizer only; account logic lives in `strategies/socialLogin.js`.
+ *
+ * Design: Discord does not return a usable avatar URL, so one is constructed — animated
+ * avatars are prefixed `a_` and must be requested as `.gif`, and users with no avatar fall
+ * back to the numbered default set derived from the discriminator. `prompt=none` is appended
+ * to the authorization URL so returning users are not re-prompted for consent.
+ *
+ * Exports the user strategy as the default and the admin (`existingUsersOnly`) variant as
+ * `.discordAdminLogin`.
+ */
 const { Strategy: DiscordStrategy } = require('passport-discord');
 const socialLogin = require('./socialLogin');
 

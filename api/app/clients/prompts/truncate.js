@@ -1,3 +1,15 @@
+/**
+ * Text truncation helpers used before persisting or logging message text.
+ *
+ * `truncateText` is a hard cut at `maxLength` (255 default) with an ellipsis and a notice;
+ * `smartTruncateText` preserves the beginning *and* end of the text, cutting the middle.
+ *
+ * Design: the smart variant exists for error and abort paths — for a truncated tool result or
+ * error payload, the tail (where the actual failure appears) is usually more informative than
+ * more of the head, so keeping both ends is strictly better than a prefix.
+ *
+ * Connections: `server/middleware/abortMiddleware.js`, logging paths
+ */
 const MAX_CHAR = 255;
 
 /**

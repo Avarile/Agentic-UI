@@ -1,3 +1,20 @@
+// Barrel for the pure-function layer, plus a handful of shared class-string constants.
+//
+// Everything under `utils/` is meant to be React-free and testable in isolation:
+// tree building, cache reconciliation, formatting, parsing, sanitization. Where a
+// hook needed a non-obvious decision made — which parent id to attach to, whether a
+// steer has been applied, how to split markdown — that decision was extracted here
+// so it could be unit-tested without rendering.
+//
+// The styling constants (`cardStyle`, `defaultTextProps`, `removeFocusRings`) are
+// legacy: new work composes from `@librechat/client` primitives and semantic theme
+// roles rather than importing class strings. They remain because a long tail of
+// components still references them.
+//
+// `handleUIAction` is the odd member — it turns an MCP-UI button press into a chat
+// message, and lives here only because it is shared by the two UI-resource
+// renderers.
+
 import React from 'react';
 import type { UIActionResult } from '@mcp-ui/client';
 import { TAskFunction } from '~/common';

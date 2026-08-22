@@ -1,3 +1,6 @@
+// Keeps a conversation's tags consistent across every cached list it appears in
+// after a tag change.
+
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from 'librechat-data-provider';
 import type { ConversationListResponse } from 'librechat-data-provider';

@@ -1,3 +1,10 @@
+// Namespaced, level-filtered console logging.
+//
+// Every noisy subsystem logs under a tag — `conversation`, `message_stream`,
+// `message_scrolling`, `artifacts`, `agents` — so a specific area can be traced
+// without drowning in the rest. This is what the Recoil atom effects throughout the
+// store write to.
+
 const isDevelopment = import.meta.env.MODE === 'development';
 const isLoggerEnabled = import.meta.env.VITE_ENABLE_LOGGER === 'true';
 const loggerFilter = import.meta.env.VITE_LOGGER_FILTER || '';

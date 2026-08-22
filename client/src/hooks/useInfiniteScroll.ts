@@ -1,3 +1,10 @@
+// Throttled scroll-position paging for cursor-paginated lists.
+//
+// Fires `fetchNextPage` when the container passes a fractional scroll threshold.
+// Throttled rather than debounced because the fetch should start as the user
+// approaches the end, not after they stop — and guarded on `hasNextPage` and
+// `isLoading` so a fast scroll cannot queue several requests for the same page.
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { throttle } from 'lodash';
 

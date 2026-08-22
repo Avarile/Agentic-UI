@@ -1,3 +1,10 @@
+// The bulk of the client's shared types: chat form values, message props, extended
+// file records, submission and ask-function signatures.
+//
+// `ExtendedFile` is the one worth knowing — an uploaded file plus client-only state
+// (progress, preview, temp id) that has no server counterpart, which is why it
+// cannot come from the data-provider package.
+
 import { RefObject } from 'react';
 import { FileSources, EModelEndpoint, isEphemeralAgentId } from 'librechat-data-provider';
 import type { UseMutationResult } from '@tanstack/react-query';

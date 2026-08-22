@@ -1,3 +1,15 @@
+/**
+ * Tool discovery and invocation for agents: list tools, list calls, verify auth, call a tool.
+ *
+ * Design: `POST /:toolId/call` is the only route with a limiter (`toolCallLimiter`, 1/sec per
+ * user) — a tool call can trigger code execution or a paid external API, while the listing
+ * routes are cheap reads. `/:toolId/auth` lets the UI check whether a tool needs an OAuth
+ * handshake before offering it, avoiding a failed call.
+ *
+ * Connections:
+ * - controllers: `server/controllers/tools.js`, `server/controllers/PluginController.js`
+ * - tool loading: `server/services/ToolService.js`
+ */
 const express = require('express');
 const { callTool, verifyToolAuth, getToolCalls } = require('~/server/controllers/tools');
 const { getAvailableTools } = require('~/server/controllers/PluginController');

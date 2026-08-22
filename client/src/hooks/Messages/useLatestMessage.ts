@@ -1,3 +1,9 @@
+// Subscriptions to just the latest message, its id, and its metadata.
+//
+// Three separate hooks on purpose: most consumers need only the id (for an equality
+// check) or only metadata, and subscribing to the whole message would re-render
+// them on every token.
+
 import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Constants, QueryKeys } from 'librechat-data-provider';

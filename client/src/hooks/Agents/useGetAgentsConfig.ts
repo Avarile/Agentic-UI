@@ -1,3 +1,6 @@
+// The agents endpoint's configuration and the endpoints config together — needed as
+// a pair often enough to be one hook.
+
 import { useMemo } from 'react';
 import { EModelEndpoint, AgentCapabilities } from 'librechat-data-provider';
 import type { TAgentsEndpoint, TEndpointsConfig } from 'librechat-data-provider';

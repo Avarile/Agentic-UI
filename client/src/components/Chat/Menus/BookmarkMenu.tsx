@@ -1,3 +1,5 @@
+// Tagging the current conversation from the header.
+
 import { useState, useId, useCallback, useMemo, useRef } from 'react';
 import { useRecoilValue } from 'recoil';
 import * as Ariakit from '@ariakit/react';

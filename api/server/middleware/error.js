@@ -1,3 +1,20 @@
+/**
+ * Persists an error as an assistant message and pushes it to the client over SSE.
+ *
+ * `sendError` saves the error message (unless `shouldSaveMessage` is false) and emits it on the
+ * open event stream; `sendResponse` is the success-shaped counterpart.
+ *
+ * Design: chat errors must arrive *in the conversation*, not as an HTTP status — by the time a
+ * generation fails the response headers are already sent as `text/event-stream`. Saving the
+ * error as a message is what makes it survive a page reload and keeps the message tree
+ * consistent (a user message with no reply would corrupt the parent chain). Outgoing payloads
+ * pass through `sanitizeMessageForTransmit` so internal fields never reach the client.
+ *
+ * Connections:
+ * - used by `abortMiddleware.js`, `denyRequest.js` and the chat controllers
+ * - distinct from `ErrorController` (from `packages/api`, mounted last in `server/index.js`),
+ *   which handles ordinary non-streaming HTTP errors
+ */
 const crypto = require('crypto');
 const { logger } = require('@librechat/data-schemas');
 const { parseConvo } = require('librechat-data-provider');

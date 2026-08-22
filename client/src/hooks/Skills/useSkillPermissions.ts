@@ -1,3 +1,6 @@
+// What this user may do with skills — view, create, edit, share — resolved once for
+// the whole skills UI.
+
 import { useMemo } from 'react';
 import { ResourceType, PermissionBits, SystemRoles } from 'librechat-data-provider';
 import type { TSkill, TSkillSummary } from 'librechat-data-provider';

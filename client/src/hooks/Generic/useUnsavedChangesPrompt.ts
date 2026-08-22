@@ -1,3 +1,6 @@
+// Warns before navigating away from a dirty form, via both the router and the
+// browser's own unload prompt.
+
 import { useCallback } from 'react';
 import { unstable_usePrompt, useBeforeUnload } from 'react-router-dom';
 

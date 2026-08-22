@@ -1,3 +1,5 @@
+// Resets client state on logout, so the next user in the same tab inherits nothing.
+
 import { useRecoilCallback } from 'recoil';
 import { clearLocalStorage } from '~/utils/localStorage';
 import store from '~/store';

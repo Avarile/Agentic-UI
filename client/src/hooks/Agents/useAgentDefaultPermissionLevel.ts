@@ -1,3 +1,5 @@
+// The default sharing level applied to a newly created agent.
+
 import { Permissions, PermissionBits, PermissionTypes } from 'librechat-data-provider';
 import { useHasAccess } from '~/hooks/Roles';
 

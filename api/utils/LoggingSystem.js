@@ -1,3 +1,19 @@
+/**
+ * Redaction-aware wrapper around `utils/logger.js`.
+ *
+ * Exposes a numeric level scale (`TRACE`..`FATAL`), a `setLevel` switch, and a `log` facade
+ * whose methods drop messages below the active level.
+ *
+ * Design: the `redactPatterns` list exists because sensitive values often arrive as *keys* in
+ * an object being logged (`api_key`, `client_id`, `authorization_nonce`, ...) rather than as
+ * recognizable secrets. Pattern-based key redaction catches those without every call site
+ * having to remember to strip them — defence in depth for the auth paths that log request
+ * context.
+ *
+ * Connections:
+ * - delegates output to `utils/logger.js`
+ * - used by the auth strategies in `strategies/*`
+ */
 const logger = require('./logger');
 
 // Sanitize outside the logger paths. This is useful for sanitizing variables directly with Regex and patterns.

@@ -1,3 +1,7 @@
+// The confirmation for deleting a conversation via the keyboard, which needs an
+// explicit target (`store.keyboardDeleteTarget`) since there is no click context to
+// infer it from.
+
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
 import DeleteButton from '~/components/Conversations/ConvoOptions/DeleteButton';

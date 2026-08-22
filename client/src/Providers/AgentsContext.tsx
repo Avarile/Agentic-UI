@@ -1,3 +1,9 @@
+// react-hook-form provider for the agent builder form.
+//
+// A thin wrapper whose job is to own `defaultValues` in one place —
+// `getDefaultAgentFormValues()` — so the many panels that make up the builder
+// (SidePanel/Agents/*) all register against the same schema.
+
 import { useForm, FormProvider } from 'react-hook-form';
 import { createContext, useContext } from 'react';
 import type { UseFormReturn } from 'react-hook-form';

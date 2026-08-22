@@ -1,3 +1,5 @@
+// The "go to this message in its conversation" action on a search result.
+
 import { Link } from 'lucide-react';
 import { useRecoilValue } from 'recoil';
 import { QueryKeys } from 'librechat-data-provider';

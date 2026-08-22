@@ -1,3 +1,5 @@
+// One conversation in the sidebar list: title, hover actions, rename, active state.
+
 import React, { memo, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRecoilValue } from 'recoil';
 import { Link2, Pin } from 'lucide-react';

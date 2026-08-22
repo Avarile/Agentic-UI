@@ -1,3 +1,13 @@
+// Composer draft persistence, keyed by conversation.
+//
+// Drafts are base64-encoded before storage (`encodeBase`/`decodeBase`) so partial
+// markdown, quotes and newlines survive a round trip through localStorage
+// intact. `clearAllDrafts` is called from the SSE handlers on a successful send —
+// not from the composer — so a *failed* send leaves the user's text where it was.
+//
+// Ask-answer drafts are namespaced separately, since answering a model's question
+// is a different composition than a normal message and should not overwrite it.
+
 import debounce from 'lodash/debounce';
 import { Constants, LocalStorageKeys } from 'librechat-data-provider';
 

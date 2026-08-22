@@ -1,3 +1,7 @@
+// "Interrupt and send": abort the run and immediately send the queued message.
+// Arms the one-shot `drainAfterAbortByIndex` override, which is why a plain Stop
+// leaves queued chips alone while this one drains them.
+
 import React from 'react';
 import { ZapOff } from 'lucide-react';
 import * as Ariakit from '@ariakit/react';

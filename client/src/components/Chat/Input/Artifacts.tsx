@@ -1,3 +1,5 @@
+// The artifacts capability toggle.
+
 import React, { memo, useState, useCallback, useMemo, useEffect } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { CheckboxButton } from '@librechat/client';

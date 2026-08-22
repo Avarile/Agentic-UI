@@ -1,3 +1,6 @@
+// Artifact panel state: which artifact is focused, ordering, and conversation-change
+// cleanup.
+
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Constants } from 'librechat-data-provider';
 import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil';

@@ -1,3 +1,9 @@
+// Per-resource-type configuration (agents, prompts, skills, projects) for the
+// shared sharing UI: labels, permission types, and query keys.
+//
+// The table that lets one sharing dialog serve four entity types instead of four
+// near-identical dialogs.
+
 import { AccessRoleIds, ResourceType } from 'librechat-data-provider';
 
 export interface ResourceConfig {

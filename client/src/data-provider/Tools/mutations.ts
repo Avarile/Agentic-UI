@@ -1,3 +1,9 @@
+// Direct tool invocation, outside a conversation.
+//
+// Used where a tool is run as its own action rather than by the model — the
+// assistants file-search and code-execution surfaces. Kept separate from the SSE
+// control plane because there is no generation to attach to.
+
 import { dataService, QueryKeys, Tools } from 'librechat-data-provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseMutationResult } from '@tanstack/react-query';

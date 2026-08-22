@@ -1,3 +1,25 @@
+/**
+ * Keeps the MeiliSearch indexes consistent with MongoDB for conversation/message search.
+ *
+ * Compares Mongo document counts against index counts and, when they diverge past
+ * `MEILI_SYNC_THRESHOLD`, flags documents for reindexing; also prunes index documents that
+ * predate the `user` field (which would otherwise leak across accounts in search results).
+ *
+ * Design:
+ * - Runs fire-and-forget from `server/index.js` (`indexSync().catch(...)`) so a slow or
+ *   unreachable Meili instance can never block the HTTP server from listening.
+ * - `MeiliSearchClient` is a lazy singleton so a deployment with `SEARCH` off never
+ *   constructs a client or requires the env vars.
+ * - Work is coordinated through `FlowStateManager` so multiple app replicas pointed at the
+ *   same Meili instance do not run overlapping syncs.
+ * - Guarded by two independent kill switches: `SEARCH` (feature) and `MEILI_NO_SYNC`
+ *   (operator opt-out of sync while keeping search).
+ *
+ * Connections:
+ * - must be required *after* `createModels` — see the ordering note in `db/index.js`
+ * - logs through `config/meiliLogger.js`; batching via `db/utils.js`
+ * - coordination cache from `cache/getLogStores.js`
+ */
 const mongoose = require('mongoose');
 const { MeiliSearch } = require('meilisearch');
 const { logger } = require('@librechat/data-schemas');

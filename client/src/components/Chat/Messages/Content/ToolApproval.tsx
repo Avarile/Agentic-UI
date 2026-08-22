@@ -1,3 +1,6 @@
+// The inline approve/deny prompt for a tool call that requires confirmation before
+// running.
+
 import { useEffect, useMemo, useState } from 'react';
 import { Button, TextareaAutosize } from '@librechat/client';
 import { Check, X, Pencil, MessageSquare, TriangleAlert } from 'lucide-react';

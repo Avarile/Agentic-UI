@@ -1,3 +1,22 @@
+// `ask` and `regenerate` — turning composer input into a submission.
+//
+// This is where a user's text becomes the message tree's next node. The work is
+// mostly reconciliation rather than transport: pick the parent message id, build
+// the optimistic user message and the placeholder response, resolve the endpoint
+// option from the conversation and any ephemeral agent, drain the pending queues
+// (manual skills, quotes) onto the message, then write the submission atom that
+// hooks/SSE picks up.
+//
+// `STALE_SEND_REVALIDATION_MS` guards a specific failure: sending while the message
+// cache is revalidating. A cache written within the last few seconds is locally
+// authoritative — the run that just streamed wrote it — and is safe to send from.
+// An older one waits for the refetch, otherwise the new message forks from an
+// outdated tail and silently creates a branch.
+//
+// Optimistic messages are minted with `v4()` ids and no timestamps; that
+// unhydrated shape is exactly what data-provider/Messages/queries.ts detects when
+// deciding not to trust a server response that lacks them.
+
 import { v4 } from 'uuid';
 import { cloneDeep } from 'lodash';
 import { useNavigate } from 'react-router-dom';

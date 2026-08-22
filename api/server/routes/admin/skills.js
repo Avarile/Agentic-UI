@@ -1,3 +1,17 @@
+/**
+ * Admin API for GitHub skill-sync configuration and manual sync runs.
+ *
+ * Manages the sync credential (`upsertSkillSyncCredential` / `deleteSkillSyncCredential`) and
+ * triggers `/sync/run`.
+ *
+ * Design: capability requirements come from `createAdminSkillsSyncAccess` rather than being
+ * hardcoded here, so credential writes and sync execution can be authorized differently — the
+ * former stores a secret, the latter only spends time.
+ *
+ * Connections:
+ * - runner: `server/services/Skills/sync.js`; handlers from `packages/api`
+ * - user-facing skills API: `server/routes/skills.js`
+ */
 const express = require('express');
 const { createAdminSkillsSyncAccess, createAdminSkillsSyncHandlers } = require('@librechat/api');
 const { SystemCapabilities } = require('@librechat/data-schemas');

@@ -1,3 +1,5 @@
+// An image content part, with its own dialog for full-size viewing.
+
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Skeleton } from '@librechat/client';
 import { apiBaseUrl } from 'librechat-data-provider';

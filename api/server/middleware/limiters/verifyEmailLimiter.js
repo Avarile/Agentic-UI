@@ -1,3 +1,9 @@
+/**
+ * IP rate limit on email-verification resend requests (default 2 per 2 minutes).
+ *
+ * Tight because each request sends mail. Paired with
+ * `verifyEmailSubmissionLimiter.js` for the token-submission step.
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

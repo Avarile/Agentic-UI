@@ -1,3 +1,10 @@
+// The plain SSE path: open a stream for a submission, dispatch events, close.
+//
+// The simpler of the two implementations, used for assistants endpoints. Its
+// lifecycle is tied to the submission atom — a new submission opens a connection, a
+// cleared one tears it down — and all event interpretation is delegated to
+// useEventHandlers, so this file is transport only.
+
 import { useEffect, useState } from 'react';
 import { v4 } from 'uuid';
 import { SSE } from 'sse.js';

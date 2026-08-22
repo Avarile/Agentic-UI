@@ -1,3 +1,13 @@
+// The MCP connection lifecycle: initialize, authenticate, cancel, reinitialize.
+//
+// Owns the OAuth dance, which is why the init state it writes lives in a *global*
+// atom (store/mcp.ts) rather than per-surface — a flow started from the chat
+// dropdown must be visible and cancellable from the settings panel.
+//
+// Also resolves what "available" means: configured, connected, permitted, and
+// whether tools could be enumerated at all. Consumers get one list rather than
+// intersecting four sources.
+
 import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { useToastContext } from '@librechat/client';

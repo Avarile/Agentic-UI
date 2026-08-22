@@ -1,3 +1,5 @@
+// State for the per-endpoint API-key dialog.
+
 import { useState, useCallback, useMemo } from 'react';
 import { EModelEndpoint } from 'librechat-data-provider';
 

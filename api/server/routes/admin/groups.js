@@ -1,3 +1,12 @@
+/**
+ * Admin API for group CRUD and membership.
+ *
+ * Design: read and write capabilities are split (`READ_GROUPS` vs `MANAGE_GROUPS`) and applied
+ * per route rather than router-wide, so a support role can view group membership without being
+ * able to change it. `ACCESS_ADMIN` is still required for the whole router.
+ *
+ * Connections: handlers from `createAdminGroupsHandlers` (`packages/api`)
+ */
 const express = require('express');
 const { createAdminGroupsHandlers } = require('@librechat/api');
 const { SystemCapabilities } = require('@librechat/data-schemas');

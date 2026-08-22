@@ -1,3 +1,14 @@
+/**
+ * Image upload endpoint (`POST /api/files/images`).
+ *
+ * Separate from the generic file route because images are processed, not just stored: they are
+ * resized/converted before upload (see `server/services/Files/images/`), and the Assistants
+ * endpoints need a different upload path upstream — hence the `isAssistantsEndpoint` branch.
+ *
+ * Permission checks run before processing so an unauthorized upload does no image work.
+ *
+ * Connections: `server/services/Files/process.js`, `services/Files/images/*`
+ */
 const path = require('path');
 const fs = require('fs').promises;
 const express = require('express');

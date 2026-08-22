@@ -1,3 +1,13 @@
+/**
+ * Admin API for the audit log: list, fetch an entry, CSV export, and integrity verification.
+ *
+ * Design: requires *two* capabilities — `ACCESS_ADMIN` and `READ_AUDIT_LOG` — because the audit
+ * log records administrator actions, so reading it is a privilege separate from being an
+ * administrator. `/verify` exists because the log is tamper-evident; verification is a
+ * first-class operation rather than something inferred from the entries.
+ *
+ * Connections: handlers from `createAdminAuditLogHandlers` (`packages/api`)
+ */
 const express = require('express');
 const { createAdminAuditLogHandlers } = require('@librechat/api');
 const { SystemCapabilities } = require('@librechat/data-schemas');

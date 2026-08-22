@@ -1,3 +1,13 @@
+/**
+ * Debug-logs `X-Forwarded-*` headers on OAuth requests.
+ *
+ * Exists because the single most common OAuth misconfiguration is a reverse proxy that does
+ * not forward (or incorrectly rewrites) proto/host, producing redirect-URI mismatches that are
+ * otherwise invisible from the app side. Wrapped in try/catch and always calls `next()` —
+ * diagnostics must never break the flow.
+ *
+ * Connections: used by `server/routes/oauth.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 
 /**

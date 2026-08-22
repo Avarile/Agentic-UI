@@ -1,3 +1,26 @@
+// The authenticated app shell: everything a signed-in user always has on screen,
+// regardless of which page they are on.
+//
+// It exists to host the app-wide singletons exactly once. The three entity maps
+// (files, assistants, agents) are built here and pushed down as context so the
+// whole tree shares one mapping pass instead of every consumer re-deriving them —
+// see ChatRoute's comment on why `AgentsMapContext` must be able to say "unknown"
+// rather than "empty".
+//
+// `if (!isAuthenticated) return null` is the guard for the whole subtree: children
+// never have to defend against a missing user.
+//
+// Layout notes that are load-bearing rather than cosmetic:
+//   - height is `100dvh - bannerHeight`, measured from the live Banner, so a
+//     dismissible announcement cannot push the composer off-screen
+//   - on small screens the content pane is translated aside and marked `inert`
+//     while the sidebar is open, which removes it from the tab order instead of
+//     merely hiding it
+//
+// `KeyboardShortcutsProvider` is a nested component purely to scope the global
+// key listeners to post-auth mount, and `SystemCoreDialog` is mounted here (not in
+// the sidebar that opens it) so any surface can raise it from a Recoil atom.
+
 import { useState, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import { Outlet } from 'react-router-dom';

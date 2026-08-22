@@ -1,3 +1,7 @@
+// The chip on a project-scoped new chat, showing which project the conversation
+// will belong to. Rendered only when ChatRoute has *verified* the `?projectId`
+// scope — see its note on why a transient error must not unscope a valid project.
+
 import { useCallback, useMemo } from 'react';
 import { Folder, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';

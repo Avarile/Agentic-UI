@@ -1,3 +1,6 @@
+// Chooses what Enter does during a run — steer now, or queue for after — and
+// whether a steer interrupts at the next safe boundary.
+
 import { Fragment, useEffect, useId, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRecoilState } from 'recoil';
 import * as Ariakit from '@ariakit/react';

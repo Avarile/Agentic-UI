@@ -1,3 +1,5 @@
+// Live preview of a runnable artifact in a sandboxed environment.
+
 import React, { memo, useMemo, type MutableRefObject } from 'react';
 import { SandpackPreview, SandpackProvider } from '@codesandbox/sandpack-react/unstyled';
 import type {

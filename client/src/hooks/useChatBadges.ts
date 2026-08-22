@@ -1,3 +1,8 @@
+// The composer's badge row: which capability chips exist, in which order.
+//
+// Order is user-editable and persisted by id in `store.chatBadges`, which is why
+// that array's indices must never be reordered — see the warning there.
+
 import { useMemo } from 'react';
 import { useRecoilCallback } from 'recoil';
 import { useRecoilValue } from 'recoil';

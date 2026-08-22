@@ -1,3 +1,27 @@
+/**
+ * Reinitializes a single MCP server connection for a user, resolving auth as needed.
+ *
+ * `reinitMCPServer` is what runs when a user connects, reconnects, or updates an MCP server: it
+ * resolves the server config, checks for missing user variables, establishes the connection, and
+ * republishes its tool catalog.
+ *
+ * Design:
+ * - Missing configuration is reported, not guessed: `getMissingCustomUserVars` and
+ *   `getMissingRuntimeBodyPlaceholderFields` tell the UI exactly which values the user still
+ *   needs to supply, instead of failing with a connection error.
+ * - `requiresEphemeralUserConnection` decides between a shared connection and a per-user one —
+ *   a server carrying user credentials must not be shared across users.
+ * - Token acquisition is layered: stored OAuth tokens, OBO exchange (`exchangeOboToken`) with
+ *   the trust check from `createOboTrustChecker`, or a Graph token
+ *   (`getGraphApiToken`). The trust check is what stops a user-created config from performing a
+ *   delegated exchange.
+ * - On success the tool catalog is republished with a generation check
+ *   (`getMCPToolsCacheGeneration`, `updateMCPServerTools`) so a slower reinit cannot overwrite a
+ *   newer catalog.
+ *
+ * Connections: `server/services/MCP.js`, `Config/mcp.js`, `OboTokenService.js`,
+ * `OboPolicyService.js`, `GraphTokenService.js`; managers from `config/index.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const {
   getMissingCustomUserVars,

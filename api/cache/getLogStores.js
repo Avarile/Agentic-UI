@@ -1,3 +1,27 @@
+/**
+ * The cache registry: maps a namespace key to its configured Keyv store.
+ *
+ * Every cache in the backend is reached through this one function, so the choice of backing
+ * store (Redis, Mongo, in-memory, flat file) and the TTL for each namespace live in exactly
+ * one table. Callers pass a `ViolationTypes` or `CacheKeys` value and get a ready store.
+ *
+ * Design rationale:
+ * - Namespaces are built eagerly into a module-level `namespaces` object so a store is a
+ *   cheap map lookup on the request path, never a per-call construction.
+ * - Store *kind* is chosen per namespace by intent, not uniformly: `violationCache` for
+ *   abuse counters, `sessionCache` for auth session material, `standardCache` for
+ *   derived/computed data, and `keyvMongo` where the data must survive a Redis flush
+ *   (bans, encoded domains).
+ * - TTLs are explicit per namespace (`Time.*` constants) so eviction behaviour is reviewable
+ *   without reading the consumers.
+ * - A no-op `disabledCache` stands in when the user-principals cache is turned off (TTL 0),
+ *   so callers never have to null-check the store.
+ *
+ * Connections:
+ * - store factories and `cacheConfig` come from `packages/api`
+ * - consumers span nearly the whole backend: rate limiters, `server/services/Config/*`,
+ *   `models/index.js` (role cache), `db/indexSync.js`, abort keys, MCP flow state
+ */
 const { Keyv } = require('keyv');
 const { Time, CacheKeys, ViolationTypes } = require('librechat-data-provider');
 const {

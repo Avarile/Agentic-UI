@@ -1,3 +1,6 @@
+// Opens the Microsoft file picker and returns the selection. Isolated because it
+// drives an external iframe/popup protocol rather than a normal input.
+
 import { useRef, useCallback } from 'react';
 import { useRecoilState } from 'recoil';
 import { useToastContext } from '@librechat/client';

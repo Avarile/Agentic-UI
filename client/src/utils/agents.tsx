@@ -1,3 +1,10 @@
+// Agent presentation helpers: avatar URL resolution, avatar rendering, contact name.
+//
+// `.tsx` rather than `.ts` because `renderAgentAvatar` returns an element — an
+// agent's avatar has several fallbacks (uploaded image, generated initials, default
+// mark) and centralizing them keeps the marketplace card, the message icon and the
+// landing page from each implementing a different fallback chain.
+
 import React, { useState, useEffect } from 'react';
 import { Feather } from 'lucide-react';
 import { Skeleton } from '@librechat/client';

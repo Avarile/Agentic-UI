@@ -1,3 +1,14 @@
+// The chat's top bar: model selector, presets, bookmarks, multi-convo, export.
+//
+// Almost entirely a permission-and-config composition. Each control is gated on
+// both an interface flag from startup config and a role permission, which is why
+// the component reads several `useHasAccess` results rather than one.
+//
+// The small-screen branch is not just responsive styling: on mobile the sidebar
+// toggle appears, and export and temporary-chat move *into* the left cluster
+// because the right cluster is dropped. The gradient background rather than a solid
+// fill lets messages scroll under the bar.
+
 import { memo, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useMediaQuery } from '@librechat/client';

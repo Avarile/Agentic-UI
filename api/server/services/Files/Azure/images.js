@@ -1,3 +1,12 @@
+/**
+ * Azure image handling: resize/convert on upload, image URL preparation, avatars.
+ *
+ * Structurally parallel to `Firebase/images.js` and `Local/images.js` — same `sharp` resize +
+ * format conversion, then `saveBufferToAzure`. Kept per-backend rather than abstracted because
+ * each backend's URL construction and avatar path differ.
+ *
+ * Connections: `Azure/crud.js`, `images/resize.js`; registered via `strategies.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');

@@ -1,3 +1,5 @@
+// The code-execution capability toggle.
+
 import React, { memo } from 'react';
 import { TerminalSquareIcon } from 'lucide-react';
 import { CheckboxButton } from '@librechat/client';

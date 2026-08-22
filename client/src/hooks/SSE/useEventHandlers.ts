@@ -1,3 +1,19 @@
+// The event interpreter: one handler per SSE event type, shared by both transports.
+//
+// Separating this from the connection code is what lets `useSSE` and
+// `useResumableSSE` behave identically once bytes arrive — the transports differ,
+// the semantics must not.
+//
+// Each handler's job is to fold one event into the message cache, the conversation
+// atom, and the paginated conversation lists. That last part is why this file
+// reaches for `upsertConvoInAllQueries` / `updateConvoInAllQueries` /
+// `removeConvoFromAllQueries`: a new conversation must appear in the sidebar, and a
+// title must update there, without refetching the lists.
+//
+// `buildCreatedInitialResponse` is exported because the resumable path needs to
+// reconstruct the same placeholder shape when re-attaching to a run whose `created`
+// event it never saw.
+
 import { useCallback, useEffect, useRef } from 'react';
 import { v4 } from 'uuid';
 import { useQueryClient } from '@tanstack/react-query';

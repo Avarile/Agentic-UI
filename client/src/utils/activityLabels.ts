@@ -1,3 +1,11 @@
+// Activity labels: grouping a run's progress markers into named phases.
+//
+// A long agent run emits many activity labels. Rendered flat they read as noise, so
+// these helpers fold consecutive labels into phase segments with start and end
+// indices, which ActivityPhaseGroup then renders as collapsible stages.
+// `lastVisibleContentIdx` is what lets a phase know whether it is the trailing
+// (still running) one.
+
 import { ContentTypes } from 'librechat-data-provider';
 import type { TMessage, TActivityLabelEvent, TMessageContentParts } from 'librechat-data-provider';
 

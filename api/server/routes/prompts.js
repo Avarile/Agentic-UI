@@ -1,3 +1,25 @@
+/**
+ * Prompt and prompt-group CRUD, sharing, and production-version selection.
+ *
+ * Design:
+ * - Two authorization layers stack here. `checkPromptAccess` (role permission: may this role
+ *   use prompts at all) is applied router-wide; per-resource ACL is then enforced by
+ *   `canAccessPromptGroupResource` / `canAccessPromptViaGroup`. Role permission alone would
+ *   not stop reading someone else's prompt, and ACL alone would not let an operator disable
+ *   the feature.
+ * - Permissions live on the *group*, and individual prompts inherit them — see
+ *   `canAccessPromptViaGroup`. That keeps sharing coherent when a prompt moves between groups.
+ * - Listing uses `getListPromptGroupsByAccess` + `filterAccessibleIdsBySharedLogic` so the
+ *   accessible-id set is resolved in the query rather than by post-filtering a full fetch.
+ * - Global (public) sharing is gated separately by `checkGlobalPromptShare`, because
+ *   publishing to everyone is a distinct privilege from sharing with a person or group.
+ * - Usage increments are throttled by `promptUsageLimiter` — a bookkeeping endpoint the UI can
+ *   call very often.
+ * - Updates go through `safeValidatePromptGroupUpdate` so only whitelisted fields can change.
+ *
+ * Connections:
+ * - helpers from `packages/api`; ACL via `server/middleware/accessResources/*`
+ */
 const express = require('express');
 const { ObjectId } = require('mongodb');
 const { logger, isValidObjectIdString } = require('@librechat/data-schemas');

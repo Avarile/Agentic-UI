@@ -1,3 +1,5 @@
+// Acquires and caches the short-lived Graph token the SharePoint flows need.
+
 import { useAuthContext } from '~/hooks/AuthContext';
 import { useGraphTokenQuery, useGetStartupConfig } from '~/data-provider';
 

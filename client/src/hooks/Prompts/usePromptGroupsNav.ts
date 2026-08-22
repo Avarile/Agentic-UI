@@ -1,3 +1,6 @@
+// The prompt library's paginated, filterable navigation state — what
+// PromptGroupsProvider publishes.
+
 import { useMemo } from 'react';
 import { useRecoilState } from 'recoil';
 import { usePromptGroupsInfiniteQuery } from '~/data-provider';

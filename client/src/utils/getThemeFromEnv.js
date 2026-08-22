@@ -1,3 +1,13 @@
+// Builds a theme from `REACT_APP_THEME_*` build-time environment variables.
+//
+// Derived from the canonical token registry in `@librechat/client` rather than a
+// local list, so adding a token upstream makes its env var work without a change
+// here.
+//
+// Returning `undefined` when nothing is set is the load-bearing behaviour: App.jsx
+// spreads `initialTheme`/`themeRGB` only when a theme exists, which is what lets a
+// user's stored preference stand on a deployment that configures no theme.
+
 import { themeColorTokens } from '@librechat/client';
 
 const toEnvName = (token) => `REACT_APP_THEME_${token.slice(4).toUpperCase().replace(/-/g, '_')}`;

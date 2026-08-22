@@ -1,3 +1,12 @@
+// The font-size preference, applied to the DOM as a side effect.
+//
+// Uses `createStorageAtomWithEffect` so a change writes localStorage *and* calls
+// `applyFontSize` in the same action — the value is meaningless unless the class
+// reaches the document.
+//
+// `initializeFontSize` is the boot path, called from App.jsx before first paint, so
+// a stored size takes effect without a visible reflow.
+
 import { applyFontSize } from '@librechat/client';
 import { createStorageAtomWithEffect, initializeFromStorage } from './jotai-utils';
 

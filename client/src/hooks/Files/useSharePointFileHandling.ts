@@ -1,3 +1,6 @@
+// Bridges a SharePoint selection into the normal upload pipeline, so downstream
+// code does not care where a file came from.
+
 import { useCallback } from 'react';
 import type { EModelEndpoint } from 'librechat-data-provider';
 import type { SharePointFile } from '~/data-provider/Files/sharepoint';

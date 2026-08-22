@@ -1,3 +1,5 @@
+// The memory capability toggle.
+
 import React, { memo } from 'react';
 import { Brain } from 'lucide-react';
 import { CheckboxButton } from '@librechat/client';

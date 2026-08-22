@@ -1,3 +1,6 @@
+// Agent-facing hooks: the shared map, selection, capabilities, categories, file
+// config, tool permissions, and model-spec application.
+
 export { default as useAgentsMap } from './useAgentsMap';
 export { default as useSelectAgent } from './useSelectAgent';
 export { default as useAgentCategories } from './useAgentCategories';

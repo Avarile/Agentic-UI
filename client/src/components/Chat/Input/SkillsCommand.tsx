@@ -1,3 +1,9 @@
+// The `$` popover for invoking a skill manually.
+//
+// Selections queue into `pendingManualSkillsByConvoId` rather than applying
+// immediately, so the user sees chips they can dismiss before sending; the submit
+// path drains them onto the message.
+
 import { memo, useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { ScrollText } from 'lucide-react';
 import { AutoSizer, List } from 'react-virtualized';

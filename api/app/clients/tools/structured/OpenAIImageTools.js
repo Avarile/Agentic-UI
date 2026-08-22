@@ -1,3 +1,15 @@
+/**
+ * OpenAI image toolkit: generation and editing (gpt-image / DALL·E family).
+ *
+ * Exported as a factory (`createOpenAIImageTools`) returning several tools from the `oaiToolkit`
+ * definitions, so generate and edit share one client and credential resolution.
+ *
+ * Design: `createAbortHandler` wires the run's abort signal into the request, so cancelling a
+ * generation actually stops the upstream call instead of paying for an image nobody sees.
+ * `replaceUnwantedChars` sanitizes the prompt, and `returnValue` normalizes the tool result into
+ * the content-part shape the runtime expects. Images are stored through the file pipeline, not
+ * returned as expiring provider URLs.
+ */
 const axios = require('axios');
 const { v4 } = require('uuid');
 const OpenAI = require('openai');

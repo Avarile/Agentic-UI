@@ -1,3 +1,6 @@
+// The time-of-day greeting text, separated from the hook so the boundaries are
+// testable.
+
 import type { TranslationKeys } from '~/hooks/useLocalize';
 
 export type GreetingOption = {

@@ -1,3 +1,6 @@
+// Types for the endpoint/model selector's unified option model, which flattens
+// endpoints, specs, agents and assistants into one list.
+
 import React from 'react';
 import { TStartupConfig } from 'librechat-data-provider';
 

@@ -1,3 +1,13 @@
+// The artifacts side panel: tabs, preview, code editor, versions, download.
+//
+// Opened by Presentation only when an artifact is *focused*, not merely present.
+// The panel is a focus trap with an explicit opener ref so dismissing it returns
+// focus to whatever raised it, and it honours `prefers-reduced-motion` for its
+// blur/backdrop transitions.
+//
+// It reads `useShareContext` so the same panel renders read-only in a shared
+// conversation — no editing, no execution.
+
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import copy from 'copy-to-clipboard';
 import * as Tabs from '@radix-ui/react-tabs';

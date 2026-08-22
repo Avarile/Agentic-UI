@@ -1,3 +1,6 @@
+// Maps auth failures onto localized messages, keeping server error strings out of
+// the UI.
+
 import { TranslationKeys } from '~/hooks';
 
 const getLoginError = (errorText: string): TranslationKeys => {

@@ -1,3 +1,5 @@
+// Preset CRUD and application, including the default-preset behaviour.
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import filenamify from 'filenamify';
 import exportFromJSON from 'export-from-json';

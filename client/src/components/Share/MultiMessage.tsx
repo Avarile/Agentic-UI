@@ -1,3 +1,6 @@
+// Tree walking for a shared conversation, without the streaming reconciliation the
+// live version needs.
+
 import { useEffect } from 'react';
 import { useRecoilState } from 'recoil';
 import type { TMessage } from 'librechat-data-provider';

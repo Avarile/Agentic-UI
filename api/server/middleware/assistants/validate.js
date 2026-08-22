@@ -1,3 +1,17 @@
+/**
+ * Enforces per-endpoint assistant allow/deny lists on Assistants chat requests.
+ *
+ * Checks `supportedIds`/`excludedIds` from the endpoint config and, on rejection, reports the
+ * error through `handleAbortError` rather than as an HTTP status — the SSE stream is already
+ * open by this point, so the message must arrive in the conversation.
+ *
+ * A fresh `messageId` is generated for the error and `parentMessageId` is set to the incoming
+ * message so the rejection slots correctly into the message tree.
+ *
+ * Connections:
+ * - error path via `server/middleware/abortMiddleware.js`
+ * - used by the assistants chat routes; config from `req.config`
+ */
 const { v4 } = require('uuid');
 const { handleAbortError } = require('~/server/middleware/abortMiddleware');
 

@@ -1,3 +1,6 @@
+// Whether the streaming fade is active: the preference AND no reduced-motion
+// preference. Combined here so no component decides independently.
+
 import { useAtomValue } from 'jotai';
 import { useMediaQuery } from '@librechat/client';
 import { smoothStreamingAtom } from '~/store/smoothStreaming';

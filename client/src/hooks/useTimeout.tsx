@@ -1,3 +1,6 @@
+// A timeout whose handle is cleared on unmount — the safe default for delayed work
+// that must not fire into a dead component.
+
 import { useEffect, useRef } from 'react';
 
 type TUseTimeoutParams = {

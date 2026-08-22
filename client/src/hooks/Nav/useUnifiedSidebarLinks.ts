@@ -1,3 +1,9 @@
+// The sidebar's panel list, filtered by permission and configuration.
+//
+// The single source for what the sidebar can show, which is what makes
+// `resolveActivePanel` (Providers/ActivePanelContext) able to fall back safely when
+// a stored panel id is no longer available.
+
 import { useMemo } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { Boxes, MessagesSquare } from 'lucide-react';

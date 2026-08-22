@@ -1,3 +1,6 @@
+// The credential form, separated from the page so the 2FA and reset flows can
+// reuse its validation.
+
 import React, { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { Turnstile } from '@marsidev/react-turnstile';

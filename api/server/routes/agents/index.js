@@ -1,3 +1,45 @@
+/**
+ * Root router for `/api/agents` — mount order here is the security model, not a detail.
+ *
+ * Layout, in order:
+ * 1. `/v1/responses` and `/v1` (Open Responses and OpenAI-compatible APIs) are mounted
+ *    **first** and authenticate with API keys inside their own route files. `/v1/responses`
+ *    must precede `/v1` or the less specific mount would swallow it.
+ * 2. `requireJwtAuth -> checkBan -> uaParser` for everything below.
+ * 3. Generation-control endpoints: `GET /chat/stream/:streamId`, `/chat/active`,
+ *    `/chat/status/:conversationId`, `POST /chat/abort`. Mounted *before* `chatRouter` so they
+ *    bypass the message rate limiters — they are GETs (or an abort) that must stay responsive
+ *    exactly when a user is hitting limits or reconnecting.
+ * 4. Steering endpoints (`/chat/steer`, `/chat/steer/cancel`, `/chat/steer/arm`).
+ * 5. `/` -> `v1` (agent CRUD), then `/chat` -> `chatRouter` (config + optional limiters).
+ *
+ * Design details:
+ * - Stream resume: `/chat/stream/:streamId` sends a sync event with resume state, replays
+ *   missed chunks, then continues live, so a client that loses its connection mid-generation
+ *   recovers without losing tokens.
+ * - Generation protocol negotiation: `negotiateRequestGenerationProtocol` takes the *min* of
+ *   what the client asked for and what the server supports, and the chosen version is
+ *   returned both as a header and inside every JSON envelope — the body is the client's
+ *   fail-closed source of truth because auth-refresh adapters can strip headers. The protocol
+ *   is negotiated *before* a job is read so validation, not-found and authorization envelopes
+ *   never leak whether a job exists to an unauthorized caller.
+ * - Authorization on jobs checks user id and tenant, with `hasTenantMismatch` treating
+ *   untenanted (pre-multi-tenancy) jobs as accessible when the user check passes.
+ * - `sendJoblessStatus` handles the common reload-after-completion case: the job record is
+ *   deleted on completion, so "no job" is normal, and parked steers are claimed from their own
+ *   bounded-TTL key authorized by stored owner.
+ * - Steering carries the same guards as a normal message, in the same order as `chat.js`:
+ *   rate limiters, then the PII filter *before* `moderateText` — blocked sensitive text must
+ *   never be sent to the external moderation endpoint. Cancel/arm skip PII/moderation because
+ *   they add no model-bound content.
+ * - Rate limiters are conditional on `LIMIT_MESSAGE_IP`/`LIMIT_MESSAGE_USER` and pushed into an
+ *   array so they are absent (not no-ops) when disabled.
+ *
+ * Connections:
+ * - sub-routers: `chat.js`, `v1.js`, `openai.js`, `responses.js`
+ * - controllers: `server/controllers/agents/{steer,protocol,request,resume}.js`
+ * - job/stream state: `GenerationJobManager` from `packages/api`
+ */
 const express = require('express');
 const {
   isEnabled,

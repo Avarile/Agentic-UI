@@ -1,3 +1,6 @@
+// Builds the default conversation shape for an endpoint — the baseline
+// `useNewConvo` layers selections onto.
+
 import { useCallback } from 'react';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';
 import { excludedKeys, getDefaultParamsEndpoint } from 'librechat-data-provider';

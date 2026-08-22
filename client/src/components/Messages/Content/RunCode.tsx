@@ -1,3 +1,5 @@
+// Executes a code block through the code interpreter and shows its output inline.
+
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import debounce from 'lodash/debounce';
 import { useRecoilCallback } from 'recoil';

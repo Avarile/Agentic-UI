@@ -1,3 +1,13 @@
+/**
+ * Thin wrapper over the generic OBO exchange for Microsoft Graph tokens.
+ *
+ * Exists purely to attach Graph-specific error context to a failed exchange — the generic
+ * `exchangeOboToken` message ("identity provider rejected the OBO token exchange") is not enough
+ * to tell a Graph scope/consent problem from any other OBO failure. Keeping it separate also
+ * means Graph callers do not depend on the generic service's signature.
+ *
+ * Connections: `server/services/OboTokenService.js`; used by `GraphApiService.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { exchangeOboToken } = require('./OboTokenService');
 

@@ -1,3 +1,5 @@
+// Reordering and enabling the composer's badge row, writing `store.chatBadges`.
+
 import React, { useCallback } from 'react';
 import { Edit3, Check, X } from 'lucide-react';
 import { Button, Badge } from '@librechat/client';

@@ -1,3 +1,19 @@
+/**
+ * ACL gate for files, including permissions *inherited* from attached agents.
+ *
+ * Design: files are frequently accessed in a context where the caller has no direct grant on
+ * the file itself — a user chatting with a shared agent must be able to read the files in that
+ * agent's `tool_resources`. So access is granted if either the direct file ACL permits it, or
+ * the file appears in the tool resources of an agent the caller can access.
+ *
+ * The agent query `$or`s across every tool-resource bucket (`execute_code`, `file_search`,
+ * `image_edit`, `context`, `ocr`) in a single lookup rather than querying per bucket. Without
+ * this indirection, sharing an agent would silently break every file it depends on.
+ *
+ * Connections:
+ * - effective permissions via `server/services/PermissionService.js`
+ * - used by `server/routes/files/*`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { PermissionBits, hasPermissions, ResourceType } = require('librechat-data-provider');
 const { getEffectivePermissions } = require('~/server/services/PermissionService');

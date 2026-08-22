@@ -1,3 +1,15 @@
+/**
+ * Builds the default endpoints configuration (built-in providers and their display order).
+ *
+ * Reads the resolved credentials from `EndpointService`, honours `getEnabledEndpoints()` so
+ * operators can disable providers, and awaits `loadAsyncEndpoints` for the ones whose
+ * availability requires I/O (Google service key).
+ *
+ * Design: returns each endpoint with an `order` so the client renders providers in a stable,
+ * operator-controllable sequence rather than in object-key order.
+ *
+ * Connections: `getEndpointsConfig.js`, `loadAsyncEndpoints.js`, `EndpointService.js`
+ */
 const { EModelEndpoint, getEnabledEndpoints } = require('librechat-data-provider');
 const loadAsyncEndpoints = require('./loadAsyncEndpoints');
 const { config } = require('./EndpointService');

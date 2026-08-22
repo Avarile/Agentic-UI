@@ -1,3 +1,10 @@
+// Grid arithmetic for virtualized card galleries.
+//
+// List virtualizers window rows; a gallery needs to know how many cards fit a row
+// first. This computes columns from container width and breakpoint, then derives
+// row count, row height (card + gap) and the slice of items belonging to a row —
+// the values a row-based virtualizer needs to render a grid.
+
 import { useCallback, useMemo } from 'react';
 
 interface UseVirtualGridProps {

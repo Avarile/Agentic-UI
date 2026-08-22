@@ -1,3 +1,31 @@
+/**
+ * Dependency wiring for the Skills tool: file I/O, authoring permissions, and sandbox access.
+ *
+ * Skills can read and write files, both in storage and inside the code-interpreter sandbox, and
+ * can be authored by the agent at runtime. This module supplies every capability the skills tool
+ * needs, with the authorization checks attached.
+ *
+ * Design:
+ * - Permission predicates are explicit and separate: `canCreateSkill`, `canEditSkill`,
+ *   `canAuthorSkillFiles`, `grantSkillOwner`, `isAgentSkillsEnabledForRun`. Runtime authoring is
+ *   a write path driven by model output, so each capability is gated individually rather than
+ *   behind one "skills enabled" flag.
+ * - Storage is resolved per call (`resolveSkillStorage`, `getSkillStrategyFunctions`) with a
+ *   separate branch for images, so skill assets follow the configured backend.
+ * - `withDeploymentSkillIds` merges deployment-provided skills, which have no database row —
+ *   omitting them would make built-in skills look nonexistent.
+ * - `buildSkillPrimedIdsByName` resolves manual and always-apply primes to ids by name, which is
+ *   how a user can invoke a skill by name in a message.
+ * - `enrichLoadedToolsWithAgentContext` + `buildAgentToolContext` attach agent-scoped context to
+ *   loaded tools; `hasOwn` guards against prototype-polluted context objects.
+ * - Sandbox helpers (`readSandboxFile`, `writeSandboxFile`, `checkIfActive`, `getSessionInfo`)
+ *   let a skill operate on files inside a live code session.
+ *
+ * Connections:
+ * - `server/services/Files/Code/*`, `Files/strategies.js`; skills sync:
+ *   `services/Skills/sync.js`
+ * - consumed by `./initialize.js` via `getSkillToolDeps()`
+ */
 const crypto = require('crypto');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
 const { batchUploadCodeEnvFiles } = require('~/server/services/Files/Code/crud');

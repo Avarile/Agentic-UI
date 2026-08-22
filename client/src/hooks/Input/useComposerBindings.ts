@@ -1,3 +1,6 @@
+// Wires the composer's imperative handles (focus, insert, resize) so unrelated
+// surfaces can act on the textarea without holding its ref.
+
 import { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import type { ShortcutActionId } from '~/hooks/useKeyboardShortcuts';

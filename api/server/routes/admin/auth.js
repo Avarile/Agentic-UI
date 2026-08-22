@@ -1,3 +1,29 @@
+/**
+ * Admin-only authentication: a separate login surface for the operator console.
+ *
+ * Provides `/verify`, an OpenID availability probe, and per-provider admin OAuth
+ * redirect/callback routes (`/oauth/openid`, `/oauth/saml`, `/oauth/google`, ...).
+ *
+ * Design — why admin auth is its own router rather than a flag on `routes/auth.js`:
+ * - Admin OAuth uses the `<provider>Admin` Passport strategies registered by
+ *   `server/socialLogins.js`, which are configured with `existingUsersOnly`. Signing into the
+ *   admin console must never auto-provision an account, and making that a *different strategy*
+ *   rather than a request-time flag means the non-provisioning guarantee cannot be bypassed by
+ *   a crafted request.
+ * - Callback URLs are distinct (`/api/admin/oauth/<provider>/callback`), so the IdP
+ *   registration for admin access is separate from user login and can be locked down
+ *   independently.
+ * - `requireAdminAccess` (`ACCESS_ADMIN` capability) gates the authenticated routes;
+ *   `requireAdminStrategy` returns a clear error when a provider was never configured, instead
+ *   of a passport-internal failure.
+ * - `/oauth/openid/check` is deliberately unauthenticated so the login screen can discover
+ *   whether admin SSO is available before anyone signs in.
+ *
+ * Connections:
+ * - strategies: the `*AdminLogin` exports in `strategies/*` via `strategies/index.js`
+ * - handlers: `server/controllers/auth/oauth.js`, `auth/LoginController.js`
+ * - capabilities: `server/middleware/roles/capabilities.js`
+ */
 const express = require('express');
 const passport = require('passport');
 const crypto = require('node:crypto');

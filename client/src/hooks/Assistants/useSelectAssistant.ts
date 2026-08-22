@@ -1,3 +1,6 @@
+// Selecting an assistant for a conversation, the assistants analogue of
+// useSelectAgent.
+
 import { useCallback } from 'react';
 import { isAssistantsEndpoint } from 'librechat-data-provider';
 import type { AssistantsEndpoint, TConversation, TPreset } from 'librechat-data-provider';

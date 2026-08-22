@@ -1,3 +1,18 @@
+// The upload pipeline: validate, resize, upload, track, and attach.
+//
+// One funnel for every entry point (drop, paste, picker, SharePoint) so limits and
+// error handling cannot diverge. Config is merged per endpoint
+// (`getEndpointFileConfig`), because size and type limits differ by provider and by
+// tool resource.
+//
+// Client-side resizing happens before upload to stay under those limits, and the
+// preview cache means the resized image can render immediately without waiting for
+// the server's own preview. The delayed upload toast exists so a fast upload does
+// not flash a progress notification.
+//
+// `useFileHandlingNoChatContext` is the same pipeline for surfaces that upload
+// outside a conversation (agent files, skill attachments).
+
 import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import { v4 } from 'uuid';
 import debounce from 'lodash/debounce';

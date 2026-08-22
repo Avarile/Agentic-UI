@@ -1,3 +1,22 @@
+/**
+ * File authorization, including permissions inherited from agents.
+ *
+ * `hasAccessToFilesViaAgent` and `filterFilesByAgentAccess` answer "may this user read these
+ * files?" where the answer may come from an agent rather than the file itself.
+ *
+ * Design: files attached to an agent's `tool_resources` must be readable by anyone who can use
+ * that agent, otherwise sharing an agent would silently break every file it depends on.
+ * `getAttachedFileIds` collects ids across all tool-resource buckets and `getFilesById` resolves
+ * them in one query. `filterFilesByAgentAccess` returns the permitted subset rather than
+ * throwing, because a run should proceed with the files it may use instead of failing outright.
+ * `isEphemeralAgentId` short-circuits agents with no ACL row, and remote agents are handled via
+ * `getRemoteAgentPermissions`.
+ *
+ * Connections:
+ * - `server/services/PermissionService.js`; middleware
+ *   `server/middleware/accessResources/fileAccess.js`
+ * - consumers: `controllers/agents/client.js`, `Endpoints/agents/addedConvo.js`, file routes
+ */
 const { logger } = require('@librechat/data-schemas');
 const {
   PermissionBits,

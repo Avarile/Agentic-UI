@@ -1,3 +1,20 @@
+/**
+ * Batch helpers for the MeiliSearch reindex path.
+ *
+ * `batchResetMeiliFlags` clears `_meiliIndex` across a whole collection in bounded chunks
+ * (`MEILI_SYNC_BATCH_SIZE`, default 1000) with a configurable inter-batch pause
+ * (`MEILI_SYNC_DELAY_MS`).
+ *
+ * Design: a single unbounded `updateMany` over a large messages collection can exceed the
+ * Mongo operation timeout or starve the connection pool on small instances, which is exactly
+ * the deployment where a full reindex is most likely. Chunking plus a delay trades total
+ * duration for not degrading live traffic. The retention visibility filter is applied so
+ * soft-deleted documents are not resurrected into the index.
+ *
+ * Connections:
+ * - used by `db/indexSync.js`
+ * - `buildRetentionVisibilityFilter` from `packages/data-schemas`
+ */
 const { logger, buildRetentionVisibilityFilter } = require('@librechat/data-schemas');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

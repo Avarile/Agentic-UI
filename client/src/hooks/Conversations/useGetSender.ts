@@ -1,3 +1,6 @@
+// Resolves a message's display name from endpoint, model, agent or assistant — one
+// function so every surface labels a message identically.
+
 import { useCallback } from 'react';
 import { getResponseSender } from 'librechat-data-provider';
 import type { TEndpointOption, TEndpointsConfig } from 'librechat-data-provider';

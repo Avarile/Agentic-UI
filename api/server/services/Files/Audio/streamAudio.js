@@ -1,3 +1,18 @@
+/**
+ * Text chunking for progressive TTS, driven by a message's growing content.
+ *
+ * `createChunkProcessor(user, messageId)` returns a processor that repeatedly reads the message
+ * and yields newly-completed text; `splitTextIntoChunks` does the splitting;
+ * `getRandomVoiceId` picks from a configured voice pool.
+ *
+ * Design: chunks are cut at natural boundaries using `SEPARATORS` and
+ * `findLastSeparatorIndex` — splitting mid-sentence or mid-word produces audibly wrong prosody,
+ * so the splitter prefers the last separator before the size limit rather than a hard cut.
+ * Progress is tracked in the cache (`CacheKeys.AUDIO_RUNS`) keyed per user and message, so a
+ * reconnecting client resumes where it left off instead of re-synthesizing from the start.
+ *
+ * Connections: `TTSService.js`; message reads via `~/models`; cache via `cache/getLogStores.js`
+ */
 const { scopedCacheKey } = require('@librechat/data-schemas');
 const {
   Time,

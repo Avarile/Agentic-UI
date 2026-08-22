@@ -1,3 +1,6 @@
+// Folds attachment events into the per-message attachment map, so a file the model
+// produced mid-run renders as soon as it is announced rather than after a refetch.
+
 import { useSetRecoilState } from 'recoil';
 import { QueryKeys, Tools } from 'librechat-data-provider';
 import type {

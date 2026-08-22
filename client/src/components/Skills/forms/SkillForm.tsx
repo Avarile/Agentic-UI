@@ -1,3 +1,5 @@
+// Creating and editing a skill, including its frontmatter and invocation mode.
+
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Info, AlertTriangle } from 'lucide-react';

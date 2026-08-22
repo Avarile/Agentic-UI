@@ -1,3 +1,19 @@
+// Backend liveness checks.
+//
+// Two complementary strategies, because neither alone is right. `useHealthCheck`
+// polls every ten minutes and re-checks on window focus (but only if the last
+// check is already stale) — that covers the laptop-was-asleep case without
+// hammering the server on every tab switch. `useInteractionHealthCheck` is called
+// from user interactions and invalidates only if five minutes have passed, so an
+// active user gets a fresh signal without a timer.
+//
+// The 500ms init delay exists so the check does not compete with first-paint
+// requests. Health results are fetched with `cacheTime: 0, staleTime: 0, retry: false`
+// because a stale or retried liveness answer is worse than none.
+//
+// Gated on `isAuthenticated` and guarded by an init ref, so the interval and focus
+// listener are installed exactly once per session.
+
 import { useCallback, useRef, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys, Time, dataService } from 'librechat-data-provider';

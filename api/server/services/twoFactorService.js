@@ -1,3 +1,25 @@
+/**
+ * TOTP two-factor implementation: secret generation, code verification, backup codes.
+ *
+ * Design:
+ * - TOTP is implemented directly on `node:crypto` `webcrypto` rather than pulling in an
+ *   `otplib`-style dependency — the algorithm is small, and a hand-rolled `encodeBase32` plus
+ *   HMAC keeps the auth path free of an extra transitive dependency tree.
+ * - `verifyTOTP` accepts a small time window around now, because client clocks drift; without
+ *   it users with a slightly-off device could never authenticate.
+ * - Backup codes are stored **hashed** (`hashBackupCode`) and single-use: `verifyBackupCode`
+ *   marks the code consumed (`persist`) so a captured code cannot be replayed. `persistBackupUse`
+ *   exists so a caller that only wants to *test* a code can skip consumption.
+ * - `getTOTPSecret` decrypts with `decryptV3` and falls back to `decryptV2`, so secrets stored
+ *   under the older scheme keep working without a migration.
+ * - `verifyOTPOrBackupCode` is the combined entry point every caller should use, so no call site
+ *   forgets to accept backup codes.
+ *
+ * Connections:
+ * - `server/controllers/TwoFactorController.js`, `auth/TwoFactorAuthController.js`,
+ *   `UserController.js`
+ * - crypto/hashing helpers from `packages/data-schemas`
+ */
 const { webcrypto } = require('node:crypto');
 const { hashBackupCode, decryptV3, decryptV2 } = require('@librechat/data-schemas');
 const { updateUser } = require('~/models');

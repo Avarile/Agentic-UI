@@ -1,3 +1,9 @@
+/**
+ * Traversaal AI search tool — an LLM-augmented search API returning synthesized answers.
+ *
+ * Kept distinct from the other search tools because it returns a composed answer plus sources
+ * rather than a result list, so its output shaping differs.
+ */
 const { logger } = require('@librechat/data-schemas');
 const { Tool } = require('@librechat/agents/langchain/tools');
 const { getEnvironmentVariable } = require('@librechat/agents/langchain/utils/env');

@@ -1,3 +1,6 @@
+// Groups web-search results by conversation turn for citation lookup — what backs
+// Providers/SearchContext.
+
 import { useMemo } from 'react';
 import { TAttachment, Tools, SearchResultData } from 'librechat-data-provider';
 import { useLocalize } from '~/hooks';

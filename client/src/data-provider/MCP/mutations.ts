@@ -1,3 +1,9 @@
+// Create, update, and delete MCP server definitions.
+//
+// Used by the MCP builder panel. Mutating a server invalidates both the server
+// list and its tool catalogue, since a changed URL or auth config invalidates any
+// previously enumerated tools.
+
 import { dataService, QueryKeys, ResourceType } from 'librechat-data-provider';
 import { useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
 import type * as t from 'librechat-data-provider';

@@ -1,3 +1,15 @@
+// Scroll-height reconciliation for message content that changes size after layout.
+//
+// Expanding a tool output or a code block changes a message's height *after* the
+// browser has laid out the scroll container, so the follow-the-bottom logic in
+// useMessageScrolling would compute against a stale maximum. `getRenderedContentMaxScrollTop`
+// measures what is actually rendered rather than trusting `scrollHeight`, and the
+// custom DOM event lets any content component announce a size change without a
+// prop chain back up to the scroller.
+//
+// A custom event rather than state because the publisher and the subscriber are
+// arbitrarily far apart and the signal must not cause a React render of its own.
+
 export const MESSAGE_CONTENT_LAYOUT_CHANGE_EVENT = 'librechat:message-content-layout-change';
 const MESSAGE_SCROLL_CONTAINER_SELECTOR = '.scrollbar-gutter-stable';
 const MESSAGE_LAYOUT_RECONCILE_DURATION_MS = 350;

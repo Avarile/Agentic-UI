@@ -1,3 +1,30 @@
+/**
+ * Conditionally registers every social / SSO Passport strategy and their sessions.
+ *
+ * Called from `server/index.js` only when `ALLOW_SOCIAL_LOGIN` is enabled.
+ *
+ * Design:
+ * - Each provider is gated on *its own* required env vars being present, so an operator
+ *   enables providers purely by configuration and an unused provider is never constructed
+ *   (which would fail validation or attempt discovery).
+ * - Every provider registers two strategies: the default one and a named `<provider>Admin`
+ *   one bound to the admin callback with `existingUsersOnly`. Naming them explicitly is what
+ *   lets `server/routes/admin/auth.js` select the non-provisioning variant.
+ * - OpenID and SAML additionally need `express-session` because their handshakes are stateful
+ *   (state/nonce, RelayState). Sessions are stored in the Keyv stores from
+ *   `cache/getLogStores.js` rather than in memory, so they survive a restart and work across
+ *   replicas.
+ * - `getOpenIdSessionExpiry` widens the session TTL to at least
+ *   `OPENID_REUSE_MAX_SESSION_AGE_MS` when `OPENID_REUSE_TOKENS` is on: token reuse requires
+ *   the session to outlive the token, otherwise the stored tokens become unreachable.
+ * - Cookie `secure` flag comes from `shouldUseSecureCookie()` so local HTTP development works
+ *   without an override while production stays secure.
+ *
+ * Connections:
+ * - strategy factories from `strategies/index.js`
+ * - session stores from `cache/getLogStores.js`
+ * - admin variants consumed by `server/routes/admin/auth.js`
+ */
 const passport = require('passport');
 const session = require('express-session');
 const { CacheKeys } = require('librechat-data-provider');

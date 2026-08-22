@@ -1,3 +1,10 @@
+// Suppresses the microphone while the assistant is speaking.
+//
+// Without it, speech-to-text records the assistant's own voice and feeds it back as
+// user input. Reads the `isSpeaking` selector in store/families.ts, which is true
+// if *any* registered source is producing audio across both engines and both
+// playback modes — hence a selector rather than a single flag.
+
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';

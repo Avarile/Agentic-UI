@@ -1,3 +1,16 @@
+// Normalizes the many LaTeX notations models emit into what KaTeX accepts.
+//
+// Models are inconsistent about math delimiters — `\(...\)`, `$$...$$`, bracket
+// forms, and mhchem's `\ce{}`/`\pu{}` with varying levels of backslash escaping.
+// KaTeX accepts a subset, so this unifies them before rendering.
+//
+// The hard part is not conversion but *not* converting: a lone `$` is far more
+// often a currency symbol than a math delimiter, so CURRENCY_REGEX carves those
+// out first. Getting this wrong renders a price list as mangled math.
+//
+// Every pattern is pre-compiled at module scope because this runs on every
+// streamed token of every message that has math enabled.
+
 // Pre-compile all regular expressions for better performance
 const MHCHEM_CE_REGEX = /\$\\ce\{/g;
 const MHCHEM_PU_REGEX = /\$\\pu\{/g;

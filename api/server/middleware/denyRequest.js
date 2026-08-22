@@ -1,3 +1,20 @@
+/**
+ * Rejects a chat request through the SSE channel, preserving the user's message.
+ *
+ * Design: policy rejections (ban, rate limit, moderation, insufficient balance) happen *after*
+ * the client has opened an event stream and typed a message. Returning a bare HTTP error would
+ * lose the user's text and leave a dangling stream. So this saves the user message, generates
+ * a `conversationId` if the request had none, and emits the error as an assistant reply — the
+ * conversation stays coherent and the reason is visible in the thread.
+ *
+ * Object error messages are JSON-stringified so structured violation details (type, counts,
+ * ban duration set by `logViolation`) reach the UI intact.
+ *
+ * Connections:
+ * - called by `checkBan.js`, `moderateText.js`, the message limiters, and
+ *   `validate/convoAccess.js`
+ * - transmission via `server/middleware/error.js`
+ */
 const crypto = require('crypto');
 const { sendEvent } = require('@librechat/api');
 const { getResponseSender, Constants } = require('librechat-data-provider');

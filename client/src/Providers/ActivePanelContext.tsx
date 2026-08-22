@@ -1,3 +1,12 @@
+// Which sidebar panel is showing, persisted to localStorage.
+//
+// Separate from the sidebar's expanded/collapsed Recoil atom because the two
+// outlive each other differently: the selected panel should survive a reload,
+// while expansion is per-session layout. `resolveActivePanel` is exported so a
+// stored id that no longer corresponds to an available link (permissions changed,
+// feature disabled) degrades to the first available panel instead of rendering
+// nothing.
+
 import { createContext, useCallback, useContext, useMemo, useState, ReactNode } from 'react';
 
 const STORAGE_KEY = 'side:active-panel';

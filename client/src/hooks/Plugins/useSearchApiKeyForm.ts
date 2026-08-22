@@ -1,3 +1,6 @@
+// The web-search credential dialog's form state, hoisted so the toggle that
+// triggers it and the dialog itself share one instance.
+
 import { useRef, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import useAuthSearchTool from '~/hooks/Plugins/useAuthSearchTool';

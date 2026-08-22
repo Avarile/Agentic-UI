@@ -1,3 +1,7 @@
+// Maps MCP failures onto user-facing messages, distinguishing "not authenticated"
+// from "unreachable" from "misconfigured" — different remedies, so they must not
+// collapse into one error.
+
 import type { MCPReinitializeResponse } from 'librechat-data-provider';
 import type { LocalizeFunction } from '~/common';
 

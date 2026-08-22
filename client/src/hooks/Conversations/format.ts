@@ -1,3 +1,6 @@
+// The formatters behind export — pure, so each output shape is testable
+// independently of the download.
+
 import { ContentTypes, ToolCallTypes } from 'librechat-data-provider';
 
 import type { TMessage, TMessageContentParts } from 'librechat-data-provider';

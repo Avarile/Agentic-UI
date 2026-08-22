@@ -1,3 +1,7 @@
+// Folds streamed content deltas (text, reasoning) into the right content part of the
+// right message. The hot path during generation — kept small and allocation-light
+// deliberately.
+
 import { useCallback, useMemo } from 'react';
 import { ContentTypes } from 'librechat-data-provider';
 import { useQueryClient } from '@tanstack/react-query';

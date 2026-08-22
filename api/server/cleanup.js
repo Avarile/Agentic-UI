@@ -1,3 +1,34 @@
+/**
+ * Explicit teardown of per-request client/graph objects to stop long-lived memory growth.
+ *
+ * Exports `disposeClient`, the `requestDataMap` WeakMap, the `clientRegistry`
+ * FinalizationRegistry, and `processReqData`.
+ *
+ * Why this exists: a streaming chat request builds a large object graph — client, LangGraph
+ * run, tool registry, message arrays, abort signals — that is riddled with circular references
+ * (client -> options -> client, graph -> runnable -> graph). Under sustained load V8 keeps
+ * those alive far longer than the request, so the process RSS climbs until it is OOM-killed.
+ * `disposeClient` and the `graphPropsToClean`/`graphRunnablePropsToClean` lists break the
+ * cycles by nulling the specific properties that form them, letting the whole graph be
+ * collected at end of request instead of at GC's convenience.
+ *
+ * Design notes:
+ * - Property lists are explicit allow-lists rather than a recursive walk: a blind deep-null
+ *   would corrupt shared singletons (caches, managers) that legitimately outlive the request.
+ * - Every disposal is wrapped in try/catch and ignores errors — cleanup must never turn a
+ *   successful response into a failure.
+ * - `requestDataMap` is a `WeakMap` keyed by the request, so entries disappear with the
+ *   request even if a cleanup path is missed.
+ * - `clientRegistry` (FinalizationRegistry) is diagnostic only — it logs when a client is
+ *   actually collected, which is how leaks are confirmed. It is guarded on
+ *   `global.FinalizationRegistry` for runtimes that lack it.
+ * - `processReqData` folds the incremental `data` callbacks emitted during a run into one
+ *   context object in a single pass, rather than reassigning across several loops.
+ *
+ * Connections:
+ * - called by `server/controllers/agents/*` and `server/middleware/abortMiddleware.js`
+ * - related diagnostics: `memoryDiagnostics` from `packages/api`, enabled via `MEM_DIAG`
+ */
 const { logger } = require('@librechat/data-schemas');
 
 /** WeakMap to hold temporary data associated with requests */

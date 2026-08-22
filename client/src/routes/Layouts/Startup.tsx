@@ -1,3 +1,17 @@
+// Layout for the pre-session pages: login, register, 2FA, password reset.
+//
+// Owns the state those forms share (`error`, `headerText`, `startupConfig`) and
+// passes it down through the router's `Outlet context` rather than a provider,
+// since the consumers are all direct route children.
+//
+// The header is chosen by pathname via `headerMap` so each form does not have to
+// set its own title, and `error`/`headerText` reset on navigation — otherwise a
+// failed login's message would follow the user to the register page.
+//
+// The redirect-to-`/c/new` on an already-authenticated visit is suppressed when a
+// pending redirect exists (query param or session key), so an interrupted deep
+// link still wins over the default landing.
+
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import type { TStartupConfig } from 'librechat-data-provider';

@@ -1,3 +1,5 @@
+// The account menu and the settings dialog's entry point.
+
 import { useState, memo, useRef } from 'react';
 import { useSetRecoilState } from 'recoil';
 import * as Menu from '@ariakit/react/menu';

@@ -1,3 +1,5 @@
+// The sidebar expand/collapse control.
+
 import { TooltipAnchor } from '@librechat/client';
 import { useShortcutAriaKey, useShortcutHint } from '~/hooks/useKeyboardShortcuts';
 import { useLocalize } from '~/hooks';

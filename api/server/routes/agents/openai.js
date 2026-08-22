@@ -15,6 +15,19 @@
  *     "messages": [{"role": "user", "content": "Hello!"}],
  *     "stream": true
  *   }
+ *
+ * Design: authenticated by API key, not JWT — the chain is
+ * `preAuthTenantMiddleware -> requireRemoteAgentAuth -> configMiddleware ->
+ * checkRemoteAgentsFeature`, then `checkAgentPermission` per call.
+ * `preAuthTenantMiddleware` runs first because an API-key caller has no
+ * session-derived tenant, and `checkRemoteAgentsFeature` lets the whole surface be
+ * disabled by role. This is why the router is mounted *before* the JWT gate in
+ * `server/routes/agents/index.js`.
+ *
+ * Connections:
+ * - controller: `server/controllers/agents/openai.js`
+ * - auth middleware: `server/routes/agents/middleware.js`
+
  */
 const express = require('express');
 const {

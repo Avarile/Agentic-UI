@@ -1,3 +1,9 @@
+// Applies an admin model spec's agent and tool selections to a conversation.
+//
+// The counterpart to the persistence rules in Providers/BadgeRowContext: when a
+// spec is active, its values are authoritative for a new conversation and are
+// layered under localStorage overrides for an existing one.
+
 import { useCallback } from 'react';
 import { Constants } from 'librechat-data-provider';
 import type { TStartupConfig, TSubmission } from 'librechat-data-provider';

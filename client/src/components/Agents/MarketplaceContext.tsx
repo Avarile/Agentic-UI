@@ -1,3 +1,6 @@
+// Shared marketplace state — category, query, pagination — provided at the route so
+// the URL and the grid agree.
+
 import React from 'react';
 import { ChatContext } from '~/Providers';
 import { useChatHelpers } from '~/hooks';

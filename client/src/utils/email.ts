@@ -1,3 +1,5 @@
+// Email validation and normalization for the auth forms.
+
 import { z } from 'zod';
 
 /**

@@ -1,3 +1,10 @@
+// The current user, and the SharePoint/Graph access token.
+//
+// `useGetUserQuery` is the session probe backing AuthContext. `useGraphTokenQuery`
+// is separate because Microsoft Graph tokens are short-lived and scope-specific:
+// it is requested on demand for the SharePoint file picker rather than held for the
+// session.
+
 import { useRecoilValue } from 'recoil';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKeys, dataService } from 'librechat-data-provider';

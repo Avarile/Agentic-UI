@@ -1,3 +1,5 @@
+// Triggers a browser download from a blob or URL, revoking object URLs afterwards.
+
 export const isHttpDownloadTarget = (target?: string | null): boolean =>
   /^https?:\/\//i.test(target ?? '');
 

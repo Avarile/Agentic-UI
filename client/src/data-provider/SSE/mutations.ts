@@ -1,3 +1,20 @@
+// Mid-run control plane: abort, steer, cancel, arm, tool approval, ask-answer.
+//
+// Every mutation here acts on a generation that is *already streaming*, which makes
+// them different in kind from the rest of this layer — they are not CRUD, and their
+// response may arrive before, after, or interleaved with the SSE events describing
+// the same effect.
+//
+// Two consequences visible throughout the file. Requests carry
+// `generationCreatedAt` as an optimistic concurrency fence, because stream ids are
+// conversation-scoped and reused by later turns — without it a late abort could
+// land on the next run. And callers must tolerate either arrival order: a steer's
+// 202 ACK and its `on_steer_applied` event race, which is why
+// `appliedSteerIdsByConvoId` exists in the store.
+//
+// `arm` is the interrupt-at-next-safe-boundary variant of steer; `cancel` withdraws
+// a steer that has not been injected yet.
+
 import { useMutation } from '@tanstack/react-query';
 import { apiBaseUrl, EModelEndpoint } from 'librechat-data-provider';
 import type { Agents, TMessage, TEphemeralAgent, TPendingSteer } from 'librechat-data-provider';

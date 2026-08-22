@@ -1,3 +1,5 @@
+// File attachments on a message, resolved through the shared file map.
+
 import { useMemo, useState, useCallback, memo } from 'react';
 import type { TFile, TMessage } from 'librechat-data-provider';
 import FileContainer from '~/components/Chat/Input/Files/FileContainer';

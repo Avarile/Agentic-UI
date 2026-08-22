@@ -1,3 +1,17 @@
+// Stream and job status: what is running, and what still needs a title.
+//
+// These queries answer questions the SSE connection cannot, because they must work
+// *without* it. `useActiveJobs` and `fetchStreamStatus` are how a freshly loaded
+// tab discovers that a generation started elsewhere is still going and can be
+// resumed (see hooks/SSE/useResumeOnLoad.ts); `streamStatusQueryKey` is exported so
+// the resumable-stream hook can read and prime the same cache entry directly.
+//
+// Title generation is modelled as a queue (`queueTitleGeneration` /
+// `markTitleGenerationProcessed`) rather than a request, because the title is
+// generated server-side after a run finishes and the client only needs to notice
+// it once — the mark-processed step prevents the same conversation being polled
+// repeatedly for a title it already has.
+
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
 import { apiBaseUrl, QueryKeys, request, dataService } from 'librechat-data-provider';

@@ -1,3 +1,6 @@
+// The reduced action set for contexts where most actions are meaningless — search
+// results and shared conversations.
+
 import { useState } from 'react';
 import { Button, Clipboard, CheckMark, TooltipAnchor } from '@librechat/client';
 import type { TMessage, SearchResultData } from 'librechat-data-provider';

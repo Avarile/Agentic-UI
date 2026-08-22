@@ -1,3 +1,19 @@
+/**
+ * Authenticates if credentials are present, but never rejects the request.
+ *
+ * Same strategy-selection logic as `requireJwtAuth` (jwt vs. openidJwt by cookie), and it
+ * establishes tenant context when a user is resolved, but a missing or invalid token simply
+ * falls through with `req.user` unset.
+ *
+ * Why: routes that must serve both signed-in and anonymous callers — `/api/config` (the UI
+ * needs the config before login) and shared-link viewing — would otherwise need two separate
+ * handlers. `req.authStrategy` is recorded so downstream code can tell how the user was
+ * authenticated.
+ *
+ * Connections:
+ * - mounted on `/api/config` in `server/index.js`; used by share/preview routes
+ * - strict counterpart: `server/middleware/requireJwtAuth.js`
+ */
 const cookies = require('cookie');
 const passport = require('passport');
 const { isEnabled, tenantContextMiddleware } = require('@librechat/api');

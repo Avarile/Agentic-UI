@@ -1,3 +1,6 @@
+// Keeps the endpoint/model selector consistent with the conversation when either
+// changes from elsewhere.
+
 import React, { useMemo, useEffect, useRef } from 'react';
 import {
   isAgentsEndpoint,

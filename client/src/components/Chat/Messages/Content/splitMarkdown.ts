@@ -1,3 +1,7 @@
+// The block-splitting rules: where a markdown document may be divided without
+// changing how it parses. Pure, so the boundaries are testable independently of
+// rendering — a split inside a fence or a table would corrupt the output.
+
 import { gfm } from 'micromark-extension-gfm';
 import { math } from 'micromark-extension-math';
 import { gfmFromMarkdown } from 'mdast-util-gfm';

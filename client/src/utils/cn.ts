@@ -1,3 +1,7 @@
+// `clsx` + `tailwind-merge`: conditional classes with later Tailwind utilities
+// winning over earlier conflicting ones. Use it anywhere classes are composed, or
+// variant overrides silently lose to base classes.
+
 import { twMerge } from 'tailwind-merge';
 import { type ClassValue, clsx } from 'clsx';
 

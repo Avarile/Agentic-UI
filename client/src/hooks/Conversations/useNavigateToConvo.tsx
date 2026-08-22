@@ -1,3 +1,9 @@
+// Navigating to a conversation while keeping atoms and the URL consistent.
+//
+// The reason this is not a bare `navigate()`: the conversation atom, the message
+// cache and the route can disagree during a transition, and doing them in the wrong
+// order produces a visible flash of the previous conversation.
+
 import { useCallback } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';

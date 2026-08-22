@@ -1,3 +1,5 @@
+// Preset naming, ordering and comparison for the presets menu.
+
 import type { TPreset, TPlugin } from 'librechat-data-provider';
 import { EModelEndpoint } from 'librechat-data-provider';
 

@@ -1,3 +1,13 @@
+// What the artifacts side panel needs to know about the chat driving it.
+//
+// The panel needs the latest message's id and text plus submission state to decide
+// whether an artifact is still streaming. Reading those from ChatContext would
+// re-render the panel on every token of every message; this context subscribes to
+// the specific atoms instead and derives `latestMessageText` once.
+//
+// The optional `value` override makes the panel testable and reusable outside a
+// live chat.
+
 import React, { createContext, useContext, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useLatestMessage } from '~/hooks/Messages/useLatestMessage';

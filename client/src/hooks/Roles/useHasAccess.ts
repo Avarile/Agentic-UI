@@ -1,3 +1,12 @@
+// Whether the current user's role grants a permission.
+//
+// Reads AuthContext directly with `useContext` rather than the `useAuthContext`
+// hook, so it can be called from components that may render outside the provider
+// (the share route) without throwing — it degrades to "no access" instead.
+//
+// Role *definitions* come from the server (data-provider/roles.ts); this only
+// evaluates them, which is why a permission change appears without a reload.
+
 import { useMemo, useCallback, useContext } from 'react';
 import type { TUser, PermissionTypes, Permissions } from 'librechat-data-provider';
 import { AuthContext } from '~/hooks/AuthContext';

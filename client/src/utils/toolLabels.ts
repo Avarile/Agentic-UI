@@ -1,3 +1,6 @@
+// Human-readable labels for tools, including MCP tools whose names are
+// server-qualified.
+
 import { Constants, splitToolCallName } from 'librechat-data-provider';
 import type { TranslationKeys } from '~/hooks';
 

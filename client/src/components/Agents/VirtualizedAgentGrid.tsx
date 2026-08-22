@@ -1,3 +1,6 @@
+// The windowed agent grid, using the grid arithmetic from `useVirtualGrid` since
+// the catalogue is large enough that rendering every card stalls first paint.
+
 import React, { useMemo, useEffect, useCallback, useRef } from 'react';
 import { throttle } from 'lodash';
 import { Spinner } from '@librechat/client';

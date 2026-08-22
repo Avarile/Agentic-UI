@@ -1,3 +1,22 @@
+// The composer.
+//
+// The densest component in the app, because a single text field has to serve every
+// state a conversation can be in. Idle it sends. Mid-run it steers, queues, or
+// interrupts — decided by the `duringRunDefaultAction` preference and the
+// interrupt setting. When the model has asked a clarifying question it answers that
+// instead. It also hosts four command popovers (`@` mentions, `+`, `/` prompts,
+// `$` skills), attachments, dictation, token usage, and the chips for everything
+// pending: manual skills, quotes, steers.
+//
+// Most of that logic is delegated — `useTextarea` for sizing and key resolution,
+// `useSubmitMessage` for send, `useSteering` for mid-run submission, `useAutoSave`
+// for drafts — so what remains here is composition and the state that genuinely
+// spans them.
+//
+// The send control is not one button but several that swap by state (`SendButton`,
+// `StopButton`, `DuringRunSendButton`, `InterruptSteerButton`), which keeps each
+// one's affordance and label honest instead of overloading a single button.
+
 import { memo, useRef, useMemo, useEffect, useState, useCallback } from 'react';
 import { useWatch } from 'react-hook-form';
 import { TextareaAutosize } from '@librechat/client';

@@ -1,3 +1,10 @@
+/**
+ * Tavily search tool (factory form, Zod schema).
+ *
+ * The modern of the two Tavily integrations: built with the `tool()` helper and a Zod schema, and
+ * resolves its key through `./credentials.js` so BYOK works. Prefer this over
+ * `TavilySearchResults.js` for new work.
+ */
 const { z } = require('zod');
 const { fetch } = require('undici');
 const { tool } = require('@librechat/agents/langchain/tools');

@@ -1,3 +1,10 @@
+// Open/closed state and payload for the file-upload confirmation modal.
+//
+// A context because the trigger and the modal are far apart in the tree: a drop
+// anywhere in the chat surface has to reach a modal mounted near the root, and
+// passing the `File[]` through props would mean threading it through every layer
+// in between.
+
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 interface UploadModalContextValue {

@@ -1,3 +1,6 @@
+// Builds the renderable tree from the flat message list, honouring the selected
+// sibling at each branch point. The client-side counterpart to buildTree.
+
 import { useRecoilCallback } from 'recoil';
 import type { TMessage } from 'librechat-data-provider';
 import store from '~/store';

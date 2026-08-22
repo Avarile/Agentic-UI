@@ -1,3 +1,5 @@
+// The MCP server builder: define a server, configure auth, inspect its tools.
+
 export { default } from './MCPBuilderPanel';
 export { default as MCPBuilderPanel } from './MCPBuilderPanel';
 export { default as MCPServerList } from './MCPServerList';

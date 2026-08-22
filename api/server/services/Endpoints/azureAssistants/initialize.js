@@ -1,3 +1,19 @@
+/**
+ * Constructs the OpenAI-compatible client for Azure OpenAI Assistants.
+ *
+ * Design:
+ * - Azure requires a per-deployment URL, so `mapModelToAzureConfig` + `constructAzureURL`
+ *   translate a model name into the right deployment endpoint and api-version. Without this,
+ *   every model would need its own configured client.
+ * - The local `Files` class wraps the client's file operations, because Azure's file API paths
+ *   differ from OpenAI's and the SDK's built-in resource would target the wrong URLs.
+ * - `resolveHeaders` applies configured custom headers (Azure gateways commonly require them),
+ *   and `getProxyDispatcher` applies the egress proxy.
+ * - BYOK is supported the same way as the OpenAI variant, with `checkUserKeyExpiry` producing a
+ *   typed error for an expired key.
+ *
+ * Connections: `server/controllers/assistants/helpers.js` (`getOpenAIClient`)
+ */
 const OpenAI = require('openai');
 const {
   isUserProvided,

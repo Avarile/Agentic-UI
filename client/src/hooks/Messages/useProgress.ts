@@ -1,3 +1,6 @@
+// Drives the indeterminate progress indicator for a running step, including the
+// minimum display time that stops fast steps from flickering.
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 export default function useProgress(initialProgress = 0.01, increment = 0.007, fileSize?: number) {

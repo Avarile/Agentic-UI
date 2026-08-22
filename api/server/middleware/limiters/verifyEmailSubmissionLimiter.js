@@ -1,3 +1,10 @@
+/**
+ * IP rate limit on email-verification token submissions (default 2 per 2 minutes).
+ *
+ * Separate from the resend limiter so token brute force and mail spam are limited (and logged,
+ * via `limiter: 'submission'`) independently. Env vars fall back to the `VERIFY_EMAIL_*`
+ * values.
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

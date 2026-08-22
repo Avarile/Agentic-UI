@@ -1,3 +1,13 @@
+// Folds agent run steps — tool calls, their arguments, their outputs — into message
+// content.
+//
+// Large because a step arrives incrementally and out of shape: arguments stream as
+// text fragments that must be accumulated before they are valid JSON, outputs
+// arrive separately from the call that produced them, and steps nest when a tool
+// spawns a subagent. The handler maintains index maps from step and tool-call ids
+// to positions in the message's content array so each delta lands in the right
+// place without rescanning.
+
 import { useCallback, useRef } from 'react';
 import { useRecoilCallback } from 'recoil';
 import {

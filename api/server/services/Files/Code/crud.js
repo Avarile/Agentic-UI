@@ -1,3 +1,20 @@
+/**
+ * File transfer to and from the code-interpreter sandbox.
+ *
+ * `uploadCodeEnvFile`, `batchUploadCodeEnvFiles`, `getCodeOutputDownloadStream`,
+ * `deleteCodeEnvFile`.
+ *
+ * Design: the sandbox is a separate service, so requests use dedicated keep-alive agents
+ * (`codeServerHttpAgent`/`codeServerHttpsAgent`) and auth headers
+ * (`getCodeApiAuthHeaders`) rather than the app's default axios instance — a code session makes
+ * many short requests and connection reuse matters.
+ * `batchUploadCodeEnvFiles` exists because priming a session with an agent's files would
+ * otherwise be one request per file on every run. Uploads are streamed via `FormData` rather
+ * than buffered.
+ *
+ * Connections: `Code/process.js`, `Endpoints/agents/skillDeps.js`; registered indirectly via
+ * `codeOutputStrategy` in `strategies.js`
+ */
 const FormData = require('form-data');
 const { logger } = require('@librechat/data-schemas');
 const { getCodeBaseURL } = require('@librechat/agents');

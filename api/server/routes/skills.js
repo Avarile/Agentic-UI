@@ -1,3 +1,26 @@
+/**
+ * Skill CRUD, file upload/download, sharing, and GitHub import.
+ *
+ * Design:
+ * - Router-wide chain is `requireJwtAuth -> configMiddleware -> checkSkillAccess`, then
+ *   per-skill ACL through `canAccessSkillResource`.
+ * - Skill *files* reuse the file-upload stack: `createFileLimiters`, `mergeFileConfig` limits,
+ *   and `getStrategyFunctions` so skill assets land in the same storage backend as everything
+ *   else instead of on the local disk.
+ * - `maybeRunGitHubSkillSyncForRequest` lazily refreshes a GitHub-backed skill on access, so a
+ *   synced skill is current without a background poll on every skill.
+ * - `restoreTenantContextFromReq` / `resolveRequestTenantId` are used because upload handling
+ *   continues past the original async-local scope.
+ * - Public discovery goes through `findPubliclyAccessibleResources` / `hasPublicPermission`
+ *   rather than a flag on the document, keeping visibility in the ACL layer.
+ * - A router-level error handler is registered at the end to convert multer/storage errors
+ *   into clean JSON instead of letting them reach the global handler as 500s.
+ *
+ * Connections:
+ * - handlers from `packages/api` (`createSkillsHandlers`, `createImportHandler`)
+ * - sync: `server/services/Skills/sync.js`; ACL: `server/services/PermissionService.js`
+ * - deployment skills are registered separately at boot in `server/index.js`
+ */
 const path = require('path');
 const crypto = require('crypto');
 const multer = require('multer');

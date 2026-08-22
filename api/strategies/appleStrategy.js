@@ -1,3 +1,19 @@
+/**
+ * Apple Sign In provider binding.
+ *
+ * Design: Apple is the outlier among the social providers. It does not return a profile from
+ * a userinfo endpoint — identity lives in the `idToken`, so `getProfileDetails` decodes the
+ * JWT itself and reads `email`/`sub` from the claims. Apple also never supplies an avatar
+ * (`avatarUrl: null`), and it only sends the user's name on the *first* authorization, hence
+ * the fallback to `profile.displayName`. `emailVerified` is hardcoded true because Apple
+ * verifies the address before issuing the token.
+ *
+ * Authentication uses a private key file (`APPLE_PRIVATE_KEY_PATH`) plus team/key ids rather
+ * than a client secret.
+ *
+ * Exports the user strategy as the default and the admin (`existingUsersOnly`) variant as
+ * `.appleAdminLogin`.
+ */
 const jwt = require('jsonwebtoken');
 const { logger } = require('@librechat/data-schemas');
 const { Strategy: AppleStrategy } = require('passport-apple');

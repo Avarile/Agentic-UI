@@ -1,3 +1,5 @@
+// Collapses the composer to reclaim vertical space on small screens.
+
 import React from 'react';
 import { TooltipAnchor } from '@librechat/client';
 import { ChevronDown, ChevronUp } from 'lucide-react';

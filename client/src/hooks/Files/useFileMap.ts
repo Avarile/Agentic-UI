@@ -1,3 +1,5 @@
+// Builds the shared `file_id -> file` map consumed through FileMapContext.
+
 import { useGetFiles } from '~/data-provider';
 import { mapFiles } from '~/utils';
 

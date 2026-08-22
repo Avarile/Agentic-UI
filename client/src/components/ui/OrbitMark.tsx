@@ -1,3 +1,5 @@
+// The product symbol.
+
 import { useTheme, isDark, useMediaQuery } from '@librechat/client';
 import { cn } from '~/utils';
 

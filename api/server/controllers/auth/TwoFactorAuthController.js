@@ -1,3 +1,17 @@
+/**
+ * Verifies the second factor and completes login.
+ *
+ * Accepts either a TOTP code or a backup code alongside the `tempToken` issued by
+ * `LoginController`. The temp token is verified against `JWT_SECRET` before any user lookup, so
+ * an unsigned or expired token costs nothing.
+ *
+ * Design: backup codes are accepted here (not only in account settings) because a user who has
+ * lost their authenticator must be able to get in. Successful verification is the only path
+ * that calls `setAuthTokens` for a 2FA-enabled account.
+ *
+ * Connections: `server/services/twoFactorService.js`, `services/AuthService.js`;
+ * route `POST /api/auth/2fa/verify-temp` (with `setTwoFactorTempUser` + `twoFactorTempLimiter`)
+ */
 const jwt = require('jsonwebtoken');
 const { logger } = require('@librechat/data-schemas');
 const {

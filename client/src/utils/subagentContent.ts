@@ -1,3 +1,12 @@
+// Incremental aggregation of subagent progress events.
+//
+// The reason store/subagents.ts can hold bounded state: `foldSubagentEvent` merges
+// one envelope into the existing structure — extending the current text run,
+// appending a tool call, advancing the ticker — carrying a cursor
+// (`SubagentAggregatorState`) between calls. The raw event array is never retained,
+// so a subagent emitting thousands of deltas costs what its rendered output costs,
+// not what its event stream costs.
+
 import { ContentTypes, ToolCallTypes } from 'librechat-data-provider';
 import type { SubagentUpdateEvent } from 'librechat-data-provider';
 

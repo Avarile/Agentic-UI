@@ -1,3 +1,11 @@
+// Artifact code editor state, split across two contexts on purpose.
+//
+// `CodeContext` changes on every keystroke; `MutationContext` (saving/edit status)
+// changes rarely. A single context would re-render every toolbar button on each
+// character typed. Consumers pick the one they need — `useCodeState()` or
+// `useMutationState()` — and `useEditorContext()` remains only as a deprecated
+// convenience that subscribes to both.
+
 import React, { createContext, useContext, useState, useMemo } from 'react';
 
 /**

@@ -1,3 +1,5 @@
+// Web-search sources for a message, and the hovercard behind each citation.
+
 import React, { useMemo, useCallback } from 'react';
 import { useRecoilValue } from 'recoil';
 import * as Ariakit from '@ariakit/react';

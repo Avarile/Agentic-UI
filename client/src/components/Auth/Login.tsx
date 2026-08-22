@@ -1,3 +1,5 @@
+// The login page: credentials, social providers, and the 2FA handoff.
+
 import { useEffect, useState } from 'react';
 import { OpenIDIcon, useToastContext } from '@librechat/client';
 import { ErrorTypes } from 'librechat-data-provider';

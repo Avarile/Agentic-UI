@@ -1,3 +1,9 @@
+// Prompt-library filters and editor preferences.
+//
+// The split mirrors store/settings.ts: filters (name, category, page) are session
+// state that should reset, while `autoSendPrompts`, `alwaysMakeProd` and the
+// editor mode are preferences that should persist.
+
 import { atom } from 'recoil';
 import { atomWithLocalStorage } from '~/store/utils';
 import { PromptsEditorMode } from '~/common';

@@ -1,3 +1,14 @@
+// Tool authorization checks, persisted tool calls, and MCP connection/auth state.
+//
+// `useVerifyAgentToolAuth` is a pre-flight check: it answers whether a tool can run
+// for this user before the toggle is offered, so the UI can prompt for credentials
+// instead of failing mid-run. `useGetToolCalls` fetches persisted calls for a
+// conversation and backs the ToolCallsMap context.
+//
+// `useMCPConnectionStatusQuery` and `useMCPAuthValuesQuery` live here rather than
+// under MCP/ because they are consumed alongside tool gating, not alongside server
+// management.
+
 import { useQuery } from '@tanstack/react-query';
 import { Constants, QueryKeys, dataService } from 'librechat-data-provider';
 import type { QueryObserverResult, UseQueryOptions } from '@tanstack/react-query';

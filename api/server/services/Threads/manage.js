@@ -1,3 +1,31 @@
+/**
+ * Maps an OpenAI thread to LibreChat's conversation/message model, in both directions.
+ *
+ * Owns thread creation (`initThread`), message persistence (`saveUserMessage`,
+ * `saveAssistantMessage`), thread metadata (`addThreadMetadata`), reconciliation
+ * (`syncMessages`, `checkMessageGaps`, `mapMessagesToSteps`), usage recording (`recordUsage`)
+ * and content processing (`processMessages`).
+ *
+ * Why reconciliation is needed: the thread lives at OpenAI and is the source of truth for its
+ * contents, while LibreChat keeps its own message tree with parent links. A dropped stream
+ * event, an aborted run or a cancelled request leaves the two out of sync.
+ * `checkMessageGaps` detects missing messages and `syncMessages` repairs the chain — without it
+ * the conversation would render with holes or a broken parent chain.
+ *
+ * Design details:
+ * - `addThreadMetadata` stores our message id on the upstream message, which is what makes
+ *   later mapping possible without positional guessing.
+ * - `mapMessagesToSteps` associates run steps with messages so tool calls attach to the right
+ *   turn.
+ * - Annotations (file citations) are resolved through `retrieveAndProcessFile`, so cited files
+ *   become real attachments; `escapeRegExp` is used when substituting citation markers.
+ * - Token counts are computed with `countTokens` and spent via `spendTokens`, so Assistants runs
+ *   bill on the same ledger as agents.
+ *
+ * Connections:
+ * - `server/services/Runs/*`, `services/AssistantService.js`, `services/Files/process.js`
+ * - consumers: `controllers/assistants/*`, `middleware/abortRun.js`
+ */
 const path = require('path');
 const { v4 } = require('uuid');
 const { countTokens } = require('@librechat/api');

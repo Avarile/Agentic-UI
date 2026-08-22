@@ -1,3 +1,9 @@
+// The full markdown renderer: GFM, math, code fences, citations, artifacts.
+//
+// The heaviest thing rendered per message, and it re-runs on every streamed token,
+// which is why the block-splitting and memoization in MarkdownBlocks exists rather
+// than re-parsing whole documents.
+
 import React, { memo, useMemo, useRef, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import { getRemarkPlugins, getRehypePlugins, getMarkdownComponents } from './markdownConfig';

@@ -1,4 +1,10 @@
-// AnnouncerContext.tsx
+// Screen-reader announcement channel: `announcePolite` / `announceAssertive`.
+//
+// The default value logs a warning instead of throwing, deliberately — a missing
+// LiveAnnouncer should never break a render, and a dropped announcement is the
+// one failure mode here that is safe. Fulfilled by a11y/LiveAnnouncer.tsx, which
+// owns the actual aria-live regions.
+
 import React from 'react';
 import type { AnnounceOptions } from '~/common';
 

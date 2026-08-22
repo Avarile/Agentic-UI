@@ -1,3 +1,25 @@
+/**
+ * Abort handler specific to the OpenAI Assistants API (thread/run model).
+ *
+ * Design: an Assistants run lives on OpenAI's side, so aborting is not just closing our
+ * stream — the run must be cancelled upstream and our local thread state reconciled. The
+ * `abortKey` is `"<conversationId>:<latestMessageId>"`, and the run id is looked up from the
+ * `ABORT_KEYS` cache; a cache miss returns 204 (nothing to abort) rather than an error,
+ * because a completed or already-cancelled run is not a client fault.
+ *
+ * `conversationId` is validated as a UUID before use — it comes from a client-supplied
+ * `abortKey`. The conversation's stored model is copied onto `req.body` because
+ * `initializeClient` needs it to pick the right credentials, and the abort request itself does
+ * not carry one (an Express 5 `req.body` existence guard is required here).
+ *
+ * `checkMessageGaps` then repairs the message chain, since a cancelled run can leave the
+ * thread with messages we never received.
+ *
+ * Connections:
+ * - called from `server/middleware/abortMiddleware.js`
+ * - client via `server/services/Endpoints/assistants`; thread repair/usage via
+ *   `server/services/Threads`
+ */
 const { sendEvent } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 const { CacheKeys, RunStatus, isUUID } = require('librechat-data-provider');

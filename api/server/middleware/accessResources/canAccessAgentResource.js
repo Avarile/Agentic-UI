@@ -1,3 +1,11 @@
+/**
+ * ACL gate for agent routes addressed by custom agent id (`/agents/:id`).
+ *
+ * Supplies `getAgent({ id })` as the resolver so `canAccessResource` can map
+ * `agent_abc123` -> ObjectId for the permission lookup.
+ *
+ * Connections: wraps `canAccessResource.js`; used by `server/routes/agents/v1.js`
+ */
 const { ResourceType } = require('librechat-data-provider');
 const { canAccessResource } = require('./canAccessResource');
 const { getAgent } = require('~/models');

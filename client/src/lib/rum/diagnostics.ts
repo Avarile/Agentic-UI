@@ -1,3 +1,5 @@
+// Collects environment diagnostics attached to RUM reports.
+
 import type { FCPMetricWithAttribution } from 'web-vitals/attribution';
 import { normalizeRumPath } from './routes';
 

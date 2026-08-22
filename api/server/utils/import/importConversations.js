@@ -1,3 +1,16 @@
+/**
+ * Job entry point for importing a conversation archive.
+ *
+ * Reads the uploaded file, picks the importer by format (`getImporter`), and writes through an
+ * `ImportBatchBuilder`.
+ *
+ * Design: shaped as a *job* (`{ filepath, requestUserId, userRole, interfaceConfig }`) rather
+ * than a request handler, so the import can be invoked outside an HTTP context and the user
+ * identity/role travel explicitly instead of via `req`. Size is bounded by
+ * `resolveImportMaxFileSize` before parsing, since the parsers build the whole tree in memory.
+ *
+ * Connections: `importers.js`, `importBatchBuilder.js`; route `server/routes/convos.js`
+ */
 const fs = require('fs').promises;
 const { resolveImportMaxFileSize } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');

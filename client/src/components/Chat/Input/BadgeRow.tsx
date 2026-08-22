@@ -1,3 +1,10 @@
+// The capability chips under the composer: code, web search, file search,
+// artifacts, skills, memory, MCP.
+//
+// Rendering only — every toggle's state, persistence and auth gating comes from
+// BadgeRowContext. Order is user-editable, which is why chips are identified by the
+// ids in `store.chatBadges`.
+
 import React, {
   memo,
   useRef,

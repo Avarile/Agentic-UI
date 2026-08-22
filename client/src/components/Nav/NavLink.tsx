@@ -1,3 +1,5 @@
+// A sidebar link, using `useCustomLink` so modifier-clicks behave like real links.
+
 import React, { FC, forwardRef } from 'react';
 import { cn } from '~/utils/';
 

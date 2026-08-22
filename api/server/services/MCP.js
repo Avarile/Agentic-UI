@@ -1,3 +1,41 @@
+/**
+ * MCP integration: turns configured MCP servers into callable agent tools.
+ *
+ * The service half of the MCP feature (`server/controllers/mcp.js` is the request half). It
+ * resolves which servers a user may reach, connects to them, converts their advertised tools
+ * into LangChain tools, and drives the in-conversation OAuth handshake.
+ *
+ * Design:
+ * - Name resolution is a whole subsystem. Tool keys are namespaced `server:tool`
+ *   (`splitMCPToolKey`, `normalizeMCPToolKey`); server names are normalized
+ *   (`normalizeServerName`) and aliased (`buildServerNameAliases`) so config, database and
+ *   runtime agree. `findShadowedServerNames`/`resolveCollisionAuditNames` surface the case where
+ *   a user-defined server is masked by an operator-defined one, and `healMcpToolNames` repairs
+ *   tool references on stored agents/assistants whose server was renamed — without it a rename
+ *   would silently break every agent using it.
+ * - OAuth happens *mid-generation*: `createOAuthStart`/`createOAuthEnd`/`createOAuthCallback`
+ *   emit run-step events so the UI can show an "authorize" button inside the streaming
+ *   response, and the run waits on the flow rather than failing the turn.
+ * - `createUnavailableToolStub` is important: when a server is down or unauthorized, the tool is
+ *   still presented to the model as a stub that reports unavailability. Omitting it entirely
+ *   would change the model's tool set mid-conversation and invalidate the cached prompt.
+ * - `isEmptyObjectSchema`/`normalizeJsonSchema` normalize server-provided schemas, which vary in
+ *   quality and can break provider-side validation.
+ * - `evictStale(map, ttl)` bounds the in-process caches so a long-lived process does not
+ *   accumulate connection state for servers no longer in use.
+ * - `isEarlyDomainAllowed`/`isMCPDomainAllowed` enforce the operator's domain allow-list before
+ *   any connection attempt (SSRF boundary).
+ * - `reconnectServer` handles transport resets, and `PENDING_STALE_MS` bounds how long a pending
+ *   connection is honoured.
+ * - Permission gates: `userCanUseMCPServers`, `getAccessibleMcpServerNames`,
+ *   `createMCPPermissionContext`; tenant scoping via `getTenantId`.
+ *
+ * Connections:
+ * - managers/registry: `config/index.js`; boot: `server/services/initializeMCPs.js`
+ * - consumers: `server/controllers/agents/client.js`, `services/ToolService.js`,
+ *   `controllers/assistants/v1.js`/`v2.js`
+ * - tool cache: `server/services/Config/getCachedTools.js`, `Config/mcp.js`
+ */
 const { tool } = require('@librechat/agents/langchain/tools');
 const { logger, getTenantId } = require('@librechat/data-schemas');
 const { Providers, Constants: AgentConstants } = require('@librechat/agents');

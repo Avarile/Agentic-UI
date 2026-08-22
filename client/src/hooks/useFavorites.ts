@@ -1,3 +1,8 @@
+// Favourite models and agents: the server list, the local mirror, and toggling.
+//
+// Wraps the query, the mutation and the tab-isolated atom so callers get one
+// optimistic toggle instead of coordinating three pieces.
+
 import { useEffect, useCallback, useRef } from 'react';
 import { useAtom } from 'jotai';
 import { useToastContext } from '@librechat/client';

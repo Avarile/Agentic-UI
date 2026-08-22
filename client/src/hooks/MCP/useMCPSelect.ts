@@ -1,3 +1,6 @@
+// Which MCP servers are selected for this conversation, backed by the tab-isolated
+// per-conversation atoms.
+
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAtom } from 'jotai';
 import isEqual from 'lodash/isEqual';

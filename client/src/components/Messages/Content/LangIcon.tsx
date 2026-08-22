@@ -1,3 +1,5 @@
+// The language mark on a code block.
+
 import React from 'react';
 import { FileText } from 'lucide-react';
 import LANG_ICON_PATHS from './langIconPaths';

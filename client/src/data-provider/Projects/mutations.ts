@@ -1,3 +1,9 @@
+// Project create, update, delete, and conversation assignment.
+//
+// Assignment is a project mutation rather than a conversation one because it
+// changes which project's chat list a conversation appears in — the invalidation
+// spans both entities.
+
 import { useRecoilCallback } from 'recoil';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService, QueryKeys } from 'librechat-data-provider';

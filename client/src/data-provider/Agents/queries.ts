@@ -1,3 +1,20 @@
+// Reading agents: the catalogue, one agent, its versions, categories, and the
+// marketplace listing.
+//
+// Three shapes of "an agent" appear here on purpose. `useListAgentsQuery` returns
+// the permission-filtered catalogue (the source for Root's shared agents map);
+// `useGetAgentByIdQuery` returns one agent's own record; and
+// `useGetExpandedAgentByIdQuery` returns it with related entities resolved for the
+// builder. Consumers that only need a name or icon should use the shared map, not a
+// per-agent query.
+//
+// `useMarketplaceAgentsInfiniteQuery` is cursor-paginated and keyed by its filters,
+// so category and search changes create separate cache entries instead of
+// invalidating the list.
+//
+// List queries take a `requiredPermission`, so the same endpoint returns different
+// sets for view and edit contexts.
+
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys, dataService, EModelEndpoint, PermissionBits } from 'librechat-data-provider';
 import type {

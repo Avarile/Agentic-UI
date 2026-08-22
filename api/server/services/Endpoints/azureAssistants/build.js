@@ -1,3 +1,12 @@
+/**
+ * Builds the Azure Assistants `endpointOption`.
+ *
+ * Mirrors `Endpoints/assistants/build.js` exactly, including artifacts-prompt generation. Kept
+ * as a separate module because it is registered under its own endpoint key in the
+ * `buildFunction` table, and Azure's option shape may diverge from OpenAI's.
+ *
+ * Connections: `server/middleware/buildEndpointOption.js`
+ */
 const { removeNullishValues } = require('librechat-data-provider');
 const generateArtifactsPrompt = require('~/app/clients/prompts/artifacts');
 const { getAssistant } = require('~/models');

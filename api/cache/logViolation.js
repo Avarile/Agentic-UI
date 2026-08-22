@@ -1,3 +1,20 @@
+/**
+ * Records an abuse/violation event for a user and escalates it to a ban when warranted.
+ *
+ * Increments the per-type violation counter, stamps the caller's `errorMessage` object in
+ * place with `user_id`/`prev_count`/`violation_count`/`date`, delegates the ban decision to
+ * `banViolation`, and finally appends the event to the user's general violation log.
+ *
+ * Design: mutating the passed `errorMessage` is deliberate — the same object is then returned
+ * to the client by `denyRequest`/`abortMiddleware`, so the count and ban flag reach the UI
+ * without a second lookup. Two stores are written (per-type counter + general history)
+ * because the counter drives policy while the history is for operator forensics.
+ *
+ * Connections:
+ * - calls `cache/banViolation.js`; reads stores from `cache/getLogStores.js`
+ * - called by the rate limiters in `server/middleware/limiters/*`, `moderateText`,
+ *   `checkBan`, `validateModel`, `validateMessageReq` and the balance/token checks
+ */
 const { isEnabled } = require('@librechat/api');
 const { ViolationTypes } = require('librechat-data-provider');
 const getLogStores = require('./getLogStores');

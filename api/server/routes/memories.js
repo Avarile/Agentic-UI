@@ -1,3 +1,24 @@
+/**
+ * Long-term memory CRUD and per-user opt-out preferences.
+ *
+ * Design:
+ * - Permissions are split per operation (`USE`+`READ`, `USE`+`CREATE`, `USE`+`UPDATE`,
+ *   `USE`+`DELETE`, plus a distinct opt-out permission) rather than one blanket memory
+ *   permission, so an operator can allow reading memories while forbidding new writes.
+ * - Memories can be *partitioned by agent* or live in a shared personal pool; an undefined
+ *   agent param means the shared pool. Usage totals deliberately report only the shared pool,
+ *   since `tokenLimit` applies there.
+ * - Agent display names for agent-partitioned memories are resolved through
+ *   `findAccessibleResources`, so the listing never reveals the name of an agent the caller
+ *   cannot access.
+ * - A tight `express.json({ limit: '100kb' })` is applied to memory writes specifically —
+ *   memories are small by design and the global 3mb limit would be an easy way to bloat a
+ *   user's memory store.
+ * - Token counting via `Tokenizer` enforces the configured memory budget.
+ *
+ * Connections:
+ * - ACL via `server/services/PermissionService.js`; models via `~/models`
+ */
 const express = require('express');
 const { Tokenizer, generateCheckAccess } = require('@librechat/api');
 const {

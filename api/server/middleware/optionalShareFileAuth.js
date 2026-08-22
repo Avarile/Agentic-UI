@@ -1,3 +1,19 @@
+/**
+ * Resolves a viewer identity for files served through public share links.
+ *
+ * Design: a shared conversation may embed files, and the viewer may or may not be logged in.
+ * This middleware attempts to identify them from a refresh-token cookie (verified against
+ * `JWT_REFRESH_SECRET` *and* confirmed against a live session row — a valid signature alone is
+ * not enough, the session must still exist) or from OpenID session tokens when token reuse is
+ * enabled. If neither resolves, the request proceeds anonymously and the share ACL decides.
+ *
+ * The session lookup runs under `runAsSystem` because it must read across tenant scope before
+ * a tenant context exists for this request.
+ *
+ * Connections:
+ * - used by the share/file routes (`server/routes/share.js`, `server/routes/files/*`)
+ * - related: `server/middleware/canAccessSharedLink.js`, `checkSharePublicAccess.js`
+ */
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
 const { isEnabled } = require('@librechat/api');

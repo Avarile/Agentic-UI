@@ -1,3 +1,15 @@
+// Splits a markdown document into independently memoized blocks.
+//
+// The central streaming optimization. During generation only the last block
+// changes, so re-rendering the whole document per token is wasted work that grows
+// with message length. Splitting means a long answer costs the same per token as a
+// short one.
+//
+// This is why the index-assigning providers take a `baseIndex`: each block gets its
+// own counter seeded with the running count from earlier blocks, so code-fence and
+// artifact indices stay in document order without a shared counter that memoization
+// would defeat.
+
 import React, { memo, useMemo, useLayoutEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { PluggableList } from 'unified';

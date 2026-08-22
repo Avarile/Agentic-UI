@@ -1,3 +1,14 @@
+// Hands scroll control back to the user mid-stream.
+//
+// The message list follows the bottom while an answer streams. This hook's
+// throttled scroll handler sets `abortScroll` to whatever `isSubmitting` currently
+// is, so a scroll *during* generation stops the auto-follow and a scroll after it
+// finishes does not.
+//
+// `isSubmitting` is read through a ref rather than a dependency so the throttled
+// handler keeps a stable identity — re-creating it on every submission-state change
+// would reset the throttle window and let a burst of scroll events through.
+
 import throttle from 'lodash/throttle';
 import { useEffect, useRef, useMemo } from 'react';
 import type { TMessage } from 'librechat-data-provider';

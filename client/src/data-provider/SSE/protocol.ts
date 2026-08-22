@@ -1,3 +1,24 @@
+// Generation protocol negotiation — the client/server contract version.
+//
+// A generation is not a single request: it is a POST that starts a run, an SSE
+// connection that carries it, and several control endpoints (abort, steer, approve)
+// that act on it mid-flight. v2 changed the guarantees those controls provide, so
+// the client has to know which contract the server is honouring before it offers
+// features like same-id steer retry.
+//
+// Negotiation is deliberately fail-closed: only an exact numeric echo of `2`
+// enables v2. An old server, a stripped field, the string "2", or a future version
+// all stay on the legacy path — the client never assumes a contract it has not been
+// told about.
+//
+// `postGenerationRequest` exists rather than reusing the shared Axios helper
+// because these routes need `request.authenticatedFetch`, which preserves the
+// protocol header across a transparent 401 token refresh. It then re-shapes
+// failures into an Axios-like error (`error.response.status/data/headers`) so
+// existing retry logic keeps working, and stamps `ERR_NETWORK` on transport
+// failures — fetch does not provide it, and the start-retry loop uses it to tell an
+// ambiguous transport failure from a definite rejection.
+
 import { request } from 'librechat-data-provider';
 
 export const GENERATION_PROTOCOL_VERSION = 2 as const;

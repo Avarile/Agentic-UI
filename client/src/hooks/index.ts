@@ -1,3 +1,20 @@
+// Barrel for the hooks layer — where the client's behaviour actually lives.
+//
+// The directory is organized by *domain*, not by hook kind: `Chat/` owns sending
+// and aborting, `SSE/` owns receiving, `Messages/` owns rendering concerns,
+// `Input/` owns the composer, `Files/` owns uploads, and so on. A hook belongs in
+// the folder named after the thing it manipulates.
+//
+// That split is what keeps the store readable. Atoms in `~/store` are deliberately
+// dumb — values and selectors, no orchestration — and every non-trivial
+// interaction between them is a hook here. If logic touches two atoms, a query,
+// and a ref, it is a hook, not a selector.
+//
+// A handful of root-level entries (`AuthContext`, `ApiErrorBoundaryContext`,
+// `ScreenshotContext`) are contexts rather than hooks. They live here rather than
+// in `~/Providers` because they are consumed almost exclusively through their
+// hooks, and because they must be importable before the provider stack exists.
+
 export * from './Audio';
 export * from './Assistants';
 export * from './Agents';

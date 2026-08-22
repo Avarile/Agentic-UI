@@ -1,3 +1,10 @@
+// Rendering-side concerns for messages: content metadata, expansion, scrolling,
+// copying, attachments, and the per-message action set.
+//
+// Nothing here sends or receives. These hooks exist because the message list is the
+// performance-critical subtree, and each isolates a subscription or a measurement
+// so that a change in one message does not re-render the tree.
+
 export { default as useProgress } from './useProgress';
 export {
   MESSAGE_CONTENT_LAYOUT_CHANGE_EVENT,

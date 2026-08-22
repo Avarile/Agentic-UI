@@ -1,3 +1,7 @@
+// The artifact code editor. Edits are saved back into the message that produced the
+// artifact (data-provider/Messages/mutations.ts), which is why editing is a message
+// mutation rather than a file write.
+
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import debounce from 'lodash/debounce';
 import MonacoEditor from '@monaco-editor/react';

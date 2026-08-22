@@ -1,3 +1,5 @@
+// The header strip on a code block: language, copy, run.
+
 import React from 'react';
 import { InfoIcon } from 'lucide-react';
 import type { CodeBarProps } from '~/common';

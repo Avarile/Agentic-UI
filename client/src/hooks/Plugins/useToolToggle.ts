@@ -1,3 +1,10 @@
+// One capability toggle: on/off, persistence, and auth gating.
+//
+// Parameterized by tool key and storage key so the seven chips in
+// Providers/BadgeRowContext are seven instances of one behaviour rather than seven
+// hooks. It owns the localStorage write, the ephemeral-agent update, and the
+// "needs credentials first" path.
+
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import debounce from 'lodash/debounce';
 import { useRecoilState } from 'recoil';

@@ -1,3 +1,29 @@
+/**
+ * Microsoft Graph client: directory search, group membership, and connectivity testing.
+ *
+ * Backs Entra-based principal search and group-driven ACLs.
+ *
+ * Design:
+ * - Every call needs a Graph-audience token, which the app's own access token is not.
+ *   `exchangeTokenForGraphAccess` performs the on-behalf-of exchange and caches the result;
+ *   `createGraphClient` wraps it so callers never handle the exchange.
+ * - `entraIdPrincipalFeatureEnabled` gates the whole feature on the user having authenticated
+ *   via OpenID — a local user has no `openidId` to exchange on behalf of.
+ * - Search is split by principal type (`searchUsers`, `searchGroups`, `searchContacts`) and
+ *   mapped into the shared `TPrincipalSearchResult` shape by dedicated mappers, so the sharing
+ *   UI sees one uniform result type regardless of source. Contacts are included because
+ *   organizations often surface external collaborators only there.
+ * - `getEntraGroupDetailsBatch` batches group lookups — Graph rate limits aggressively and
+ *   resolving groups one by one during login would be slow and throttled.
+ * - `testGraphApiAccess` exists for the admin diagnostics path, so a misconfigured app
+ *   registration can be identified without reading logs.
+ *
+ * Connections:
+ * - OBO exchange: `server/services/OboTokenService.js`,
+ *   `GraphTokenService.js`; OpenID config from `strategies/openidStrategy.js`
+ * - consumers: `server/services/PermissionService.js`,
+ *   `controllers/PermissionsController.js`
+ */
 const client = require('openid-client');
 const { isEnabled } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');

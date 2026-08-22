@@ -1,3 +1,5 @@
+// Shared open/close/error handling for plugin auth dialogs.
+
 import { useState, useCallback } from 'react';
 import type { TPlugin } from 'librechat-data-provider';
 

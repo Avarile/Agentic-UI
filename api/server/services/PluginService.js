@@ -1,3 +1,19 @@
+/**
+ * Stores and retrieves per-user plugin credentials, encrypted at rest.
+ *
+ * `getUserPluginAuthValue` decrypts a single auth field; `updateUserPluginAuth` and
+ * `deleteUserPluginAuth` write and remove them.
+ *
+ * Design: `pluginKey` is an optional narrowing parameter — the same field name (`API_KEY`) is
+ * used by many plugins, so a lookup without it can match the wrong credential. The
+ * `throwError` flag exists because callers differ: a tool that requires the credential wants a
+ * throw, while a capability probe wants `null`. Values are encrypted with the shared
+ * `encrypt`/`decrypt` helpers from `packages/api`, so key rotation is handled in one place.
+ *
+ * Connections:
+ * - `server/controllers/UserController.js`, `services/Tools/credentials.js`,
+ *   `app/clients/tools/util/handleTools.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { encrypt, decrypt } = require('@librechat/api');
 const { findOnePluginAuth, updatePluginAuth, deletePluginAuth } = require('~/models');

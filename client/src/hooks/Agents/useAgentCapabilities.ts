@@ -1,3 +1,7 @@
+// What the selected agent can do (code, file search, artifacts, web search,
+// skills), from the agents endpoint config intersected with the agent's own
+// settings. Gates the composer's badge row.
+
 import { useMemo } from 'react';
 import { AgentCapabilities } from 'librechat-data-provider';
 

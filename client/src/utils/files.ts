@@ -1,3 +1,8 @@
+// File validation, type detection, size formatting, and preview eligibility.
+//
+// The single source for "is this file acceptable", so drop, paste, picker and
+// SharePoint paths cannot enforce different limits.
+
 import {
   TextPaths,
   FilePaths,

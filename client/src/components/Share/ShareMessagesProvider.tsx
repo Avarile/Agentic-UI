@@ -1,3 +1,7 @@
+// Supplies the MessagesView context shape from static shared data rather than from
+// a live ChatContext — the reason that context is exported separately from its
+// provider.
+
 import React, { useMemo } from 'react';
 import type { TMessage } from 'librechat-data-provider';
 import type { MessagesViewContextValue } from '~/Providers/MessagesViewContext';

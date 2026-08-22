@@ -1,3 +1,6 @@
+// Stops all playback on navigation or conversation change, so audio does not follow
+// the user out of the conversation that produced it.
+
 import { useCallback } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { globalAudioId } from '~/common';

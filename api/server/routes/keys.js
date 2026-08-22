@@ -1,3 +1,13 @@
+/**
+ * Stores and clears per-user provider credentials (BYOK API keys).
+ *
+ * Values are encrypted by the model layer (`updateUserKey`); this router only ever returns
+ * *expiry* metadata via `getUserKeyExpiry`, never the key itself — a stored credential must not
+ * be readable back through the API.
+ *
+ * Design: bulk delete requires an explicit `?all=true`, so a truncated request path cannot
+ * wipe every key by accident.
+ */
 const express = require('express');
 const { updateUserKey, deleteUserKey, getUserKeyExpiry } = require('~/models');
 const { requireJwtAuth } = require('~/server/middleware');

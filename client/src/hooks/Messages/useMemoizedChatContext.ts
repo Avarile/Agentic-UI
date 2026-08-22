@@ -1,3 +1,6 @@
+// A memoized slice of ChatContext for message subtrees, so a token arriving does
+// not invalidate every message's props.
+
 import { useRef, useMemo } from 'react';
 import type { TMessage } from 'librechat-data-provider';
 import type { TMessageChatContext } from '~/common/types';

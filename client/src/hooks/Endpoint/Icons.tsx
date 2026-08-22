@@ -1,3 +1,6 @@
+// Endpoint-to-icon mapping, in one place so every surface shows the same provider
+// mark.
+
 import { Feather } from 'lucide-react';
 import { EModelEndpoint } from 'librechat-data-provider';
 import {

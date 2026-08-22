@@ -1,3 +1,7 @@
+// The footer beneath the composer: admin-configured links and disclaimer text.
+// Rendered in different positions depending on whether the landing page is showing
+// (see ChatView), which is why it takes no layout props.
+
 import React, { useEffect, memo } from 'react';
 import TagManager from 'react-gtm-module';
 import ReactMarkdown from 'react-markdown';

@@ -1,3 +1,5 @@
+// The project list page, lazily loaded by the router.
+
 import { useDeferredValue, useEffect, useId, useMemo, useState } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';

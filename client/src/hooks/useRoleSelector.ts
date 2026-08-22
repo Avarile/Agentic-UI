@@ -1,3 +1,5 @@
+// Backs the admin role dropdown: the assignable roles for the current user.
+
 import { useMemo, useState, useCallback } from 'react';
 import { SystemRoles, roleDefaults, isSystemRoleName } from 'librechat-data-provider';
 import type { PermissionTypes, TRole } from 'librechat-data-provider';

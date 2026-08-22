@@ -1,3 +1,34 @@
+/**
+ * The shared verify-callback factory behind every social (OAuth2) provider.
+ *
+ * `socialLogin(provider, getProfileDetails, options)` returns a Passport verify callback. Each
+ * provider file supplies only its `getProfileDetails` normalizer; all account resolution,
+ * policy enforcement and provisioning logic lives here exactly once.
+ *
+ * Design — the account lookup is deliberately two-stage and order-sensitive:
+ * 1. Look up by provider id (`googleId`, `githubId`, ...) — the stable identifier.
+ * 2. Fall back to email, logging a warning. This allows linking a pre-existing account, but is
+ *    the weaker match, so every branch below re-checks it.
+ *
+ * Domain allow-listing runs *twice* on purpose: once against the base config before any user
+ * lookup (so a disallowed domain is rejected before touching tenant data), then again against
+ * the tenant-resolved config once the user is known, because a tenant may narrow the list.
+ *
+ * `options.existingUsersOnly` is the admin-login mode and carries the strictest rules: a
+ * mismatched stored provider id is rejected outright; migrating an account that has no
+ * provider id yet is blocked for tenanted users (the OAuth callback carries no tenant scope)
+ * and, for untenanted users, is followed by a read-back verification so a concurrent write
+ * cannot win the race and hand over the wrong account.
+ *
+ * An existing account owned by a *different* provider is an error carrying `error.provider`,
+ * so the UI can tell the user which provider to use instead of a generic failure.
+ *
+ * Connections:
+ * - provisioning/avatar work delegated to `strategies/process.js`
+ * - provider-specific normalizers: `googleStrategy.js`, `githubStrategy.js`,
+ *   `discordStrategy.js`, `facebookStrategy.js`, `appleStrategy.js`
+ * - config via `server/services/Config` + `resolveAppConfigForUser` from `packages/api`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { ErrorTypes } = require('librechat-data-provider');
 const { isEnabled, isEmailDomainAllowed, resolveAppConfigForUser } = require('@librechat/api');

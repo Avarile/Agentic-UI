@@ -1,3 +1,6 @@
+// The time-of-day greeting on the landing page. Recomputes as the hour changes so a
+// long-open tab does not keep saying "good morning" at midnight.
+
 import { useState, useEffect } from 'react';
 import type { TranslationKeys } from './useLocalize';
 import { getGreetingKey, getMsUntilNextGreeting } from '~/utils/greeting';

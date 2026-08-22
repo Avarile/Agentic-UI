@@ -1,3 +1,18 @@
+/**
+ * Generates and saves a conversation title for the agents endpoint.
+ *
+ * Design — the header comment on the implementation ("in a way that avoids memory retention") is
+ * the point: title generation runs *after* the response completes, and naively closing over the
+ * client would keep the entire run graph (messages, tools, aggregators) alive past the request.
+ * The function is written to hold only what it needs.
+ *
+ * Titles are cached under `CacheKeys.GEN_TITLE` so a concurrent request or a retry does not
+ * generate twice, and it honours the configured title timing (immediate vs. final) — in
+ * immediate mode it awaits the client's `_runReady` promise rather than assuming the run exists.
+ *
+ * Connections: passed as `addTitle` into `server/controllers/agents/request.js`;
+ * `saveConvo` via `~/models`
+ */
 const { isEnabled } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 const { CacheKeys } = require('librechat-data-provider');

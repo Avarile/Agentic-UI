@@ -1,3 +1,11 @@
+// The horizontal split between the conversation and the artifacts panel.
+//
+// A resizable panel group whose layout is persisted to localStorage, keyed by which
+// panels are present — the single-panel and split-panel layouts have separate
+// stored sizes, so opening artifacts does not overwrite the width the user chose
+// without them. The artifacts panel is suppressed entirely below 768px, where a
+// side-by-side split is not usable.
+
 import { useState, memo } from 'react';
 import { useDefaultLayout } from 'react-resizable-panels';
 import { ResizablePanel, ResizablePanelGroup, useMediaQuery } from '@librechat/client';

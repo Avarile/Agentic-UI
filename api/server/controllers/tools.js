@@ -1,3 +1,26 @@
+/**
+ * Tool authorization checks, direct tool invocation, and tool-call history.
+ *
+ * Design:
+ * - `directCallableTools` is an explicit allow-list — currently only `execute_code`. A tool is
+ *   callable over HTTP only if it needs no per-user credential and runs server-side through the
+ *   agents sandbox; everything else must go through a generation so the model's intent is part
+ *   of the record. `toolAccessPermType` maps a tool to the role permission it requires
+ *   (`execute_code` -> `RUN_CODE`).
+ * - `verifyToolAuth` lets the UI discover whether a tool needs an OAuth/credential step before
+ *   offering it, rather than surfacing a failed call. Web search has its own path
+ *   (`verifyWebSearchAuth`) because it spans several provider keys.
+ * - Tool *outputs* are persisted as real files: `processCodeOutput` and `runPreviewFinalize`
+ *   route sandbox artifacts through the normal file pipeline with a retention expiry
+ *   (`getRetentionExpiry`), so generated files obey the same storage and cleanup rules as
+ *   uploads.
+ * - Credentials are resolved per call via `loadAuthValues`, never cached in the controller.
+ *
+ * Connections:
+ * - tool loading: `app/clients/tools/util/handleTools.js`; credentials:
+ *   `server/services/Tools/credentials.js`; files: `server/services/Files/*`
+ * - route: `server/routes/agents/tools.js`
+ */
 const { nanoid } = require('nanoid');
 const { logger } = require('@librechat/data-schemas');
 const { checkAccess, loadWebSearchAuth } = require('@librechat/api');

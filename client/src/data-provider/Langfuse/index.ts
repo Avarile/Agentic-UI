@@ -1,3 +1,9 @@
+// Langfuse observability integration: connection config, test, and session links.
+//
+// Self-contained in one file — a settings panel reads the connection, tests it, and
+// links out to a trace. `useGetLangfuseSessionLinkQuery` resolves a conversation
+// into its trace URL, which is the only part touched from outside settings.
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService, QueryKeys, MutationKeys } from 'librechat-data-provider';
 import type {

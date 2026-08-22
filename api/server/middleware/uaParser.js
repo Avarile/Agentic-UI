@@ -1,3 +1,15 @@
+/**
+ * Rejects requests whose User-Agent is not a recognized browser.
+ *
+ * A missing/unparseable browser name is logged as a `NON_BROWSER` violation with a high
+ * default score (20) — this is a scripted-abuse signal, so it should escalate toward a ban
+ * quickly rather than merely being refused.
+ *
+ * Design caveat: this is a heuristic deterrent, not a security control, and it will reject
+ * legitimate API clients. That is why it is applied selectively rather than globally.
+ *
+ * Connections: violations via `cache/logViolation.js`
+ */
 const uap = require('ua-parser-js');
 const { ViolationTypes } = require('librechat-data-provider');
 const { handleError } = require('@librechat/api');

@@ -1,3 +1,6 @@
+// Picks the endpoint for a new conversation: last used, then configured default,
+// then the first available.
+
 import type {
   TPreset,
   TConversation,

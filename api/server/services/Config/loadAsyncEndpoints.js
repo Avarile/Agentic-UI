@@ -1,3 +1,16 @@
+/**
+ * Resolves endpoints whose availability requires filesystem I/O — currently Google.
+ *
+ * Google Vertex needs a service-account key; this checks `GOOGLE_SERVICE_KEY_FILE` (or the
+ * default `data/auth.json`) and loads it via `loadServiceKey`.
+ *
+ * Design: kept async and separate from the synchronous `EndpointService` table because reading
+ * and parsing a credentials file cannot happen at module load without blocking startup, and a
+ * missing file must degrade to "Google endpoint unavailable" rather than throwing.
+ *
+ * Connections: `loadDefaultEConfig.js`; note `data/` is gitignored, so the key file is
+ * deployment-local
+ */
 const path = require('path');
 const fs = require('fs/promises');
 const { logger } = require('@librechat/data-schemas');

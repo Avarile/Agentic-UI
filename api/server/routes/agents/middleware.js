@@ -1,3 +1,17 @@
+/**
+ * Authentication and authorization middleware for the API-key (remote agent) surface.
+ *
+ * Assembles four pieces from `packages/api` with app dependencies injected:
+ * `apiKeyMiddleware` (raw key validation), `requireRemoteAgentAuth`, `checkRemoteAgentsFeature`
+ * (role permission for the feature), and `checkAgentPermission` (ACL on the requested agent).
+ *
+ * Design: this exists as its own module because the OpenAI-compatible and Open Responses
+ * routers are mounted *before* the JWT gate and therefore cannot reuse the normal
+ * `requireJwtAuth` stack — they need a parallel, key-based one. Keeping it in one file means
+ * both surfaces enforce identical rules.
+ *
+ * Connections: used by `server/routes/agents/openai.js` and `responses.js`
+ */
 const { PermissionTypes, Permissions } = require('librechat-data-provider');
 const {
   generateCheckAccess,

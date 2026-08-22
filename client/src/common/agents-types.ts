@@ -1,3 +1,5 @@
+// Agent builder form types.
+
 import { AgentCapabilities, ArtifactModes } from 'librechat-data-provider';
 import type {
   AgentModelParameters,

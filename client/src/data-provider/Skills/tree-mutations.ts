@@ -1,3 +1,8 @@
+// Creating, renaming, deleting, and writing skill tree nodes.
+//
+// Node content updates are their own mutation so an editor save does not invalidate
+// the tree structure — the shape has not changed, only one file's body.
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import type { UseMutationResult } from '@tanstack/react-query';

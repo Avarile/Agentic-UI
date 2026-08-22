@@ -1,3 +1,11 @@
+// The sidebar's rail: new chat, panel switcher, account menu.
+//
+// The new-chat button clears and invalidates the message cache before creating the
+// conversation, so a stale tree cannot briefly render into the new chat. It also
+// honours modifier-clicks as real link navigation rather than intercepting every
+// click. The account menu is lazily loaded — it is a large subtree that most
+// sessions never open.
+
 import { memo, useCallback, lazy, Suspense } from 'react';
 import { useRecoilValue } from 'recoil';
 import { SquarePen } from 'lucide-react';

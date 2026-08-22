@@ -1,3 +1,6 @@
+// Server-name-to-icon resolution, with fallbacks, so a server without an icon still
+// renders consistently.
+
 import { useMemo } from 'react';
 import { normalizeServerName } from 'librechat-data-provider';
 import { useMCPServersQuery } from '~/data-provider';

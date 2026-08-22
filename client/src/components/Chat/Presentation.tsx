@@ -1,3 +1,19 @@
+// The chat's outer frame: drop target, resizable panel group, artifacts panel.
+//
+// Two unrelated responsibilities, both of which need to sit above the conversation.
+//
+// The artifacts panel is render-gated on three conditions — the visibility
+// preference, a non-empty artifact set, and `currentArtifactId != null`. The third
+// is the interesting one: navigation resets the focused id, so revisiting an old
+// conversation full of artifacts leaves the panel closed. Artifacts arriving live
+// re-open it by auto-focusing on mount. `three`-heavy artifact rendering is behind
+// `lazy` so it is never fetched until a panel actually opens.
+//
+// The mount effect sweeps abandoned uploads: files recorded in
+// `FILES_TO_DELETE` (see hooks/Files/useSetFilesToDelete.ts) are attachments the
+// user picked and never sent, possibly in a tab that was closed. This is the only
+// place that garbage collection happens.
+
 import { lazy, Suspense, useEffect, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { FileSources, LocalStorageKeys } from 'librechat-data-provider';

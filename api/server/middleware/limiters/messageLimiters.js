@@ -1,3 +1,17 @@
+/**
+ * IP and per-user rate limits on chat message sends.
+ *
+ * Exports `messageIpLimiter` and `messageUserLimiter` (defaults 40/min each). Both are mounted
+ * so a single abusive account and a distributed burst from one address are each caught.
+ *
+ * Design: unlike the other limiters these respond through `denyRequest`, not a bare 429 — the
+ * SSE stream is already open when the limiter fires, so the rejection has to arrive as a
+ * message in the conversation.
+ *
+ * Connections:
+ * - pairs with `cache/clearPendingReq.js` for the concurrency counter
+ * - violations via `cache/logViolation.js`
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

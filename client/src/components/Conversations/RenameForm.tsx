@@ -1,3 +1,6 @@
+// Inline conversation rename, which patches every cached list the conversation
+// appears in rather than refetching.
+
 import React, { useEffect, useRef } from 'react';
 import { Check, X } from 'lucide-react';
 import { Button, Input } from '@librechat/client';

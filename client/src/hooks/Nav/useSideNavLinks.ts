@@ -1,3 +1,5 @@
+// The link set for the older side panel, kept while both navigation surfaces exist.
+
 import { useMemo } from 'react';
 import { MCPIcon, AttachmentIcon, OpenAIMinimalIcon } from '@librechat/client';
 import {

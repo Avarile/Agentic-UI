@@ -1,3 +1,13 @@
+/**
+ * User preference endpoints: tool/entity favorites and active skills.
+ *
+ * Mounted under `/api/user/settings` by `server/routes/user.js`.
+ *
+ * Design: tool favorites are handled by `createToolFavoritesHandlers` from `packages/api` with
+ * the model functions injected, while entity favorites and skill states use local controllers.
+ * Every route carries `requireJwtAuth` individually rather than router-wide — these are all
+ * strictly per-user data with no anonymous variant.
+ */
 const express = require('express');
 const { createToolFavoritesHandlers } = require('@librechat/api');
 const {

@@ -1,3 +1,6 @@
+// Export and share entry point. Combined into one menu because both answer "get
+// this conversation out of here", and both are individually gateable by config.
+
 import { useState, useId, useRef } from 'react';
 import { useRecoilValue } from 'recoil';
 import * as Ariakit from '@ariakit/react';

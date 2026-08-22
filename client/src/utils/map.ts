@@ -1,3 +1,10 @@
+// Array-to-map transforms for the shared entity maps: files, agents, assistants,
+// plugins, attachments.
+//
+// Single-pass by design. These run on every catalogue change and feed contexts the
+// whole tree reads, so building a `Record` once here replaces repeated
+// `Array.find` in consumers.
+
 import type * as t from 'librechat-data-provider';
 import type { TPluginMap } from '~/common';
 

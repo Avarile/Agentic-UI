@@ -1,3 +1,36 @@
+/**
+ * Code-interpreter output processing: artifacts, previews, sandbox reads/writes, file priming.
+ *
+ * Turns what a code session produces into first-class files and attachments, and supplies the
+ * sandbox I/O the skills and code tools need.
+ *
+ * Design:
+ * - Artifact paths from the sandbox are untrusted: `sanitizeArtifactPath` and
+ *   `flattenArtifactPath` normalize them before they become storage keys, which is the traversal
+ *   boundary for tool-generated files.
+ * - Previews are asynchronous and revisioned. `finalizePreview` /
+ *   `runPreviewFinalize(finalize, fileId, previewRevision, onResolved)` render in the background
+ *   while the response streams; the revision check ensures a slower render cannot overwrite a
+ *   newer one, and `createDownloadFallback` gives the user a working download even if rendering
+ *   fails. (The `status: 'pending'` rows these create are what the boot-time and lazy sweeps in
+ *   `server/index.js` / `routes/files/files.js` clean up after a crash.)
+ * - `primeFiles` uploads an agent's files into a session before the model runs.
+ *   `CodeResourceRecoveryError`, `getReuploadFailureCategory` and `getPrimingCorrelation`
+ *   classify and correlate priming failures — a file that vanished from storage must produce a
+ *   clear, attributable error rather than an opaque sandbox failure.
+ * - `checkIfActive`/`getSessionInfo` decide whether an existing session can be reused instead of
+ *   cold-starting a new one (cold start is slow and loses state).
+ * - Images are read back in chunks (`getImageChunkBytes`, `execSandboxImageChunk`) because the
+ *   sandbox exec channel has a per-response size limit.
+ * - `hasOfficeHtmlPath` and the context helpers (`getPreviewContextSuffix`,
+ *   `getVisibleCodeFileContextLine`, `appendVisibleCodeFileContext`) tell the model which files
+ *   exist in its session, so it can reference them by name.
+ * - `withTimeout` bounds every sandbox call so a hung session cannot hang the request.
+ *
+ * Connections:
+ * - `Code/crud.js`, `Files/process.js`, `strategies.js`,
+ *   `Endpoints/agents/skillDeps.js`, `controllers/tools.js`
+ */
 const path = require('path');
 const { v4 } = require('uuid');
 const { logger } = require('@librechat/data-schemas');

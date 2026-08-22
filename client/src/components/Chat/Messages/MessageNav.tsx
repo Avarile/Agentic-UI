@@ -1,3 +1,24 @@
+// The conversation minimap: a vertical strip of ribs, one per message, plus
+// previous/next buttons.
+//
+// A navigator for long conversations. Each entry is a rib whose width responds to
+// pointer proximity (`magnifyFalloff` over `MAG_INFLUENCE` pixels), with a tooltip
+// showing a text preview of that message and drag-to-scrub across the strip.
+// Rendered through a portal so it can float over the scroll container without
+// participating in its layout.
+//
+// Entries are derived from the *DOM* (`.message-render`, `.steer-render`) rather
+// than from the message tree, and that is the central decision here: what the
+// minimap must reflect is what is actually laid out and scrollable, including
+// steer rows and rows whose ids are still in flux mid-stream. `buildEntry` uses the
+// message record where one is found by id and `buildFallbackEntry` reads the node
+// when it is not, so a rendered row always gets a rib.
+//
+// Scrolling is hand-rolled (`computeTargetScroll`, `easeOutCubic`,
+// `SCROLL_DURATION`) rather than native smooth scroll because the target has to
+// account for scroll margin and for content that grows while the animation runs —
+// hence `BOTTOM_SNAP_RETRIES` for the moving bottom.
+
 import { memo, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronUp, ChevronDown } from 'lucide-react';

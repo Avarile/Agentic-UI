@@ -1,3 +1,10 @@
+// Endpoint resolution: which are available, their icons, and the last selection.
+//
+// The helpers that turn config into a menu, and back. `clearModelForNonEphemeralAgent`
+// is the subtle one: a saved agent carries its own model, so persisting a separate
+// model selection alongside it would let a stale value override the agent's on the
+// next load.
+
 import {
   Constants,
   EModelEndpoint,

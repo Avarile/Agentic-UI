@@ -1,3 +1,21 @@
+// Shared state for the multi-panel agent builder (formerly threaded as `commonProps`).
+//
+// The builder is a stack of panels — builder, actions, MCP servers, tools,
+// versions — that all need the same expensive, slow-moving data: the tool
+// catalogue, MCP server list and connection status, actions, agents config,
+// startup config. Fetching per panel would multiply requests and let panels
+// disagree about what is available, so it is fetched once here and the panels read
+// it.
+//
+// The bulk of the file is `mcpServersMap`: it merges two sources that neither
+// alone describes fully — servers that reported tools, and servers that are
+// configured but have not connected yet — into one `serverName -> MCPServerInfo`
+// Map, resolving display title/description with config-then-fallback so an
+// unconnected server still renders with a real name.
+//
+// Every query is gated on `!isEphemeralAgent(agent_id)`, since an unsaved
+// ephemeral agent has no server-side record to query for.
+
 import React, { createContext, useContext, useState, useMemo } from 'react';
 import { EModelEndpoint } from 'librechat-data-provider';
 import type { MCP, Action, TPlugin } from 'librechat-data-provider';

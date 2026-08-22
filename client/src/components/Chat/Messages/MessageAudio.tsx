@@ -1,3 +1,6 @@
+// Per-message playback control, bound to one of the TTS engine hooks and
+// registering itself in the audio-output registry so the mic gate sees it.
+
 import { memo } from 'react';
 import { useRecoilValue } from 'recoil';
 import type { TMessageAudio } from '~/common';

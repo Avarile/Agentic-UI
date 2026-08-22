@@ -1,3 +1,6 @@
+// Observed element dimensions via ResizeObserver — what the virtualized lists
+// measure their viewport with.
+
 import { useCallback, useLayoutEffect, useState } from 'react';
 
 interface ElementSize {

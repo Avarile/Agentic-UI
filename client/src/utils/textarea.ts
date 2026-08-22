@@ -1,3 +1,10 @@
+// Direct textarea DOM manipulation: cursor insertion, forced resize, overflow checks.
+//
+// These reach for the element rather than going through React state because the
+// composer's value is owned by react-hook-form while its *selection* and measured
+// height are not — inserting at the cursor or re-measuring after a programmatic
+// change has no representation in state to update.
+
 /**
  * Insert text at the cursor position in a textarea.
  */

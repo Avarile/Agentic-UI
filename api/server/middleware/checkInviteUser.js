@@ -1,3 +1,19 @@
+/**
+ * Validates and consumes a registration invite token.
+ *
+ * Design: the token is optional — with none present the middleware calls `next()` and lets
+ * `validateRegistration` decide whether open registration is allowed. When a token *is*
+ * present it is validated, deleted (single use), and the invite attached as `req.invite`,
+ * which is precisely the flag `validateRegistration` looks for to bypass the
+ * `ALLOW_REGISTRATION` gate.
+ *
+ * Deleting before completing registration is intentional: a replayable invite is worse than a
+ * lost one.
+ *
+ * Connections:
+ * - token store via `~/models`; `getInvite` from `packages/api`
+ * - runs before `server/middleware/validateRegistration.js` on `server/routes/auth.js`
+ */
 const { getInvite: getInviteFn } = require('@librechat/api');
 const { createToken, findToken, deleteTokens } = require('~/models');
 

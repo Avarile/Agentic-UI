@@ -1,3 +1,5 @@
+// The composer's submit path: validation, draft clearing, and dispatch to `ask`.
+
 import { useCallback } from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { replaceSpecialVars } from 'librechat-data-provider';

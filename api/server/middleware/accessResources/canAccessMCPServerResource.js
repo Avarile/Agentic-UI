@@ -1,3 +1,11 @@
+/**
+ * ACL gate for MCP server routes addressed by server name (`/servers/:serverName`).
+ *
+ * Resolves via `findMCPServerByServerName`, since MCP servers are referenced by their
+ * human-readable configured name everywhere in the UI and config rather than by ObjectId.
+ *
+ * Connections: wraps `canAccessResource.js`; used by `server/routes/mcp.js`
+ */
 const { ResourceType } = require('librechat-data-provider');
 const { canAccessResource } = require('./canAccessResource');
 const { findMCPServerByServerName } = require('~/models');

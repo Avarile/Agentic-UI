@@ -1,3 +1,10 @@
+// The shell for every pre-session page: branding, showcase, tabs, social login.
+//
+// All of it is config-driven, and the gating is deliberate: login/register tabs
+// appear only on entry pages and only when registration is enabled, and a startup
+// config *error* is distinguished from a still-loading config so a misconfigured
+// server shows a diagnosis rather than a spinner forever.
+
 import { TStartupConfig } from 'librechat-data-provider';
 import { AnimatedGridPattern, ThemeSelector } from '@librechat/client';
 import { ErrorMessage } from '~/components/Auth/ErrorMessage';

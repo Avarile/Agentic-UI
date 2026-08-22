@@ -1,3 +1,16 @@
+/**
+ * Fetches the model list for each built-in provider.
+ *
+ * Calls `getOpenAIModels`, `getAnthropicModels`, `getGoogleModels`, `getBedrockModels` from
+ * `packages/api` with per-user config resolved via `getAppConfigOptionsFromUser`, so a BYOK user
+ * sees the models *their* key exposes rather than the operator's.
+ *
+ * Design: `mergeHeaders` applies configured custom headers to the model-list requests, since
+ * some proxies require them even for discovery. Failures are logged per provider and skipped —
+ * one unreachable provider must not empty the whole model list.
+ *
+ * Connections: `server/controllers/ModelController.js` (merged with `loadConfigModels`)
+ */
 const { logger } = require('@librechat/data-schemas');
 const { EModelEndpoint } = require('librechat-data-provider');
 const {

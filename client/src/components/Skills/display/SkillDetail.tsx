@@ -1,3 +1,5 @@
+// Reading a skill: its rendered markdown, metadata, and file list.
+
 import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Button, TooltipAnchor } from '@librechat/client';

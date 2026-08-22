@@ -1,3 +1,15 @@
+/**
+ * CRUD for Actions attached to an Assistant.
+ *
+ * Mirrors `server/routes/agents/actions.js` — encrypted metadata, `domainParser`,
+ * `isActionDomainAllowed`, `validateActionOAuthMetadata` — but writes through the OpenAI client
+ * (`getOpenAIClient`) because an assistant's tool definitions live upstream, not in our
+ * database. That is why the delete route is keyed by `:assistant_id/:action_id/:model`: the
+ * model determines which upstream client and credentials to use.
+ *
+ * Connections: service `server/services/ActionService.js`; helper
+ * `server/controllers/assistants/helpers.js`
+ */
 const express = require('express');
 const { nanoid } = require('nanoid');
 const { logger } = require('@librechat/data-schemas');

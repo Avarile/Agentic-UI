@@ -1,3 +1,33 @@
+/**
+ * Core authentication service: registration, tokens, sessions, email verification, password reset.
+ *
+ * Everything that mints, rotates or revokes a credential lives here so the policy exists once.
+ *
+ * Design:
+ * - `setAuthTokens` issues the access token and a rotating refresh token *backed by a session
+ *   row*. A signed refresh token is not sufficient on its own — the session row is what makes
+ *   logout and ban revocation effective immediately rather than at token expiry.
+ * - `setOpenIDAuthTokens` is the token-reuse path: it stores the IdP's tokens so the app can
+ *   present them instead of its own. `getUnexpiredOpenIDSessionIdToken` keeps the id token
+ *   available for RP-initiated logout, which needs it after the access token is gone.
+ * - Email verification and password reset both use **hashed** tokens
+ *   (`createTokenHash`, `findPasswordResetToken`, `findEmailVerificationToken`) — a database
+ *   read must not disclose a usable token. Delete queries are built explicitly
+ *   (`get*TokenDeleteQuery`) so a consumed token is removed atomically with its use.
+ * - `requestPasswordReset` behaves identically whether the account exists or not; the endpoint
+ *   must not be an account-existence oracle.
+ * - CloudFront auth cookies are scoped and re-issued through the
+ *   `getCloudFrontScopeValue`/`setCloudFrontAuthCookies` helpers. `getCloudFrontAuthCookieSkipReason`
+ *   plus `shouldLogCloudFrontAuthCookieSkip` deliberately suppress the "cloudfront_disabled"
+ *   case so a deployment without CloudFront does not log a skip on every login.
+ * - Passwords use bcrypt; token randomness comes from `node:crypto` `webcrypto`.
+ *
+ * Connections:
+ * - controllers: `AuthController.js`, `auth/LoginController.js`, `auth/LogoutController.js`,
+ *   `auth/oauth.js`, `UserController.js`
+ * - helpers from `packages/api`; sessions/users/tokens via `~/models`; mail via
+ *   `server/utils/sendEmail.js`
+ */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { webcrypto } = require('node:crypto');

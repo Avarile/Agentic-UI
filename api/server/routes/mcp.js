@@ -1,3 +1,32 @@
+/**
+ * MCP (Model Context Protocol) server management, tool listing, and the OAuth handshake.
+ *
+ * Covers CRUD for user/admin-defined MCP servers, connection status, per-server auth values,
+ * and the full OAuth authorization-code flow against remote MCP servers.
+ *
+ * Design — the OAuth flow is the intricate part:
+ * - It is split across `bind` -> `initiate` -> `callback` -> `status`/`tokens`. `bind` sets a
+ *   CSRF cookie *before* the user leaves for the IdP, so the eventual callback can be tied to
+ *   the browser session that started it (`validateOAuthCsrf`, `validateOAuthSession`).
+ * - Flow state lives in `FlowStateManager` (from `~/config`) rather than in the session, so a
+ *   callback can be processed by any replica and the pending state has a bounded TTL.
+ * - The callback is explicitly idempotent — a completed flow returns success instead of
+ *   re-exchanging the code, because browsers and users retry callback URLs.
+ * - Stale state mappings are handled deliberately (a superseded attempt must not resolve
+ *   another attempt's state); `PENDING_STALE_MS` bounds how long a pending flow is honoured.
+ * - Reconnection uses the *merged* config including Config-tier overlays, so a reconnect gets
+ *   the same effective server definition as the original connection.
+ * - `requiresEphemeralUserConnection` distinguishes servers needing a per-user connection from
+ *   shared ones; user-specific variables come from `getServerCustomUserVars`.
+ * - Tokens are stored via `MCPTokenStorage` (encrypted), never returned raw.
+ *
+ * Authorization: `checkMCPUsePermissions` / `checkMCPCreate` for role permissions, plus
+ * per-server ACL via `canAccessMCPServerResource`.
+ *
+ * Connections:
+ * - controllers: `server/controllers/mcp.js`; service: `server/services/MCP.js`
+ * - managers/registry: `config/index.js`; init: `server/services/initializeMCPs.js`
+ */
 const { Router } = require('express');
 const { logger, getTenantId, tenantStorage } = require('@librechat/data-schemas');
 const {

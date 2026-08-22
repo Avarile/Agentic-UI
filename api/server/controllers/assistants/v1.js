@@ -1,3 +1,24 @@
+/**
+ * Assistants API v1 controllers: assistant CRUD, documents listing, avatar upload.
+ *
+ * Design: an assistant lives *upstream* at OpenAI, while LibreChat keeps a local "assistant
+ * document" for what OpenAI does not store (conversation starters, endpoint binding,
+ * authorship, avatar). Every mutation therefore writes twice — `openai.beta.assistants.*` and
+ * `updateAssistantDoc` — and read paths merge the two.
+ *
+ * Other notable points:
+ * - `validateAuthor` is called per operation to enforce `privateAssistants`.
+ * - Tool definitions are healed through `healMcpToolNames`/`getAssistantToolDefinitions` before
+ *   being sent upstream: MCP tool names are namespaced locally and must be rewritten to a form
+ *   OpenAI accepts, and agents-only tools (`isAgentsOnlyTool`) are dropped since the Assistants
+ *   runtime cannot execute them.
+ * - Deleting an assistant also deletes its Actions (`deleteAssistantActions`) and its avatar
+ *   file, so nothing is orphaned.
+ *
+ * Connections:
+ * - helpers: `./helpers.js`; MCP: `server/services/MCP.js`; actions:
+ *   `server/services/ActionService.js`; files: `server/services/Files/*`
+ */
 const fs = require('fs').promises;
 const { logger } = require('@librechat/data-schemas');
 const { FileContext } = require('librechat-data-provider');

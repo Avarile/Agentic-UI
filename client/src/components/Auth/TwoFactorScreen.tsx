@@ -1,3 +1,6 @@
+// The 2FA challenge at login, which runs against the temp-token verify mutation
+// rather than the authenticated one.
+
 import React, { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useToastContext } from '@librechat/client';

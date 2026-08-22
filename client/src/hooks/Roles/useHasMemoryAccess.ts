@@ -1,3 +1,6 @@
+// Memory access specifically, which depends on config as well as permission — hence
+// not expressible as a plain `useHasAccess` call.
+
 import { Permissions, PermissionTypes } from 'librechat-data-provider';
 import useHasAccess from './useHasAccess';
 

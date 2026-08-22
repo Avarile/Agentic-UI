@@ -1,3 +1,6 @@
+// The selectable endpoint list, merging configured endpoints, model specs, agents
+// and assistants into one menu model.
+
 import React, { useMemo, useCallback } from 'react';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';
 import {

@@ -1,3 +1,6 @@
+// Whether the agent marketplace entry point should appear, from permission and
+// config.
+
 import { useContext, useMemo } from 'react';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
 import { useHasAccess, AuthContext } from '~/hooks';

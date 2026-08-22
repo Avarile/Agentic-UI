@@ -1,3 +1,5 @@
+// Shift-held state for modifier-dependent behaviour.
+
 import { useState, useEffect } from 'react';
 
 /**

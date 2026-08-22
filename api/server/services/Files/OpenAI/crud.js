@@ -1,3 +1,16 @@
+/**
+ * Files that live at OpenAI (Assistants file storage) rather than in our own storage.
+ *
+ * `uploadOpenAIFile`, `deleteOpenAIFile`, `getOpenAIFileStream`.
+ *
+ * Design: modelled as a storage strategy even though we never hold the bytes, so the rest of the
+ * pipeline treats an OpenAI-hosted file like any other. Uploads use `FilePurpose` because OpenAI
+ * requires the purpose at creation and it cannot be changed afterwards; `sleep` covers the
+ * propagation delay between upload and the file becoming usable in a run.
+ *
+ * Connections: registered as `openAIStrategy` in `strategies.js`; used by the assistants
+ * controllers
+ */
 const fs = require('fs');
 const { sleep } = require('@librechat/agents');
 const { logger } = require('@librechat/data-schemas');

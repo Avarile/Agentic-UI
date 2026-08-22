@@ -1,3 +1,17 @@
+/**
+ * Error-handler factory for the agents chat path.
+ *
+ * `createErrorHandler({ req, res, getContext, originPath })` returns a handler that records
+ * whatever usage was incurred, clears the abort key from the cache, reconciles conversation
+ * state, and reports the error into the conversation via `sendResponse`.
+ *
+ * Design: mirrors `server/controllers/assistants/errors.js` deliberately — same signature and
+ * `getContext` callback pattern — so both runtimes fail the same way from the client's point of
+ * view. `getContext` is a callback because run ids and message ids are still being assigned
+ * while the run progresses; the handler must read state as of the moment it fires.
+ *
+ * Connections: `server/middleware/error.js`, `server/services/Threads/`
+ */
 // errorHandler.js
 const { logger } = require('@librechat/data-schemas');
 const { CacheKeys, ViolationTypes } = require('librechat-data-provider');

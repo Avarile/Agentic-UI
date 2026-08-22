@@ -1,3 +1,6 @@
+// Infinite scrolling for the conversation list, including preserving position
+// across page appends.
+
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import throttle from 'lodash/throttle';
 import type { FetchNextPageOptions, InfiniteQueryObserverResult } from '@tanstack/react-query';

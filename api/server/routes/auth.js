@@ -1,3 +1,32 @@
+/**
+ * Authentication endpoints: login, logout, registration, password reset, refresh, 2FA.
+ *
+ * The middleware chains here are the security policy for account access — read them as
+ * ordered pipelines:
+ * - `/login`: logHeaders -> loginLimiter -> checkBan -> validateEmailLogin -> (LDAP *or*
+ *   local strategy) -> setBalanceConfig -> controller. Rate limit and ban precede
+ *   authentication so credential stuffing is throttled before any password comparison.
+ * - `/register`: registerLimiter -> checkBan -> checkInviteUser -> validateRegistration.
+ *   `checkInviteUser` must run before `validateRegistration`, which honours `req.invite` as
+ *   the bypass for a closed instance.
+ * - `/requestPasswordReset` and `/resetPassword` use *separate* limiters, because the two
+ *   steps are abused differently (mail spam vs. token brute force).
+ * - `/2fa/verify-temp`: setTwoFactorTempUser -> twoFactorTempLimiter -> checkBan. The temp
+ *   user must be resolved first so the limiter can key on the user rather than only the IP.
+ *
+ * Design: `ldapAuth` is computed once at module load from env, so the login route is bound to
+ * exactly one strategy for the process lifetime rather than branching per request.
+ * `setBalanceConfig` runs on successful auth so a new or returning user has their balance
+ * initialized before the client asks for it.
+ *
+ * `/cloudfront/refresh` re-signs CloudFront cookies for long sessions, reusing the result
+ * already warmed by `requireJwtAuth` when available and returning 404 when the feature is off.
+ *
+ * Connections:
+ * - controllers: `server/controllers/AuthController.js`, `auth/LoginController.js`,
+ *   `auth/LogoutController.js`, `TwoFactorController.js`, `auth/TwoFactorAuthController.js`
+ * - mounted at `/api/auth` with `preAuthTenantMiddleware` in `server/index.js`
+ */
 const express = require('express');
 const { createSetBalanceConfig, forceRefreshCloudFrontAuthCookies } = require('@librechat/api');
 const {

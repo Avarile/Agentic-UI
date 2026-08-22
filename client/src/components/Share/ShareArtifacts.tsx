@@ -1,3 +1,5 @@
+// The artifacts panel in read-only share mode.
+
 import { lazy, Suspense, useState, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import {

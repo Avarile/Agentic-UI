@@ -1,3 +1,6 @@
+// The same setter surface bound to a preset being edited rather than a live
+// conversation, so the preset editor reuses the parameter panels.
+
 import type { TPreset } from 'librechat-data-provider';
 import type { TSetOptionsPayload, TSetExample, TSetOption, TSetOptions } from '~/common';
 import { useChatContext } from '~/Providers/ChatContext';

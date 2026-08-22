@@ -1,3 +1,5 @@
+// Downloads from SharePoint with per-file and aggregate progress.
+
 import { useCallback, useState } from 'react';
 import { useToastContext } from '@librechat/client';
 import type { SharePointFile, SharePointBatchProgress } from '~/data-provider/Files';

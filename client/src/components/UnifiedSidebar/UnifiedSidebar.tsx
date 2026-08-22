@@ -1,3 +1,20 @@
+// The app sidebar: icon rail when collapsed, resizable panel when expanded.
+//
+// Owns layout only — expansion state, width (persisted, clamped to 40% of the
+// viewport), the resize interaction, and the mobile overlay presentation.
+//
+// `SidebarChatProvider` is the interesting piece. The sidebar needs a chat context
+// of its own (its panels can start conversations), but subscribing to chat atoms at
+// this level would re-render the shell, the rail and the resize logic on every
+// streamed token. Nesting the subscription in a child confines it, because Recoil
+// subscriptions do not propagate to parents.
+//
+// Resizing updates through `requestAnimationFrame` and disables the width
+// transition while dragging, so the panel tracks the cursor instead of easing
+// behind it. On small screens the sidebar becomes a translated overlay with a
+// backdrop and Escape-to-close, and the content pane behind it is marked `inert`
+// rather than merely hidden.
+
 import { useCallback, useState, useEffect, useRef, memo, startTransition } from 'react';
 import type { ReactNode } from 'react';
 import { useRecoilState } from 'recoil';

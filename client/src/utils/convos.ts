@@ -1,3 +1,16 @@
+// Conversation list reconciliation: grouping by date, and patching the paginated caches.
+//
+// The second half is the load-bearing part. A conversation's title, pin state, tags
+// and archive status change from many places — an SSE event, a rename dialog, a
+// bookmark menu — and each must be reflected in every cached page that contains it
+// without refetching the list. `upsertConvoInAllQueries`,
+// `updateConvoInAllQueries`, `removeConvoFromAllQueries` and
+// `findConversationInInfinite` are the shared implementations of that, so no call
+// site has to know the infinite-query page shape.
+//
+// `dateKeys` / `groupConversationsByDate` produce the Today/Yesterday/Last-week
+// headings, in the user's locale and timezone.
+
 import { QueryClient } from '@tanstack/react-query';
 import { LocalStorageKeys, QueryKeys } from 'librechat-data-provider';
 import {

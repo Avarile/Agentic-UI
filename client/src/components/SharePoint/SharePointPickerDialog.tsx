@@ -1,3 +1,6 @@
+// Hosts the Microsoft file picker. Isolated because it drives an external
+// popup/iframe protocol rather than a normal input.
+
 import React, { useState, useEffect } from 'react';
 import {
   OGDialog,

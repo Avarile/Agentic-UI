@@ -1,3 +1,15 @@
+/**
+ * Local-filesystem image handling: resize/convert on upload, avatars, and base64 encoding.
+ *
+ * `prepareImagesLocal` builds the payload for vision requests, and `encodeImage` reads a local
+ * file to base64 — for local storage that is cheaper than a round trip through a URL.
+ *
+ * Design: images are resized and converted with `sharp` at upload time, not at read time, so the
+ * per-message cost is paid once. If the source is already the target format, the resized buffer
+ * is written back rather than re-encoded.
+ *
+ * Connections: `Local/crud.js`, `images/resize.js`; registered via `strategies.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');

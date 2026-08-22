@@ -1,3 +1,5 @@
+// Shared-link URL construction and share-mode predicates.
+
 import { apiBaseUrl } from 'librechat-data-provider';
 
 export const buildShareLinkUrl = (shareId: string): string => {

@@ -1,3 +1,9 @@
+// A legacy text-only message row (no `content` array).
+//
+// The thinnest of the three renderers. Memoized with `areMessageRowPropsEqual`, a
+// field-level comparator rather than shallow equality, because the message object
+// is a fresh reference on every streaming write.
+
 import React from 'react';
 import type { TMessageProps } from '~/common';
 import { useMessageProcess, useMemoizedChatContext } from '~/hooks';

@@ -1,3 +1,13 @@
+/**
+ * Reports whether conversation search is usable: `GET /enable`.
+ *
+ * Design: returns `false` — never an error — when `SEARCH` is off *or* the MeiliSearch health
+ * check fails. The client uses this purely to decide whether to show the search UI, so a
+ * degraded search backend should hide the feature rather than surface an error. The health
+ * check is live (not cached) so search reappears as soon as Meili recovers.
+ *
+ * Connections: index maintenance in `db/indexSync.js`
+ */
 const express = require('express');
 const { MeiliSearch } = require('meilisearch');
 const { isEnabled } = require('@librechat/api');

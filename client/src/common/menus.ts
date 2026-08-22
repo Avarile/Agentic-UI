@@ -1,3 +1,6 @@
+// Types for the menu and selector components — nav links, mention options, badge
+// items.
+
 export type RenderProp<
   P = React.HTMLAttributes<any> & {
     ref?: React.Ref<any>;

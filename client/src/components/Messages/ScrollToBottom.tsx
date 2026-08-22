@@ -1,3 +1,6 @@
+// The scroll-to-bottom button. Visibility is owned by MessagesView's isolated
+// `ScrollButton` so that showing and hiding it does not re-render the message tree.
+
 import { forwardRef } from 'react';
 import { useRecoilValue } from 'recoil';
 import { ChevronDown } from 'lucide-react';

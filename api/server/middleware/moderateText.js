@@ -1,3 +1,22 @@
+/**
+ * Optional OpenAI moderation pass over user-supplied text before a generation starts.
+ *
+ * Enabled by `OPENAI_MODERATION`; a no-op otherwise.
+ *
+ * Design: what gets moderated is deliberately broader than `req.body.text`. Quoted excerpts
+ * are normalized with `getReferencedQuotes` (matching how `BaseClient` builds the prompt), and
+ * the *merged* blockquote+text string is submitted as well — content split across a quote and
+ * the typed body would otherwise slip past per-part checks. The moderation API accepts an
+ * array, so all variants go in one request rather than N.
+ *
+ * The HITL `answer` field (from `POST /agents/chat/resume` for an ask-user question) is
+ * moderated too, since it is free-form user text; a tool-approval resume carries no user text
+ * and is skipped.
+ *
+ * Connections:
+ * - rejection via `server/middleware/denyRequest.js`
+ * - quote/answer helpers from `packages/api`; mounted on the chat routes
+ */
 const axios = require('axios');
 const {
   isEnabled,

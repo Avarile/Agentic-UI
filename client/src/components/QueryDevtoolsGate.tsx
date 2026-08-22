@@ -1,3 +1,11 @@
+// Conditionally mounts the React Query devtools.
+//
+// Enabled in development, or in a deployed build when the runtime config sets
+// `enableQueryDevtools` — which is why it imports the `/production` devtools entry
+// rather than the dev-only one. Lazily loaded so the bundle cost is paid only when
+// actually enabled, and `shouldEnableQueryDevtools` is exported separately so the
+// decision is testable without rendering.
+
 import { lazy, Suspense } from 'react';
 
 interface QueryDevtoolsConfig {

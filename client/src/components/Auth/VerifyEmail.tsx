@@ -1,3 +1,6 @@
+// Email verification landing, reached from an emailed link — hence its own
+// top-level route outside both layouts.
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button, Spinner, ThemeSelector } from '@librechat/client';

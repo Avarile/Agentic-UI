@@ -1,3 +1,13 @@
+/**
+ * Assistants API v2: same surface as v1, with v2 semantics where they differ.
+ *
+ * Design: deliberately *mixes* controllers — `create`/`patch` use the v2 implementations
+ * (where the request shapes and tool-resource model changed), while `retrieve`, `delete`,
+ * `list` and avatar upload reuse v1's, which are version-agnostic. Duplicating them would
+ * create two copies to keep in sync for no behavioural gain.
+ *
+ * Connections: `server/controllers/assistants/v2.js` and `v1.js`
+ */
 const express = require('express');
 const { configMiddleware } = require('~/server/middleware');
 const v1 = require('~/server/controllers/assistants/v1');

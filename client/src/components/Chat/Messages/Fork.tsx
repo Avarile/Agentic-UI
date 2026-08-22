@@ -1,3 +1,6 @@
+// Forking a conversation from a message: the options (this message, this branch,
+// everything up to here) and the remembered default.
+
 import React, { useState, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 import * as Ariakit from '@ariakit/react';

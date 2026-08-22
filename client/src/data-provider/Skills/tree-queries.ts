@@ -1,3 +1,9 @@
+// The skill file tree and per-node content.
+//
+// Separate from queries.ts because a skill's files form a directory tree, and the
+// editor needs to render the structure without loading every file. The tree query
+// returns nodes only; content is fetched per node on selection.
+
 import { useQuery } from '@tanstack/react-query';
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import type { QueryObserverResult, UseQueryOptions } from '@tanstack/react-query';

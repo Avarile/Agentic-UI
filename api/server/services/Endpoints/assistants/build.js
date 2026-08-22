@@ -1,3 +1,14 @@
+/**
+ * Builds the assistants `endpointOption` from the parsed request body.
+ *
+ * Design: when `artifacts` is requested, the artifacts system prompt is generated here
+ * (`generateArtifactsPrompt`) and folded into the option object — the Assistants API has no
+ * notion of artifacts, so the capability is implemented purely as prompt content.
+ * `removeNullishValues` keeps the object clean for the upstream request.
+ *
+ * Connections: `server/middleware/buildEndpointOption.js`,
+ * `app/clients/prompts/artifacts.js`
+ */
 const { removeNullishValues } = require('librechat-data-provider');
 const generateArtifactsPrompt = require('~/app/clients/prompts/artifacts');
 const { getAssistant } = require('~/models');

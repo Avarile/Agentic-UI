@@ -1,3 +1,7 @@
+// Selecting an agent for a conversation: resolves its endpoint, model parameters and
+// capabilities, then writes the conversation atom. Not a simple field set, which is
+// why it is a hook.
+
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {

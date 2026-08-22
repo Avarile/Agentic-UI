@@ -1,3 +1,5 @@
+// Verifies the search tool's credentials before the toggle is offered.
+
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthType, Tools, QueryKeys } from 'librechat-data-provider';

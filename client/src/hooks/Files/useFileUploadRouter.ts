@@ -1,3 +1,7 @@
+// Routes files to the right destination — conversation attachment, agent file, or
+// tool resource — based on the active endpoint and capability. The reason paste and
+// drop do not each need to know the taxonomy.
+
 import { useCallback } from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { Constants, EToolResources } from 'librechat-data-provider';

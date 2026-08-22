@@ -1,3 +1,9 @@
+// Renders MCP-provided UI resources returned by a tool.
+//
+// Its overlay controls use theme-invariant `-fixed` color roles because they sit
+// over arbitrary embedded content whose background does not follow the app theme —
+// the same treatment the System Core modal's controls use.
+
 import React, { useState } from 'react';
 import { Button } from '@librechat/client';
 import { UIResourceRenderer } from '@mcp-ui/client';

@@ -1,3 +1,5 @@
+// Formatting and grouping for the memory panel's entries.
+
 import type { MemoriesResponse, TUserMemory, MemoryArtifact } from 'librechat-data-provider';
 
 type HandleMemoryArtifactParams = {

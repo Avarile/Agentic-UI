@@ -1,3 +1,19 @@
+/**
+ * Enforces `privateAssistants`: a user may only act on assistants they authored.
+ *
+ * Design: not middleware — a helper called from the assistants controllers, because the
+ * assistant id can arrive from `req.params`, `req.body` or `req.query` depending on the
+ * operation, and the caller knows which (plus may need to pass overrides).
+ *
+ * Authorship is read from the assistant's OpenAI `metadata.author` field. That is the only
+ * place it can live: assistants are stored upstream, not in our database, so the check
+ * requires a `beta.assistants.retrieve` round trip and *throws* on mismatch for the caller to
+ * map to a response.
+ *
+ * Connections:
+ * - called by `server/controllers/assistants/*`; capability check via
+ *   `server/middleware/roles/capabilities.js`
+ */
 const { logger, SystemCapabilities } = require('@librechat/data-schemas');
 const { hasCapability } = require('~/server/middleware/roles/capabilities');
 const { getAssistant } = require('~/models');

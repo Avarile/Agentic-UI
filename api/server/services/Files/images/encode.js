@@ -1,3 +1,26 @@
+/**
+ * Encodes images into the per-provider payload format for vision requests.
+ *
+ * `encodeAndFormat(req, files, params, mode)` is the single place that turns stored files into
+ * whatever the target provider expects — base64 data, a URL reference, or a provider-specific
+ * content part — keyed by `VisionModes` and endpoint.
+ *
+ * Design:
+ * - Per-file source matters: a locally stored file is read and base64-encoded directly, while a
+ *   remote one is fetched (`fetchImageToBase64`) or passed as a URL when the provider supports
+ *   it. `streamToBase64` destroys the stream after reading so a failed encode does not leak a
+ *   file handle.
+ * - `validateImage` and `runGuardedEncode` (from `packages/api`) bound the work: images reach
+ *   this path from user uploads *and* model output, so decoding must be size- and
+ *   format-guarded against a decompression bomb.
+ * - `ImageDetail` is honoured so the encoded resolution matches the requested detail tier — this
+ *   is where image token cost is actually determined.
+ * - File-config limits are resolved per endpoint (`mergeFileConfig`, `getEndpointFileConfig`),
+ *   since providers differ in count and size limits.
+ *
+ * Connections: `controllers/agents/client.js` (`addImageURLs`/`buildMessages`),
+ * `strategies.js`
+ */
 const axios = require('axios');
 const { logger } = require('@librechat/data-schemas');
 const { logAxiosError, validateImage, runGuardedEncode } = require('@librechat/api');

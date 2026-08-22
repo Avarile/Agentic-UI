@@ -1,3 +1,6 @@
+// The skills that were active for a message — invoked manually or resolved at
+// runtime.
+
 import { memo } from 'react';
 import { Pin, ScrollText } from 'lucide-react';
 import { useLocalize } from '~/hooks';

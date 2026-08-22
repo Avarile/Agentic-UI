@@ -1,3 +1,16 @@
+/**
+ * Current-user endpoints: profile, terms acceptance, plugin settings, deletion, email verification.
+ *
+ * Mounts `server/routes/settings.js` at `/settings`.
+ *
+ * Design: `/delete` chains `requireJwtAuth -> canDeleteAccount -> configMiddleware` — the
+ * policy gate runs before config resolution so a forbidden deletion does no extra work.
+ * The email-verification routes are intentionally *unauthenticated* (the user cannot log in
+ * until verified) and therefore carry their own limiters:
+ * `verifyEmailSubmissionLimiter` on submit, `verifyEmailLimiter` on resend.
+ *
+ * Connections: controller `server/controllers/UserController.js`
+ */
 const express = require('express');
 const {
   updateUserPluginsController,

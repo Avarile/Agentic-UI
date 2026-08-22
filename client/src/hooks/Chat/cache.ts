@@ -1,3 +1,10 @@
+// Query-key helpers for message caches, and the "which conversation do these
+// messages belong to" question.
+//
+// `getMessagesConversationId` scans from the end because the earliest messages of a
+// new conversation still carry the placeholder id while later ones have the real
+// one. Reading forward would return the placeholder.
+
 import { Constants } from 'librechat-data-provider';
 import type { TMessage } from 'librechat-data-provider';
 

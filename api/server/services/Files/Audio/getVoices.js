@@ -1,3 +1,11 @@
+/**
+ * Returns the available TTS voices for the configured provider.
+ *
+ * Resolves the provider via `getProvider` and returns that provider's voice list, so the client
+ * can populate a voice selector without knowing which backend is in use.
+ *
+ * Connections: `TTSService.js`; route `server/routes/files/speech/`
+ */
 const { TTSProviders } = require('librechat-data-provider');
 const { getAppConfig } = require('~/server/services/Config');
 const { getProvider } = require('./TTSService');

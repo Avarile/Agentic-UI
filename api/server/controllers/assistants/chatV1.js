@@ -1,3 +1,27 @@
+/**
+ * Assistants v1 chat controller — drives an OpenAI thread/run and streams it to the client.
+ *
+ * This is a long orchestration; the shape is: resolve client and thread (`initThread`) ->
+ * check balance -> submit the run -> poll/stream `AssistantStreamEvents` -> persist messages ->
+ * `recordUsage`.
+ *
+ * Design notes:
+ * - Balance is checked *before* submitting the run (`checkBalance`, `getModelMaxTokens`), since
+ *   an Assistants run cannot be cheaply cancelled once accepted upstream.
+ * - The run id is written to the `ABORT_KEYS` cache so `abortRun` can cancel it; without that
+ *   the run would keep consuming tokens after the user navigates away.
+ * - `checkMessageGaps` reconciles the local message chain with the thread afterwards, because
+ *   the stream can drop events and OpenAI is the source of truth for thread contents.
+ * - `ImageVisionTool`/`VisionModes` handling injects vision capability that v1 assistants do
+ *   not natively expose.
+ * - `sleep` is used for the polling fallback when streaming is unavailable.
+ * - Errors go through `createErrorHandler` from `./errors.js` so a failed run still leaves a
+ *   coherent conversation.
+ *
+ * Connections:
+ * - `server/services/Threads/`, `services/Runs/`, `./helpers.js`, `./errors.js`
+ * - abort path: `server/middleware/abortMiddleware.js` -> `abortRun.js`
+ */
 const { v4 } = require('uuid');
 const { sleep } = require('@librechat/agents');
 const { logger } = require('@librechat/data-schemas');

@@ -1,3 +1,5 @@
+// The agent marketplace's category list and display order.
+
 import { TranslationKeys } from '~/hooks/useLocalize';
 
 export interface AgentCategory {

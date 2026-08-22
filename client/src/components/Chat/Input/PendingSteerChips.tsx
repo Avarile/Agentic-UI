@@ -1,3 +1,7 @@
+// Chips for steers submitted mid-run and awaiting injection. Their status —
+// sending, pending, failed — is server truth reconciled by `useSteering`, not local
+// optimism.
+
 import { memo, useMemo, useRef, useState, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import { useRecoilValue } from 'recoil';

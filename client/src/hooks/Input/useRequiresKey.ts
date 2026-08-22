@@ -1,3 +1,6 @@
+// Whether the selected endpoint needs a user-supplied key before sending, so the
+// composer can prompt instead of failing.
+
 import { getEndpointField } from 'librechat-data-provider';
 import { useChatContext } from '~/Providers/ChatContext';
 import { useGetEndpointsQuery } from '~/data-provider';

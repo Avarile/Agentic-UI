@@ -1,3 +1,21 @@
+/**
+ * Generates the system prompt that enables artifacts (rendered code/document panes).
+ *
+ * `generateArtifactsPrompt({ endpoint, artifacts })` selects the prompt for the requested
+ * `ArtifactModes` and, for the shadcn mode, splices in component documentation via
+ * `generateShadcnPrompt`.
+ *
+ * Design: artifacts are implemented entirely as prompt engineering — the model is instructed to
+ * emit delimited blocks that the client renders in a side pane. There is no API-level feature to
+ * enable, which is why this is a large static prompt rather than a request parameter. `dedent`
+ * keeps the templates readable in source without shipping the indentation as tokens.
+ * `artifactsPromptV1` is retained and marked `@deprecated` for reference while V2 is in use.
+ *
+ * Connections:
+ * - `server/services/Endpoints/{assistants,azureAssistants}/build.js`
+ * - `shadcn-docs/generate.js`, `shadcn-docs/components.js`; parsing side:
+ *   `server/services/Artifacts/update.js`
+ */
 const dedent = require('dedent');
 const { EModelEndpoint, ArtifactModes } = require('librechat-data-provider');
 const { generateShadcnPrompt } = require('~/app/clients/prompts/shadcn-docs/generate');

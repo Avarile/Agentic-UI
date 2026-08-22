@@ -1,3 +1,11 @@
+/**
+ * Factory for conversation-fork rate limits (IP and user, defaults 30/7 per minute).
+ *
+ * The user limit is deliberately much tighter than the IP limit: forking duplicates an entire
+ * message tree, so a single account looping on fork is the realistic abuse shape.
+ *
+ * Connections: mounted in `server/routes/convos.js`; fork logic in `server/utils/import/fork.js`
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

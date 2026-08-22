@@ -1,3 +1,35 @@
+// The resumable streaming path — the client's most complex module.
+//
+// What it buys: a generation survives a reload, a network drop, or a tab switch.
+// The server owns the run; this hook attaches to it, and can re-attach later. That
+// single capability is what forces everything else here.
+//
+// The consequences, in rough order of how much code they account for:
+//
+//   Starting is a negotiation, not a request. `postGenerationRequest` may report
+//   the server not ready, or a predecessor mismatch, or fail ambiguously at the
+//   transport level. There are retry budgets for each (`MAX_RETRIES`,
+//   `START_GENERATION_NETWORK_RETRIES`, a readiness timeout) because a retry that
+//   is actually a duplicate start is much worse than a slow one.
+//
+//   Reconnection means reconciliation. On re-attach the server sends its view of
+//   the run — content so far, pending steers, applied steer ids — and the client
+//   must merge rather than replace, since local optimistic state may be ahead of
+//   or behind it.
+//
+//   Terminal events can arrive for a conversation the user has left. Every
+//   reconciliation path is fenced on `(conversationId, generationCreatedAt)`; see
+//   `clearMatchingDrainAfterAbort` at the top for the canonical shape of that
+//   guard, and store/families.ts for why run-end signals are queues rather than
+//   slots.
+//
+//   Protocol version gates behaviour. v1 and v2 differ in what the control
+//   endpoints guarantee, so the negotiated version is carried per generation and
+//   checked before offering retry or edit semantics.
+//
+// Event interpretation itself still lives in useEventHandlers; what is here is
+// connection lifecycle, retry policy, and reconciliation.
+
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { v4 } from 'uuid';
 import { SSE } from 'sse.js';

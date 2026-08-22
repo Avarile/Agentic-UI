@@ -1,3 +1,18 @@
+/**
+ * Accumulates an import in memory, then writes it with bulk operations.
+ *
+ * `ImportBatchBuilder` collects conversations, messages and tag counts, and flushes via
+ * `bulkSaveConvos`, `bulkSaveMessages` and `bulkIncrementTagCounts`.
+ *
+ * Design: an import can contain thousands of messages; inserting them one by one would be
+ * thousands of round trips and would leave a partially-imported conversation visible if it
+ * failed midway. Batching makes it one write per collection and near-atomic in practice. The
+ * builder also assigns retention/expiration dates (`createFallbackRetentionDate`,
+ * `createTempChatExpirationDate`, `RetentionMode`) so imported conversations obey the same
+ * retention policy as new ones instead of living forever.
+ *
+ * Connections: `importers.js`, `importConversations.js`, `fork.js`
+ */
 const { v4: uuidv4 } = require('uuid');
 const {
   logger,

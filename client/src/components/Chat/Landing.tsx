@@ -1,3 +1,18 @@
+// The new-conversation greeting: agent or spec identity, description, starters.
+//
+// Most of the file is layout arithmetic, and it is dynamic because the content is
+// unbounded — an agent description can be one line or a paragraph, in any language.
+// `getTextSizeClass` and `getDynamicMargin` step the type size and spacing from the
+// measured line count and content height so the composer stays visually anchored
+// instead of being shoved down.
+//
+// The animation constants are hoisted to module scope deliberately: fresh object
+// literals re-initialize SplitText's springs and re-render every grapheme span on
+// every Landing render.
+//
+// Descriptions may be admin-authored HTML, so they are sanitized with a media tag
+// allowlist — the same config-injection boundary as the banner.
+
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { easings } from '@react-spring/web';
 import { EModelEndpoint } from 'librechat-data-provider';

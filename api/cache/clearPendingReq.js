@@ -1,3 +1,19 @@
+/**
+ * Releases a user's slot in the concurrent-request counter used by `LIMIT_CONCURRENT_MESSAGES`.
+ *
+ * Decrements the `PENDING_REQ` counter, or deletes the key outright when it reaches the floor
+ * so stale keys do not accumulate.
+ *
+ * Design: this is the cleanup half of a counter incremented by the concurrent-message
+ * limiter. It must be safe to call on every terminal path — success, error, and abort — so it
+ * returns early (rather than throwing) when the feature is off, the user is unknown, or the
+ * store is missing. The Redis key is prefixed with the namespace manually because the shared
+ * Keyv instance is not namespaced in that mode.
+ *
+ * Connections:
+ * - counterpart of `server/middleware/limiters/messageLimiters.js`
+ * - called from `server/middleware/abortMiddleware.js` and the agent chat controllers
+ */
 const { isEnabled } = require('@librechat/api');
 const { Time, CacheKeys } = require('librechat-data-provider');
 const getLogStores = require('./getLogStores');

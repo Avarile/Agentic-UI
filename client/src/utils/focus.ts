@@ -1,3 +1,9 @@
+// A one-shot request to focus the composer, consumed on the next render.
+//
+// A request/consume pair rather than a ref call, because the requester (a submit
+// path, a navigation) and the textarea are far apart and the textarea may not be
+// mounted yet when the request is made.
+
 let pendingChatFocus = false;
 
 /**

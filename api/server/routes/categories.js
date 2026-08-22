@@ -1,3 +1,9 @@
+/**
+ * Returns the prompt/agent category list. Read-only, authenticated.
+ *
+ * Categories are seeded at boot by `seedDatabase` (`ensureDefaultCategories`) in
+ * `models/index.js`, so this endpoint has no write side.
+ */
 const express = require('express');
 const router = express.Router();
 const { requireJwtAuth } = require('~/server/middleware');

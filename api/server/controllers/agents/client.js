@@ -1,3 +1,52 @@
+/**
+ * `AgentClient` — the runtime that executes an agent turn. The largest file in the backend.
+ *
+ * Extends `BaseClient` (`app/clients/BaseClient.js`) and bridges LibreChat's message/persistence
+ * model to the LangGraph-based runtime in `@librechat/agents`. Everything that happens between
+ * "request validated" and "response saved" is here.
+ *
+ * Responsibilities, roughly in execution order:
+ * - `buildMessages` — assemble the prompt: history, files (`encodeAndFormat`,
+ *   `filterFilesByAgentAccess`), context handlers, memory, vision attachments.
+ * - `useMemory`/`runMemory` — long-term memory retrieval and write-back.
+ * - `chatCompletion` — build the tool set (`buildToolSet`), resolve MCP servers, create and run
+ *   the graph (`createRun`), stream events out.
+ * - `handleRunInterrupt` — pause for human-in-the-loop (tool approval / ask-user).
+ * - `resumeCompletion` — continue a paused run from its checkpoint.
+ * - `recordCollectedUsage`/`recordTokenUsage` — settle billing across primary, summarization,
+ *   sequential and subagent usage.
+ * - `titleConvo` — generate the conversation title.
+ *
+ * Design decisions worth knowing:
+ * - `EventEmitter.defaultMaxListeners = 100` at the top: a single run attaches many handlers
+ *   (per tool, per subagent, per phase) and Node's default of 10 would emit spurious leak
+ *   warnings.
+ * - The "sink" pattern (`contextUsageSink`, `usageEmitSink`, `collectedUsage`,
+ *   `toolInputValidationErrors`, `stepMap`, `subagentAggregatorsByToolCallId`) — mutable
+ *   collectors passed *in* by the caller rather than returned. Streaming handlers fire
+ *   asynchronously and out of order; the caller needs access to accumulated state at abort or
+ *   error time, not only on clean completion.
+ * - `_runReady`/`_resolveRun`: a promise resolved once `chatCompletion` has created the run, so
+ *   immediate-mode title generation can await the run instead of throwing when it fires first.
+ * - `toolInputValidationErrors` is keyed by tool-call id so the completion handler can tell a
+ *   genuine schema-validation failure from tool *output* that merely contains similar text.
+ * - `checkpointNamespace` is generation-scoped; legacy paused jobs deliberately keep the
+ *   historical empty namespace so previously paused runs stay resumable.
+ * - Activity labels/phases run as their own small LLM calls with their own wiring, timeouts
+ *   (`settleActivityLabels`) and usage accounting — they must never block or bill against the
+ *   main turn.
+ * - `applySteerPart`/`buildSteerWiring` inject steered text into a live run.
+ * - `applyHideSequentialOutputsFilter` and `finalizeSubagentContent` shape multi-agent output so
+ *   intermediate agents' text is not rendered as the user-visible answer.
+ * - `MEMORY_INPUT_CHARS_PER_TOKEN` is a cheap chars-per-token approximation used to bound
+ *   memory input without paying for a real tokenizer pass on a non-billable path.
+ *
+ * Connections:
+ * - base: `app/clients/BaseClient.js`; prompts: `app/clients/prompts/`
+ * - runtime: `@librechat/agents`; helpers: `packages/api`
+ * - files: `server/services/Files/*`; MCP: `server/services/MCP.js`
+ * - callbacks/handlers: `callbacks.js`; drivers: `request.js`, `resume.js`
+ */
 require('events').EventEmitter.defaultMaxListeners = 100;
 const { logger } = require('@librechat/data-schemas');
 const { getBufferString, HumanMessage } = require('@librechat/agents/langchain/messages');

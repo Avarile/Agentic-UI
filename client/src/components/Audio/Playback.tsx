@@ -1,3 +1,5 @@
+// The playback control shown in the composer for the current response.
+
 import { memo, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilValue, useSetRecoilState } from 'recoil';

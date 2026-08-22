@@ -1,3 +1,17 @@
+/**
+ * Allows self-service account deletion only when the deployment permits it.
+ *
+ * `ALLOW_ACCOUNT_DELETION` defaults to true. When disabled, admins are still allowed through —
+ * the capability check (`ACCESS_ADMIN`) is what distinguishes an operator cleaning up an
+ * account from a user self-deleting.
+ *
+ * The capability lookup is wrapped so a failure denies rather than throws, and the default
+ * `next = () => {}` lets the function be unit-tested outside a router.
+ *
+ * Connections:
+ * - capability check via `server/middleware/roles/capabilities.js`
+ * - used by `server/routes/user.js`
+ */
 const { isEnabled } = require('@librechat/api');
 const { logger, SystemCapabilities } = require('@librechat/data-schemas');
 const { hasCapability } = require('~/server/middleware/roles/capabilities');

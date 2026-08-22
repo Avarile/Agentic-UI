@@ -1,3 +1,5 @@
+// Dismissible chips for skills queued via the `$` popover, before send.
+
 import { memo, useCallback } from 'react';
 import { ScrollText, X } from 'lucide-react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';

@@ -1,3 +1,14 @@
+/**
+ * Reads and writes the user's favorites list (agents, prompts, and other entities).
+ *
+ * Design: validation is explicit and bounded — an array, at most `MAX_FAVORITES` (50) entries,
+ * each string at most `MAX_STRING_LENGTH` (256). Favorites are stored on the user document, so
+ * an unbounded write would let a client inflate that document indefinitely. Exceeding the count
+ * returns a machine-readable `code: 'MAX_FAVORITES_EXCEEDED'` with the limit, so the UI can
+ * explain the failure rather than showing a generic error.
+ *
+ * Connections: route `server/routes/settings.js`
+ */
 const { updateUser, getUserById } = require('~/models');
 
 const MAX_FAVORITES = 50;

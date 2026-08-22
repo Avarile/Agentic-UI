@@ -1,3 +1,15 @@
+/**
+ * A `Readable` stream that emits text in small randomized chunks with a delay.
+ *
+ * Used to simulate token-by-token streaming for responses that arrive complete — cached replies,
+ * error text, and non-streaming providers — so the UI renders them the same way as a real
+ * stream instead of flashing the whole message at once.
+ *
+ * Chunk size (2-4 chars) and delay (20ms) are defaults; `randomInt` varies the chunk size so the
+ * output does not look mechanically uniform.
+ *
+ * Connections: `BaseClient.generateTextStream`
+ */
 const { Readable } = require('stream');
 const { logger } = require('@librechat/data-schemas');
 

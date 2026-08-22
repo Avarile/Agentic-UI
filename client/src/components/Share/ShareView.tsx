@@ -1,3 +1,10 @@
+// The shared-conversation page.
+//
+// Renders a transcript with no session behind it, which is the constraint the whole
+// directory exists to satisfy: it supplies `ShareContext` (suppressing every
+// interactive affordance) and its own messages provider, so the shared components
+// under `components/Messages/` can render without a live chat.
+
 import { memo, useState, useCallback, useContext } from 'react';
 import Cookies from 'js-cookie';
 import { buildTree } from 'librechat-data-provider';

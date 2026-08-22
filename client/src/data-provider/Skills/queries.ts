@@ -1,3 +1,13 @@
+// Reading skills: list, infinite list, one skill, its files, and per-user enabled state.
+//
+// Skills are markdown documents with attached files, so "read a skill" splits into
+// metadata (`useGetSkillQuery`), the file list, and file content — kept separate so
+// browsing the library never fetches document bodies.
+//
+// `useGetSkillStatesQuery` / `useUpdateSkillStatesMutation` are the per-user
+// enabled/disabled toggles rather than the skills themselves; they live here
+// because they are read together with the list on every render of the picker.
+
 import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import type {

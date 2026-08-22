@@ -1,3 +1,11 @@
+// Tool approval and ask-user-question parsing.
+//
+// Both are cases where the model's *arguments* are the UI: an approval request and
+// a structured question arrive as tool-call payloads that stream in as text
+// fragments, so parsing has to tolerate incomplete JSON and only commit once the
+// shape is valid. `ASK_USER_DECLINED_ANSWER` is the sentinel for a question the
+// user dismissed, which is distinct from one still unanswered.
+
 import { ContentTypes } from 'librechat-data-provider';
 import type { Agents, TMessage, TMessageContentParts } from 'librechat-data-provider';
 

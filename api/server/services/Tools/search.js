@@ -1,3 +1,17 @@
+/**
+ * Emits web-search results as conversation attachments during a run.
+ *
+ * `createOnSearchResults(res, streamId, jobCreatedAt)` returns the callback the search tool
+ * invokes with its results; `buildAttachment` shapes them.
+ *
+ * Design: `writeAttachment` branches on `streamId` — in resumable mode it writes through
+ * `GenerationJobManager` (so a reconnecting client replays the attachment) and otherwise
+ * directly to `res`. Every write carries `jobCreatedAt`, the generation epoch that owns the
+ * attachment, so a late callback from a superseded run cannot inject results into a newer
+ * stream.
+ *
+ * Connections: `server/services/ToolService.js`; job/stream state from `packages/api`
+ */
 const { nanoid } = require('nanoid');
 const { Tools } = require('librechat-data-provider');
 const { logger } = require('@librechat/data-schemas');

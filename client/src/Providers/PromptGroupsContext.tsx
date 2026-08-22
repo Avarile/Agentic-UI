@@ -1,3 +1,14 @@
+// Prompt library state for both the navigation pane and the composer's `/` command.
+//
+// Two different shapes of the same data are needed at once: the paginated,
+// filterable nav list (`usePromptGroupsNav`) and a flat, pre-mapped array for
+// mention/autocomplete. Both are provided here so the composer's command menu does
+// not re-fetch the catalogue the sidebar already has.
+//
+// Everything is gated on the PROMPTS/USE permission, and `hasAccess` is published
+// alongside the data so consumers render an empty state rather than a failed
+// query.
+
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
 import type { TPromptGroup } from 'librechat-data-provider';

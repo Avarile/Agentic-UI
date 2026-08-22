@@ -1,3 +1,6 @@
+// Groups consecutive tool calls so a long chain renders as one collapsible block
+// rather than burying the answer.
+
 import { Constants, ContentTypes, ToolCallTypes } from 'librechat-data-provider';
 import type { TMessageContentParts, Agents } from 'librechat-data-provider';
 import type { PartWithIndex } from '~/components/Chat/Messages/Content/ParallelContent';

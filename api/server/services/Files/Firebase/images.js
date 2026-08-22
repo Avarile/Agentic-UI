@@ -1,3 +1,11 @@
+/**
+ * Firebase image handling: resize/convert on upload, image URL preparation, avatars.
+ *
+ * Parallel to the Azure and Local image modules; uses `saveBufferToFirebase` after the shared
+ * `sharp` resize step.
+ *
+ * Connections: `Firebase/crud.js`, `images/resize.js`; registered via `strategies.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');

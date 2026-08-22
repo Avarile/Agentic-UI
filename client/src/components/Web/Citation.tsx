@@ -1,3 +1,7 @@
+// An inline citation marker, resolving its source through SearchContext — which is
+// why that is a context and not a prop: the markdown renderers between the message
+// and the marker know nothing about citations.
+
 import { memo, useState, useContext, useCallback } from 'react';
 import { Button } from '@librechat/client';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';

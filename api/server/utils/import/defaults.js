@@ -1,3 +1,17 @@
+/**
+ * Resolves the endpoint and model to attach to imported conversations.
+ *
+ * `resolveImportDefaultEndpoint` and `resolveImportDefaultModel` prefer the *live* models config
+ * for the user (`getModelsConfig`, `pickFirstConfiguredModel`), so an import lands on something
+ * this deployment can actually run.
+ *
+ * Design: `FALLBACK_MODEL_BY_ENDPOINT` is a last resort, used only when the runtime config is
+ * unavailable or empty. Importing with a model the deployment does not have would produce a
+ * conversation that errors on the first reply, which is why runtime resolution comes first and
+ * the hardcoded map is explicitly labelled last-resort.
+ *
+ * Connections: `importers.js`, `importBatchBuilder.js`, `fork.js`
+ */
 const { logger, getTenantId } = require('@librechat/data-schemas');
 const { EModelEndpoint, openAISettings, anthropicSettings } = require('librechat-data-provider');
 const { getModelsConfig } = require('~/server/controllers/ModelController');

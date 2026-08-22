@@ -1,3 +1,25 @@
+// Token accounting and context-window usage, per conversation.
+//
+// Split into many small Jotai atom families rather than one usage object, because
+// the write frequency here is the highest in the app — live stream estimates update
+// continuously — and only the components that draw a number should re-render.
+//
+// The model separates three things that are easy to conflate:
+//
+//   pendingUsageFamily      the in-flight response only, accumulated from
+//                           `on_token_usage` events and flushed once at finalize.
+//                           This is the only live addend, which is what guarantees
+//                           a response is counted exactly once.
+//   per-message index       finalized usage, from which branch and total figures
+//                           are *derived* by summation rather than tracked.
+//   contextSnapshotFamily   the backend's authoritative context breakdown for the
+//                           latest run, anchored to its user message so staleness
+//                           is detectable.
+//
+// `snapshotsByAnchorFamily` retains earlier generations' snapshots because
+// switching to a branch generated earlier in the session should keep its granular
+// rows instead of collapsing to coarse totals.
+
 import { atomFamily } from 'jotai/utils';
 import { atom, getDefaultStore } from 'jotai';
 import type { TMessage, TContextUsageEvent } from 'librechat-data-provider';

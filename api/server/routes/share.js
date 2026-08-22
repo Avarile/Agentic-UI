@@ -1,3 +1,35 @@
+/**
+ * Shared-conversation links: create, list, update, revoke, and serve shared content and files.
+ *
+ * The most security-sensitive router in the app — it serves content to unauthenticated
+ * viewers.
+ *
+ * Design:
+ * - Reads of shared content run under an explicit tenant context (`tenantStorage`,
+ *   `runAsSystem`, `SYSTEM_TENANT_ID`) because the viewer has no tenant of their own; the
+ *   scope must come from the *link*, not the request. `canAccessSharedLink` establishes it and
+ *   the file-serving helpers mirror the same context.
+ * - File snapshots: a share may pin the files as they were when shared
+ *   (`isFileSnapshotEnabled`, with `isFileSnapshotKillSwitchActive` as an operator override),
+ *   so later edits or deletions do not change or break a published link. Snapshotted files are
+ *   streamed (or redirected) from their original stored object with an ETag from
+ *   `buildShareFileEtag`, and served with `attachment` or `inline` disposition depending on
+ *   whether the request is a download or an embed.
+ * - Creating *and* re-scoping a link both count as publishing, so updates are gated by the
+ *   same public-share capability as creation rather than treated as ordinary edits.
+ * - Filenames are sanitized (`cleanFileName`, `getContentDisposition`) before appearing in a
+ *   `Content-Disposition` header — a header-injection boundary.
+ * - Pagination is validated (`parseSharedLinksPageSize`, `isValidSharedLinksCursor`) and
+ *   search input length-capped, since these parameters are reachable pre-auth.
+ * - Temp-chat links expire via `createTempChatExpirationDate`; `isActiveExpirationDate` gates
+ *   serving.
+ *
+ * Connections:
+ * - access control: `server/middleware/canAccessSharedLink.js`,
+ *   `checkSharePublicAccess.js`, `optionalShareFileAuth.js`
+ * - storage via `server/services/Files/strategies.js`
+ * - mounted with `preAuthTenantMiddleware` in `server/index.js`
+ */
 const mongoose = require('mongoose');
 const express = require('express');
 const {

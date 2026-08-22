@@ -1,3 +1,5 @@
+// Creates the added-pane conversation for a multi-model run.
+
 import { useRecoilValue } from 'recoil';
 import { useCallback, useRef, useEffect } from 'react';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';

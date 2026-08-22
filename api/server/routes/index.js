@@ -1,3 +1,16 @@
+/**
+ * Barrel that collects every router so `server/index.js` can mount them by name.
+ *
+ * Design: pure re-export, no logic. Mount paths (`/api/messages`, `/api/agents`, ...) live in
+ * `server/index.js`, not here — keeping URL layout in one place makes the public surface
+ * reviewable from a single file, and lets a router be mounted with different pre-middleware
+ * (e.g. `preAuthTenantMiddleware` on the pre-authentication routers) without the router itself
+ * knowing.
+ *
+ * Note `files` is exported as a module with an async `initialize()` (see
+ * `server/routes/files/index.js`) because its multer configuration depends on loaded config;
+ * `server/index.js` awaits it at mount time.
+ */
 const accessPermissions = require('./accessPermissions');
 const assistants = require('./assistants');
 const categories = require('./categories');

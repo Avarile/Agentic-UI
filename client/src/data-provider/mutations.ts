@@ -1,3 +1,17 @@
+// The original flat mutation file — the largest single module in this layer.
+//
+// Covers conversation lifecycle (rename, archive, pin, delete, duplicate, fork,
+// import), sharing, tags, presets, avatars, speech (STT/TTS), assistants, actions,
+// and account verification.
+//
+// The reason it is large is that most of these mutations own *cache reconciliation*
+// rather than just a request: a rename has to patch every paginated conversation
+// list that contains the conversation, an archive has to remove it from some lists
+// and add it to others, and a delete has to do both without refetching. That logic
+// is the bulk of each hook and is why these are not thin `useMutation` wrappers.
+//
+// New mutations belong in a feature directory (see index.ts), not here.
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService, MutationKeys, QueryKeys, defaultOrderQuery } from 'librechat-data-provider';
 import {

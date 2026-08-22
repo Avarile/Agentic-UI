@@ -1,3 +1,6 @@
+// Derives the added pane's conversation from the primary one, so a second model
+// inherits the conversation's settings without duplicating its identity.
+
 import { useRecoilCallback } from 'recoil';
 import store from '~/store';
 

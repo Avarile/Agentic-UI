@@ -1,3 +1,6 @@
+// Debounced text/number inputs for the parameter panels, so a slider drag does not
+// write the conversation atom per frame.
+
 import debounce from 'lodash/debounce';
 import React, { useState, useCallback, useMemo } from 'react';
 import type { SetterOrUpdater } from 'recoil';

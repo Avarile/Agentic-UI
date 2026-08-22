@@ -1,3 +1,18 @@
+/**
+ * Rate limits TOTP verification attempts during the second login factor.
+ *
+ * Design: the interesting part is the key. At this point in the flow there is no
+ * authenticated user for most requests, only a `tempToken`, so the limiter keys on the user id
+ * decoded from that token — SHA-256 hashed, because raw JWT-derived identifiers must not
+ * become rate-limiter cache keys. It falls back to an IP key when no token is present, and
+ * composes a user limiter and an IP limiter so neither a single account nor a single address
+ * can brute-force a 6-digit code.
+ *
+ * Defaults inherit from `LOGIN_WINDOW`/`LOGIN_MAX` (with `TWO_FACTOR_TEMP_*` overrides), so
+ * 2FA is throttled as tightly as login itself without extra configuration.
+ *
+ * Connections: pairs with `server/middleware/setTwoFactorTempUser.js`
+ */
 const jwt = require('jsonwebtoken');
 const { createHash } = require('crypto');
 const rateLimit = require('express-rate-limit');

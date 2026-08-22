@@ -1,3 +1,6 @@
+// The model parameter panel, rendered from the endpoint's parameter schema rather
+// than hand-written per provider.
+
 export { default as DynamicCombobox } from './DynamicCombobox';
 export { default as DynamicDropdown } from './DynamicDropdown';
 export { default as DynamicCheckbox } from './DynamicCheckbox';

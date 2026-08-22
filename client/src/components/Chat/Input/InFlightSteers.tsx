@@ -1,3 +1,9 @@
+// The floating overlay listing steers attached to the running generation.
+//
+// Publishes its measured height into `steerOverlayHeightFamily` so the message list
+// can reserve matching bottom padding — it floats above the scroll area, so nothing
+// else can know how much room it needs.
+
 import { memo, useId, useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import { useSetAtom, useAtomValue } from 'jotai';
 import { useToastContext } from '@librechat/client';

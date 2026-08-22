@@ -1,3 +1,15 @@
+// Keyboard shortcut parsing, matching, and the composer's key resolution.
+//
+// Two things. The binding layer normalizes keys across platforms (mac Meta vs
+// other Ctrl), parses and serializes bindings for storage, and matches an event
+// against one — so custom bindings, defaults and display strings all agree.
+//
+// `resolveComposerKeyDown` is the other: the single decision point for what Enter
+// means in the composer. It depends on the enter-to-send preference, whether a run
+// is generating, the steer-vs-queue default, the interrupt setting, and whether a
+// command popover has focus. Pure and therefore testable, which matters because it
+// is the most user-visible branch in the app.
+
 export type ShortcutBinding = {
   meta: boolean;
   ctrl: boolean;

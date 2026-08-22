@@ -1,3 +1,6 @@
+// Strips a preset down to the fields its endpoint actually accepts, so a preset
+// carried across endpoints does not send parameters the new provider rejects.
+
 import { parseConvo } from 'librechat-data-provider';
 import type { TPreset } from 'librechat-data-provider';
 

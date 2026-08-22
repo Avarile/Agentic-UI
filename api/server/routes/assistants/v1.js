@@ -1,3 +1,12 @@
+/**
+ * Assistants API v1: assistant CRUD, plus `/actions`, `/tools` and `/documents` sub-routers.
+ *
+ * Exports `{ v1, avatar }` — the `avatar` router is mounted by
+ * `server/routes/files/index.js` under `/api/files/images/assistants`, so avatar upload runs
+ * inside the multer/file middleware stack instead of here.
+ *
+ * Connections: controllers `server/controllers/assistants/v1.js`
+ */
 const express = require('express');
 const controllers = require('~/server/controllers/assistants/v1');
 const documents = require('./documents');

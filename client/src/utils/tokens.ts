@@ -1,3 +1,14 @@
+// Token accounting: the per-message index, and branch/total derivation.
+//
+// The model store/usage.ts describes, implemented. Usage is recorded per message
+// (`TokenEntry`, `buildIndex`, `upsertEntries`) and branch and conversation totals
+// are *summed* from that index rather than tracked incrementally — so a
+// recomputation can never drift from the underlying records, and switching branches
+// gives the right figure without bookkeeping.
+//
+// `migrateIndex` exists because the entry shape has changed; a stored index from an
+// older session is upgraded rather than discarded.
+
 import { Tools, Constants, inputTokensIncludesCache } from 'librechat-data-provider';
 import type { TMessage, TResponseUsage, TTokenUsageEvent } from 'librechat-data-provider';
 

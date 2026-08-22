@@ -1,3 +1,34 @@
+/**
+ * The ACL engine: grants, permission checks, accessible-resource queries, and group sync.
+ *
+ * Every "can this principal do X to this resource" decision in the app resolves through here.
+ *
+ * Design:
+ * - Permissions are bitmasks on (principal, resourceType, resourceId) rows. A principal may be
+ *   a user, group or role, so a check resolves the caller's full principal set and ORs the
+ *   matching grants.
+ * - Read APIs are shaped to avoid N+1 work: `getResourcePermissionsMap` resolves many resources
+ *   in one query, and `findAccessibleResources` returns the accessible *id set* so callers
+ *   filter in the database instead of fetching and post-filtering. That distinction matters on
+ *   list endpoints.
+ * - `bulkUpdateResourcePermissions` applies an entire share operation as one unit — a share adds
+ *   and removes several principals at once and must not be observable half-applied. It uses a
+ *   transaction where the deployment supports one (`getTransactionSupport`), degrading to
+ *   sequential writes on a standalone MongoDB rather than failing.
+ * - `ensureLocalUserPrincipalExists`/`ensureLocalGroupPrincipalExists` create principal records
+ *   on demand: a directory user or group can be granted access before ever signing in.
+ * - Entra group sync (`syncUserEntraGroupMemberships`, `performEntraGroupMembershipSync`) pulls
+ *   the user's groups from Microsoft Graph at login so directory-based grants apply immediately.
+ *   It is split into a thin entry point and the implementation so the sync can also run inside a
+ *   caller's session/transaction.
+ * - `validateResourceType` gates every entry point — resource types arrive from URLs.
+ * - `tenantStorage`/`getTenantId` scope all reads and writes to the current tenant.
+ *
+ * Connections:
+ * - middleware: `server/middleware/accessResources/*`; controller:
+ *   `server/controllers/PermissionsController.js`
+ * - directory data: `server/services/GraphApiService.js`; storage via `~/models`
+ */
 const mongoose = require('mongoose');
 const { isEnabled } = require('@librechat/api');
 const {

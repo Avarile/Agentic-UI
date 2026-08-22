@@ -1,3 +1,21 @@
+/**
+ * Builds file citations from a tool's search results.
+ *
+ * `processFileCitations` converts a file-search tool artifact into citation sources the client
+ * can render and link.
+ *
+ * Design:
+ * - Access is re-checked here (`checkAccess`, `getFiles`) rather than trusted from the tool
+ *   output: the search index may surface a file the caller cannot read, and a citation would leak
+ *   its name and excerpt.
+ * - `applyCitationLimits(sources, maxCitations, maxCitationsPerFile)` enforces both a global and
+ *   a per-file cap, so one large document cannot crowd out every other source in the answer.
+ * - `enhanceSourcesWithMetadata` attaches display metadata (filename, type) after filtering, so
+ *   no metadata is fetched for sources that were dropped.
+ *
+ * Connections: `server/services/ToolService.js` (file search); permissions via `~/models` +
+ * role checks
+ */
 const { nanoid } = require('nanoid');
 const { checkAccess } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');

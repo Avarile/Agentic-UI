@@ -1,3 +1,16 @@
+// A ref to a per-message `<audio>` element, wired to report playback state.
+//
+// Used by the two TTS engine hooks for message-level playback: it attaches
+// play/pause/ended listeners that drive `setIsPlaying`, and revokes the object URL
+// on end so a spoken message does not leak its blob.
+//
+// Starts `muted` — playback is unmuted deliberately once a source is attached,
+// which is what keeps autoplay policies from rejecting the element outright.
+//
+// Note the name collision: the default export is called `useCustomAudioRef`, but
+// this is not the same hook as useCustomAudioRef.ts, which handles the *global*
+// player. Import by path, not by name.
+
 import { useEffect, useRef } from 'react';
 
 export default function useCustomAudioRef({

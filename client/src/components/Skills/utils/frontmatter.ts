@@ -1,3 +1,6 @@
+// Frontmatter serialization for skills — the inverse of parseSkillMd, kept adjacent
+// so the two cannot drift.
+
 export interface FrontmatterField {
   key: string;
   value: string;

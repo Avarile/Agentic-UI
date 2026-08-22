@@ -1,3 +1,9 @@
+// Project listing (cursor-paginated) and a single project by id.
+//
+// `useProjectQuery` is used by ChatRoute to verify a `?projectId` scope, which is
+// why call sites there pass `retry: false` and check for a 404 specifically — see
+// that file's note on why a transient failure must not unscope a valid project.
+
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { dataService, QueryKeys } from 'librechat-data-provider';
 import type {

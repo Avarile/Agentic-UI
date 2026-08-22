@@ -1,3 +1,5 @@
+// The markdown plugin that turns citation syntax into citation components.
+
 import { visit } from 'unist-util-visit';
 import type { Node } from 'unist';
 import type { Citation, CitationNode } from './types';

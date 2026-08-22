@@ -1,3 +1,6 @@
+// Expansion state for collapsible content, with the shared transition duration
+// exported so the scroll reconciler can wait the same amount of time.
+
 import { useRef, useLayoutEffect, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 

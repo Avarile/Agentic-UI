@@ -1,3 +1,6 @@
+// JSON detection, formatting and extraction from mixed text — used when a tool's
+// arguments or output are partly prose.
+
 export function isJson(str: string) {
   try {
     JSON.parse(str);

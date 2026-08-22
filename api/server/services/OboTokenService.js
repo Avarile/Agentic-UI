@@ -1,3 +1,27 @@
+/**
+ * On-behalf-of (OBO) token exchange with caching, retries, and in-flight coalescing.
+ *
+ * Exchanges the user's federated access token for a downstream-scoped one via the
+ * `jwt-bearer` grant.
+ *
+ * Design — the coalescing map is the important part. Parallel tool calls that all miss the cache
+ * would each issue their own exchange to the IdP; under that fan-out Entra intermittently
+ * returns errors that *look* non-retryable, surfacing to the user as "identity provider
+ * rejected the OBO token exchange" — and a manual retry then succeeds because the cache is now
+ * populated. Keying in-flight promises by `${openidId}:${scopes}` collapses the burst into one
+ * upstream request and eliminates that class of flakiness.
+ *
+ * Retries are classified rather than blanket: `RETRYABLE_STATUS_CODES` (429, 5xx) and
+ * `RETRYABLE_ERROR_CODES` (ETIMEDOUT, ECONNRESET, EAI_AGAIN, ENOTFOUND) only, with a short
+ * `OBO_RETRY_DELAY_MS` backoff. `tagOboExchangeError` marks the error so callers can distinguish
+ * "transient, retry" from "consent/config problem, do not retry".
+ *
+ * Tokens are cached in `CacheKeys.OPENID_EXCHANGED_TOKENS`, keyed per subject and scope set.
+ *
+ * Connections:
+ * - `GraphTokenService.js`, `GraphApiService.js`, MCP OBO paths
+ * - OpenID config from `strategies/openidStrategy.js`
+ */
 const client = require('openid-client');
 const { logger } = require('@librechat/data-schemas');
 const { CacheKeys } = require('librechat-data-provider');

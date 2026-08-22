@@ -1,3 +1,20 @@
+/**
+ * Local-filesystem storage backend.
+ *
+ * Design: path safety is the whole story here. `isValidPath(req, base, subfolder, filepath)`
+ * verifies a resolved path stays inside the permitted base before any read, write or unlink —
+ * file ids and names reach these functions from requests, so this is the traversal boundary.
+ * `unlinkFile` tolerates a missing file so a retried delete succeeds.
+ *
+ * Remote fetches (`saveFileFromURL`) are guarded by `assertRemoteFileURL` (SSRF),
+ * `getRemoteFileFetchMaxBytes`/`assertRemoteFileContentLength` (size) and
+ * `getRemoteFileFetchTimeoutMs` — a URL supplied by a user or a model must not let the server
+ * fetch an internal address or stream an unbounded body.
+ *
+ * `deleteRagFile` is called for files also indexed in the vector DB.
+ *
+ * Connections: registered as `localStrategy` in `strategies.js`; images in `Local/images.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');

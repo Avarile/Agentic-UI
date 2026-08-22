@@ -1,3 +1,5 @@
+// The "Add to chat" affordance on a text selection, which queues a quote chip.
+
 import { memo, useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { TextQuote } from 'lucide-react';

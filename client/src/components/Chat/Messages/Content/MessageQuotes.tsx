@@ -1,3 +1,6 @@
+// Renders the excerpts a user quoted into their message, kept distinct from the
+// message's own text.
+
 import { memo } from 'react';
 import { TextQuote } from 'lucide-react';
 import { useLocalize } from '~/hooks';

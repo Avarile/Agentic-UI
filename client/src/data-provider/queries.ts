@@ -1,3 +1,16 @@
+// The original flat query file: conversations, presets, shared links, tags,
+// assistants, actions, prompt groups, speech config, and terms.
+//
+// Everything here predates the per-feature directory convention (see index.ts).
+// It is grouped by entity rather than split, so treat it as several small modules
+// sharing a file — the useful reading unit is one hook, not the whole file.
+//
+// What is worth knowing before editing: the infinite queries
+// (`useConversationsInfiniteQuery`, `useMessagesInfiniteQuery`,
+// `usePromptGroupsInfiniteQuery`) use cursor pagination, and their query keys
+// include the filter params, so changing a filter starts a new cache entry rather
+// than mutating an existing page set. New entities belong in their own directory.
+
 import {
   QueryKeys,
   dataService,

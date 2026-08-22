@@ -1,3 +1,5 @@
+// A tool call: its name, arguments, status and output, expandable.
+
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useRecoilValue } from 'recoil';
 import { Button } from '@librechat/client';

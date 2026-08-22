@@ -1,3 +1,42 @@
+// The conversation model: the atoms every chat surface is built on.
+//
+// This is the largest and most consequential module in the store, and the reason
+// is that a "conversation" in this client is not one value — it is a pane's
+// conversation, its submission, its files, its draft text, its queued and
+// in-flight steers, its run-termination signals, and a dozen derived selectors,
+// each of which has to be independently subscribable so that a token arriving does
+// not re-render the composer.
+//
+// Two keying schemes run through the file. Pane-indexed families (`conversationByIndex`,
+// `isSubmittingFamily`, `runEndsByIndex`) describe a slot on screen; conversation-id
+// families (`pendingSteersByConvoId`, `queuedMessagesByConvoId`) describe state that
+// must survive that slot being reused for another conversation.
+//
+// Three design decisions recur and explain most of the code below:
+//
+//   Narrow selectors over wide reads. `conversationIdByIndex`,
+//   `conversationModelByIndex`, `conversationSpecByIndex` and friends exist so a
+//   consumer that needs one field does not re-render when an unrelated field
+//   changes on the same conversation object.
+//
+//   Persistence as an atom effect. `conversationByIndex`'s `onSet` is where the
+//   last agent, spec, tools and endpoint settings get written to localStorage, and
+//   where a brand-new conversation's settings are reflected into the URL. Keeping
+//   it in the effect means every writer persists identically, with no call site
+//   able to forget.
+//
+//   Queues, not slots, for terminal signals. `runEndsByIndex` and
+//   `pendingRunEndsByConvoId` hold *arrays* of run-end epochs even though
+//   consumers want one at a time (the `runEndByIndex` selector preserves the
+//   simpler nullable API). A pane can receive conversation A's final frame after
+//   the user has already navigated to B and started a run there; a single
+//   replaceable slot silently loses A. The same reasoning drives the id-set atoms
+//   (`appliedSteerIdsByConvoId`, `acceptedSteerClientIdsByConvoId`): the 202 ACK
+//   and the SSE event travel on different connections and can arrive in either
+//   order, so "already handled" has to be recorded rather than inferred.
+//
+// Read alongside hooks/SSE (the writers) and hooks/Chat (the readers).
+
 import { useEffect } from 'react';
 import { createSearchParams } from 'react-router-dom';
 import { LocalStorageKeys, isEphemeralAgentId, Constants } from 'librechat-data-provider';

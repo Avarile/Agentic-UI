@@ -1,3 +1,25 @@
+/**
+ * Loads and validates `librechat.yaml` (the operator's custom configuration).
+ *
+ * Reads from a local path or a remote URL (via axios), parses YAML, and validates against
+ * `configSchema` from `librechat-data-provider`.
+ *
+ * Design:
+ * - Remote config is supported so a deployment can centralize configuration; it goes through
+ *   the same schema validation as a local file.
+ * - Validation failures are logged with detail and the config is rejected rather than partially
+ *   applied — a half-valid config is worse than falling back to defaults.
+ * - OpenRouter needs special handling: `includesOpenRouter`/`isOpenRouterEndpoint`/
+ *   `addOpenRouterDefaults` inject provider-specific defaults, and
+ *   `shouldPreserveCustomParams` ensures an operator's explicit `customParams` are not
+ *   overwritten by those defaults.
+ * - `parseCustomParams` validates per-endpoint parameter definitions against `paramSettings` /
+ *   `agentParamSettings` (`validateSettingDefinitions`), so a malformed custom parameter is
+ *   caught at load instead of surfacing as a provider error mid-chat.
+ * - `printConfig` is a parameter so tests and repeated loads do not re-log the whole config.
+ *
+ * Connections: `server/services/Config/app.js`; schema from `packages/data-provider`
+ */
 const path = require('path');
 const axios = require('axios');
 const yaml = require('js-yaml');

@@ -1,3 +1,25 @@
+/**
+ * GitHub skill sync: scheduled and on-demand import of skills from a repository.
+ *
+ * Wraps `createGitHubSkillSyncRunner` / `createSkillSyncTriggerOrchestrator` /
+ * `startGitHubSkillSyncScheduler` from `packages/api` with this app's storage, models and config.
+ *
+ * Design:
+ * - Sync runs outside any HTTP request, so it needs an identity and a tenant context.
+ *   `getSyntheticReq` fabricates a request-shaped object bound to `SYSTEM_USER_ID` and executed
+ *   under `runAsSystem`, letting the shared runner reuse request-scoped helpers unchanged.
+ * - Two trigger modes: `initializeGitHubSkillSync` starts the background scheduler at boot,
+ *   while `maybeRunGitHubSkillSyncForRequest` performs a lazy on-access refresh — so a skill is
+ *   current when used without polling every skill on a timer.
+ * - `allowServerCredentials` distinguishes the scheduled runner (may use the operator's stored
+ *   credential) from a request-scoped one, so a user-triggered sync cannot borrow server
+ *   credentials it should not have.
+ * - `stopGitHubSkillSyncScheduler` exists for clean shutdown and test isolation.
+ *
+ * Connections:
+ * - `server/routes/skills.js`, `routes/admin/skills.js`, `server/index.js`
+ * - storage: `services/Files/strategies.js`, `server/utils/getFileStrategy.js`
+ */
 const { FileContext } = require('librechat-data-provider');
 const {
   getStorageMetadata,

@@ -1,3 +1,6 @@
+// The editable permission state for one resource in the sharing dialog, including
+// the optimistic view while a change is in flight.
+
 import { useState, useEffect } from 'react';
 import {
   useGetResourcePermissionsQuery,

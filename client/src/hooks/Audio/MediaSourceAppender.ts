@@ -1,3 +1,9 @@
+// Appends streamed audio chunks into a MediaSource buffer.
+//
+// What makes streaming TTS possible: playback starts on the first chunk instead of
+// waiting for the whole file. Buffer append order and readiness are managed here
+// because MediaSource throws on out-of-order or mistimed appends.
+
 export class MediaSourceAppender {
   private readonly mediaSource = new MediaSource();
   private readonly audioChunks: ArrayBuffer[] = [];

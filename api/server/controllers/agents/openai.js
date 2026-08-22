@@ -1,3 +1,29 @@
+/**
+ * OpenAI-compatible `/v1/chat/completions` and `/v1/models` implementation backed by agents.
+ *
+ * Lets an unmodified OpenAI SDK client drive a LibreChat agent: `model` is the agent id,
+ * `messages` is the conversation, and the response is emitted in OpenAI chunk format
+ * (`createChunk`, `sendFinalChunk`, `writeSSE`).
+ *
+ * Design:
+ * - `createAgentRunEnvelope` builds a validated request envelope up front, and
+ *   `AgentRunEnvelopeError` maps envelope failures onto OpenAI's error shape via
+ *   `sendErrorResponse` — an SDK client expects `{ error: { type, code } }`, not our internal
+ *   format.
+ * - `convertMessages`/`convertContentPart` translate OpenAI message content (including
+ *   multi-part content) into the internal format; the reverse happens on the streaming side.
+ * - `createToolLoader(signal, definitionsOnly)` defaults to definitions only: for the
+ *   compatibility surface, tool *schemas* are usually all that is needed, and instantiating
+ *   executable tools has real cost.
+ * - `filterFilesByRemoteAgentAccess` applies the remote caller's permissions to file
+ *   references — an API-key caller must not reach files the agent owner can see but they cannot.
+ * - Authenticated by API key, so this router mounts before the JWT gate; agent access is
+ *   checked per call with `hasPermissions`/`PermissionBits`.
+ *
+ * Connections:
+ * - route: `server/routes/agents/openai.js`; auth: `server/routes/agents/middleware.js`
+ * - shares the run/callback machinery with `client.js` and `callbacks.js`
+ */
 const { nanoid } = require('nanoid');
 const { logger } = require('@librechat/data-schemas');
 const { Callback, ToolEndHandler, formatAgentMessages } = require('@librechat/agents');

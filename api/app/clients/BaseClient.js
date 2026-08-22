@@ -1,3 +1,42 @@
+/**
+ * `BaseClient` — the abstract chat-client base class: history, context window, persistence, billing.
+ *
+ * Everything an endpoint client needs that is *not* provider-specific lives here.
+ * `AgentClient` (`server/controllers/agents/client.js`) extends it, as does `FakeClient` in
+ * tests. Subclasses implement `setOptions`, `getCompletion`, `sendCompletion`, `buildMessages`,
+ * `getSaveOptions` and `getBuildMessagesOptions`; the base class owns the turn lifecycle.
+ *
+ * The turn, in order (`sendMessage`): resolve ids and options (`processOverideIds`,
+ * `setMessageOptions`, `handleStartMethods`) -> load history (`loadHistory`) -> build messages
+ * (subclass) -> fit the context window (`getMessagesWithinTokenLimit`) -> check balance -> call
+ * the provider (subclass) -> count and record usage (`getTokenCountForResponse`,
+ * `recordTokenUsage`) -> persist (`saveMessageToDatabase`).
+ *
+ * Design decisions worth knowing:
+ * - Context fitting is a *token* budget, not a message count: `getMessagesWithinTokenLimit`
+ *   drops from the oldest end while always preserving instructions, and
+ *   `addInstructions(messages, instructions, beforeLast)` can place the system prompt before the
+ *   last turn — some providers weight recency, so position matters.
+ * - File rehydration is the subtlest part. Historical messages store only file *references*;
+ *   `collectHistoricalFileRefs`/`collectHistoricalFileIds` gather them,
+ *   `buildOwnerFileFilter(fileIds, user)` scopes the lookup to files the user owns, and
+ *   `rehydrateMessageFileRefs` reattaches the loaded records. The owner filter is a security
+ *   boundary — a message could reference a file id the current user must not read.
+ * - `sanitizeDisplayOnlyAttachment`/`preserveDisplayOnly` keep an attachment renderable in the
+ *   transcript without re-sending its content to the model, and `pickFields` restricts what
+ *   leaves the server.
+ * - `summarizeMessages` (implemented by subclasses, prompted from
+ *   `app/clients/prompts/summaryPrompts.js`) is the overflow strategy when truncation would lose
+ *   too much.
+ * - `fetch` is overridable so subclasses can inject proxies or custom transports.
+ * - Balance is checked before the provider call, so an over-budget user is refused before
+ *   incurring cost.
+ *
+ * Connections:
+ * - prompts/formatting: `app/clients/prompts/*`; token and balance helpers from `packages/api`
+ * - subclass: `server/controllers/agents/client.js`; also used by
+ *   `server/utils/import/fork.js` for message-tree helpers
+ */
 const crypto = require('crypto');
 const fetch = require('node-fetch');
 const { logger } = require('@librechat/data-schemas');

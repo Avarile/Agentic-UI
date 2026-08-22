@@ -1,3 +1,6 @@
+// Conversation-level operations that are not sending: presets, navigation, naming,
+// export, tags, and parameter effects.
+
 export { default as usePresets } from './usePresets';
 export { default as useGetSender } from './useGetSender';
 export { default as useDefaultConvo } from './useDefaultConvo';

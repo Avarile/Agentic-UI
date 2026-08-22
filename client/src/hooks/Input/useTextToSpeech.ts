@@ -1,3 +1,5 @@
+// Playback entry point: the same browser-vs-external dispatch for TTS.
+
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useRef, useMemo, useEffect, useState } from 'react';
 import { parseTextParts } from 'librechat-data-provider';

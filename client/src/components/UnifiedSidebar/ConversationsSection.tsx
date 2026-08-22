@@ -1,3 +1,6 @@
+// The conversation list panel: paginated history, search, and per-conversation
+// actions.
+
 import { useCallback, useEffect, useState, useMemo, memo, lazy, Suspense, useRef } from 'react';
 import { useMediaQuery } from '@librechat/client';
 import { useSetRecoilState, useRecoilValue } from 'recoil';

@@ -1,3 +1,14 @@
+// Per-tool-call progress for spawned subagents.
+//
+// Keyed by the *parent* `tool_call_id` so the renderer for a subagent tool call can
+// find its own bucket.
+//
+// The design point is that the atom holds an *aggregate*, never the event log. A
+// long-running subagent can emit thousands of `ON_SUBAGENT_UPDATE` deltas; folding
+// each one into the existing structure (see utils/subagentContent.ts) keeps state
+// bounded by what the UI actually shows — N text runs, M tool calls, a capped tail
+// preview — instead of by delta volume.
+
 import { atomFamily } from 'recoil';
 import type { SubagentUpdatePhase } from 'librechat-data-provider';
 import type {

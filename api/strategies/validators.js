@@ -1,3 +1,19 @@
+/**
+ * Zod schemas for local (email/password) login and registration input.
+ *
+ * Design: `usernameSchema` allow-lists Unicode script ranges (Latin, Cyrillic, Devanagari,
+ * Han, Arabic, Hiragana, Katakana, Hangul) instead of restricting to ASCII, so non-English
+ * users are not locked out — while still rejecting anything outside those scripts. A second
+ * refinement blocks NoSQL/SQL injection markers (`$ne`, `$gt`, `--`, braces, ...) as
+ * defence in depth alongside `express-mongo-sanitize`.
+ *
+ * Password length floor is operator-tunable via `MIN_PASSWORD_LENGTH`; the whitespace-only
+ * refinement exists because a padded password would otherwise pass a naive length check.
+ *
+ * Connections:
+ * - `loginSchema` -> `strategies/localStrategy.js`
+ * - `registerSchema` -> `server/middleware/validateRegistration.js` and `AuthService`
+ */
 const { z } = require('zod');
 
 const MIN_PASSWORD_LENGTH = parseInt(process.env.MIN_PASSWORD_LENGTH, 10) || 8;

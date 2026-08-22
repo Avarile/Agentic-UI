@@ -1,3 +1,5 @@
+// Detaching a single MCP tool from an agent, keeping the server attached.
+
 import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useToastContext } from '@librechat/client';

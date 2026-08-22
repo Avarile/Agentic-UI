@@ -1,3 +1,8 @@
+// Post-login redirect handling, including `isSafeRedirect`.
+//
+// The open-redirect boundary: a redirect target arriving in a query param or
+// session key is validated here before AuthContext navigates to it.
+
 export const REDIRECT_PARAM = 'redirect_to';
 export const SESSION_KEY = 'post_login_redirect_to';
 

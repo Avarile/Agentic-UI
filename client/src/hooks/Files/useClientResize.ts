@@ -1,3 +1,6 @@
+// Downscales images in the browser before upload — the cheapest way to stay inside
+// size limits without rejecting a user's photo.
+
 import { mergeFileConfig } from 'librechat-data-provider';
 import { useCallback } from 'react';
 import { useGetFileConfig } from '~/data-provider';

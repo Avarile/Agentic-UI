@@ -1,3 +1,13 @@
+// Sanitizers for admin-authored HTML.
+//
+// The security boundary for config-supplied markup — banner messages, agent
+// descriptions, terms content, custom welcome text. Admin-authored is not
+// trusted-by-default here, so `createConfigHtmlSanitizer` takes an explicit tag and
+// attribute allowlist and each call site passes the narrowest one that works:
+// text-only for a banner, media tags for a landing description.
+//
+// Adding a tag to an allowlist widens what any config on any deployment can inject.
+
 import DOMPurify from 'dompurify';
 
 export const CONFIG_HTML_INLINE_TAGS = ['a', 'strong', 'b', 'em', 'i', 'br', 'code'] as const;

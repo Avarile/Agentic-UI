@@ -1,3 +1,23 @@
+/**
+ * Guards `/images/*` so generated images are only served to authorized viewers.
+ *
+ * Factory (`createValidateImageRequest(secureImageLinks)`) — when secure image links are off it
+ * returns a passthrough, so the cost is opt-in.
+ *
+ * Design:
+ * - Authorization comes from a refresh-token cookie verified against `JWT_REFRESH_SECRET`,
+ *   because `<img>` tags cannot send an Authorization header. That is the only credential the
+ *   browser will attach to an image request.
+ * - The path's user segment is validated as a strict 24-hex ObjectId before comparison. Path
+ *   segments are attacker-controlled and this is the boundary that prevents traversal into
+ *   another user's image directory.
+ * - `getBasePath` is honoured so the check still works when the app is served from a
+ *   sub-directory.
+ *
+ * Connections:
+ * - mounted on `/images/` in `server/index.js` ahead of `routes/static.js`
+ * - `secureImageLinks` comes from app config
+ */
 const cookies = require('cookie');
 const jwt = require('jsonwebtoken');
 const { logger } = require('@librechat/data-schemas');

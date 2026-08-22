@@ -1,3 +1,11 @@
+// A content-parts message row for the standard (non-assistants) endpoints.
+//
+// One of MultiMessage's three renderers. It lives under `components/Messages/`
+// rather than `components/Chat/Messages/` because this directory holds the
+// chat-agnostic rendering primitives — the same components are used by the share
+// view, search results and the artifacts panel, none of which have a live chat
+// around them.
+
 import React from 'react';
 import type { TMessageProps } from '~/common';
 import { useMessageProcess, useMemoizedChatContext } from '~/hooks';

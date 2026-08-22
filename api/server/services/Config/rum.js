@@ -1,3 +1,15 @@
+/**
+ * Derives the client-facing RUM (Real User Monitoring) configuration.
+ *
+ * Design: this config tells the *browser* where to send telemetry, so every URL is validated
+ * before being handed out. `isSafeRumUrl`/`isSafeTraceTarget`/`isLocalhost` reject unsafe
+ * targets — an unvalidated value here would let a misconfiguration (or a config injection) point
+ * every user's browser at an arbitrary host, exfiltrating trace data. Env parsing helpers
+ * (`parseBooleanEnv`, `parseNumberEnv`, `parseCsvEnv`, `parseUrl`) return typed values or
+ * undefined so a malformed setting disables the feature instead of shipping a broken config.
+ *
+ * Connections: `server/routes/config.js`; proxy route `server/routes/rum.js`
+ */
 const { getRumProxyClientUrl, isEnabled, isRumProxyEnabled } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 

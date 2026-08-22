@@ -1,3 +1,10 @@
+/**
+ * IP rate limit on password-reset *requests* (default 2 per 2 minutes).
+ *
+ * Very tight because each request sends an email — the limit protects both the mail
+ * reputation of the deployment and the target's inbox. Paired with
+ * `resetPasswordSubmissionLimiter.js`, which guards the token-submission step.
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

@@ -1,3 +1,10 @@
+/**
+ * Stable Diffusion image generation via an Automatic1111 WebUI instance.
+ *
+ * Targets a self-hosted WebUI API, so the base URL is operator-configured. The response is
+ * base64 PNG, which is decoded and processed with `sharp` before being stored through the file
+ * pipeline (paths from `config/paths.js`, served under the app's `getBasePath()`).
+ */
 // Generates image using stable diffusion webui's api (automatic1111)
 const fs = require('fs');
 const path = require('path');

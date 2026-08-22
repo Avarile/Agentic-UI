@@ -1,3 +1,27 @@
+/**
+ * The generic resource ACL gate that every resource-specific factory is built on.
+ *
+ * `canAccessResource({ resourceType, requiredPermission, resourceIdParam, idResolver })`
+ * returns middleware that resolves the resource id from the route, then evaluates the ACL via
+ * `PermissionService.checkPermission`.
+ *
+ * Design:
+ * - Permissions are *bits* (1=view, 2=edit, 4=delete, 8=share) so a single stored value
+ *   expresses a set and a check is a mask test rather than a list scan.
+ * - The optional `idResolver` is the key extension point. ACL rows are keyed by MongoDB
+ *   ObjectId, but many resources are addressed in routes by a custom string id
+ *   (`agent_abc123`, an MCP server name, a prompt id that maps to its group). The resolver
+ *   translates route id -> ObjectId, letting one implementation serve every resource type.
+ * - `ResourceCapabilityMap` ties a resource type to the capability that governs it, so ACL
+ *   grants and role capabilities are evaluated consistently.
+ *
+ * Connections:
+ * - specializations: `canAccessAgentResource`, `canAccessAgentFromBody`,
+ *   `canAccessPromptGroupResource`, `canAccessPromptViaGroup`, `canAccessMCPServerResource`,
+ *   `canAccessSkillResource`, `fileAccess`
+ * - evaluation via `server/services/PermissionService.js`; capabilities via
+ *   `server/middleware/roles/capabilities.js`
+ */
 const { logger, ResourceCapabilityMap } = require('@librechat/data-schemas');
 const { hasCapability } = require('~/server/middleware/roles/capabilities');
 const { checkPermission } = require('~/server/services/PermissionService');

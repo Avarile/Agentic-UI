@@ -1,3 +1,11 @@
+// SharePoint downloads, single and batch.
+//
+// A separate module because SharePoint is not the app's own storage: files are
+// fetched from Microsoft Graph with a short-lived token (see Auth/queries.ts) and
+// re-uploaded, so the flow has progress reporting that ordinary uploads do not
+// need. Batch download reports per-file *and* aggregate progress, since a partial
+// failure has to be attributable to a specific file rather than failing the set.
+
 import { useMutation } from '@tanstack/react-query';
 import type { UseMutationResult } from '@tanstack/react-query';
 

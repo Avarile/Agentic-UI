@@ -1,3 +1,20 @@
+// MCP server selections and per-server initialization state.
+//
+// Two separate concerns, deliberately keyed differently. Selections are
+// per-conversation *and* tab-isolated: every new chat shares the same
+// `LAST_MCP_new` storage key, so ordinary cross-tab localStorage sync would let
+// one tab's server picks appear in another's new chat. `createTabIsolatedStorage`
+// (see store/jotai-utils.ts) reads and writes localStorage but never subscribes to
+// `storage` events, which is exactly that difference.
+//
+// Initialization state is global rather than per-conversation, because an OAuth
+// flow started from the chat dropdown must be visible — and cancellable — from the
+// settings panel, and vice versa.
+//
+// `connectionDeferred` marks the request-scoped case where a server's tools cannot
+// be enumerated up front; consumers attach such servers wholesale via the
+// `mcp_all` wildcard instead of waiting for a list that will never arrive.
+
 import { atom } from 'jotai';
 import { atomFamily, atomWithStorage } from 'jotai/utils';
 import { Constants, LocalStorageKeys } from 'librechat-data-provider';

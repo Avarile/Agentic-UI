@@ -1,3 +1,13 @@
+// The endpoints config, mirrored into Recoil.
+//
+// The canonical copy lives in React Query (`useGetEndpointsQuery`); this mirror
+// exists so non-React and selector code can read it synchronously.
+//
+// `defaultConfig` lists the known endpoints with `null` values so downstream code
+// can iterate a stable key set before the real config arrives, and
+// `endpointsFilter` reduces it to a plain "is this endpoint configured" booleans
+// map for menu gating.
+
 import { atom, selector } from 'recoil';
 import { EModelEndpoint } from 'librechat-data-provider';
 import type { TEndpointsConfig } from 'librechat-data-provider';

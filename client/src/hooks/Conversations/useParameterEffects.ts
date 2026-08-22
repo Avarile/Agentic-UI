@@ -1,3 +1,6 @@
+// Resets or migrates conversation parameters when the endpoint or model changes, so
+// a setting that does not exist on the new model is not silently sent.
+
 import { useEffect, useRef } from 'react';
 import type { DynamicSettingProps, TPreset } from 'librechat-data-provider';
 import { defaultDebouncedDelay } from '~/common';

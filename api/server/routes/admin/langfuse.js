@@ -1,3 +1,16 @@
+/**
+ * Admin API for the Langfuse observability connection.
+ *
+ * Read/update the connection, run a live `/connection/test`, and resolve a per-conversation
+ * trace link (`/connection/session/:conversationId`).
+ *
+ * Design: `/connection/test` exists so an operator can validate credentials *before* saving
+ * them and silently losing traces. Updates invalidate the config caches so the new connection
+ * takes effect immediately.
+ *
+ * Connections: handlers from `createAdminLangfuseHandlers` (`packages/api`); cache
+ * invalidation via `server/services/Config`
+ */
 const express = require('express');
 const { createAdminLangfuseHandlers } = require('@librechat/api');
 const { SystemCapabilities } = require('@librechat/data-schemas');

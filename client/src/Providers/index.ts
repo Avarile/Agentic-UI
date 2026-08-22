@@ -1,3 +1,11 @@
+// Barrel for the context layer.
+//
+// One import site (`~/Providers`) for every context in the app. Worth keeping
+// because the provider stack is assembled in a handful of places (App, Root,
+// ChatView, Presentation) that each pull several contexts at once, and because it
+// keeps the `Context` / `useXContext` / `XProvider` triples from leaking
+// file-path knowledge into feature code.
+
 export { default as AssistantsProvider } from './AssistantsContext';
 export { default as AgentsProvider } from './AgentsContext';
 export * from './ActivePanelContext';

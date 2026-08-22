@@ -1,3 +1,22 @@
+/**
+ * Loads the structured tools directory and formats every tool for the model.
+ *
+ * `loadAndFormatTools({ directory, adminFilter, adminIncluded })` scans
+ * `app/clients/tools/structured`, instantiates each tool, and converts its schema into the
+ * OpenAI function/tool format.
+ *
+ * Design:
+ * - Runs once at config load (from `Config/app.js`), not per request — reading a directory and
+ *   building Zod-to-JSON schemas on every turn would be pure waste.
+ * - `isZodSchema` + `zodToJsonSchema` handle the common case, with
+ *   `formatToOpenAIAssistantTool` producing the Assistants-flavoured shape; tools that already
+ *   expose a JSON schema pass through.
+ * - Admin filter/include lists are applied here, so a disabled tool is never even constructed.
+ * - `ImageVisionTool`, `Calculator` and `createAskUserQuestionTool` are injected as built-ins
+ *   alongside the directory-scanned ones, so they appear in the same catalog.
+ *
+ * Connections: `server/services/Config/app.js`, `app/clients/tools/manifest.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const { Calculator } = require('@librechat/agents');

@@ -1,3 +1,6 @@
+// The send control while a run is generating, labelled for whichever action the
+// current settings mean (steer or queue) so the button never lies about its effect.
+
 import React, { forwardRef, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import * as Ariakit from '@ariakit/react';

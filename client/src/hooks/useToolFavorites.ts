@@ -1,3 +1,6 @@
+// Favourite tools. Separate from useFavorites because tools are added and removed
+// individually rather than replaced wholesale — see data-provider/Favorites.ts.
+
 import { useMemo, useCallback } from 'react';
 import { useToastContext } from '@librechat/client';
 import type { TToolFavorite, TToolFavoriteType } from 'librechat-data-provider';

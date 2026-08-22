@@ -1,3 +1,6 @@
+// Web-search results attached to a message, and the source of the citation context
+// that markers deeper in the markdown resolve against.
+
 import { useMemo, useState, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import { Tools } from 'librechat-data-provider';

@@ -1,3 +1,12 @@
+// Identity-guarded submission cleanup after an abort.
+//
+// Small and load-bearing. The abort HTTP response can resolve *after* the aborted
+// run's final SSE event already fired the interrupt drain and started the next
+// submission. Clearing unconditionally at that point tears down the new run's
+// stream before it attaches, and its placeholder finalizes empty — a bug that looks
+// like "the model returned nothing". So the submission is captured before the round
+// trip and cleared only if it is still current.
+
 import { useRecoilCallback } from 'recoil';
 import type { TSubmission } from 'librechat-data-provider';
 import store from '~/store';

@@ -1,3 +1,6 @@
+// Tests for the artifacts panel's render gating — the conditions described in
+// Presentation.tsx, including that revisiting a conversation does not auto-open.
+
 import React from 'react';
 import { RecoilRoot, useSetRecoilState } from 'recoil';
 import { fireEvent, render, screen } from '@testing-library/react';

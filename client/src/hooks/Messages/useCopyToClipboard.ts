@@ -1,3 +1,6 @@
+// Copies a message as text, flattening content parts (and stripping artifact
+// scaffolding) into what a human would expect to paste.
+
 import { useCallback, useEffect, useRef } from 'react';
 import copy from 'copy-to-clipboard';
 import { SearchResultData } from 'librechat-data-provider';

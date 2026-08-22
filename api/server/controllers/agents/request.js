@@ -1,3 +1,46 @@
+/**
+ * The main agent chat controller — starts a resumable generation and streams it.
+ *
+ * `ResumableAgentController(req, res, next, initializeClient, addTitle)` handles a new turn,
+ * a regenerate, an edit, a continue, and a recovered-steer submission. "Resumable" is the key
+ * word: the generation is registered as a *job* with `GenerationJobManager`, so a client that
+ * disconnects can reattach via `GET /chat/stream/:streamId` and replay what it missed.
+ *
+ * Design highlights:
+ * - Heavy input validation up front, each with its own machine-readable code:
+ *   `clientRequestId` must match `CLIENT_REQUEST_ID_PATTERN` (it is used as an idempotency
+ *   key), and `expectedPredecessorCreatedAt` must be a non-negative safe integer (it is an
+ *   optimistic-concurrency guard so a stale client cannot append after a newer turn).
+ * - Recovered steers are the subtlest path. A parked steer is handed off as a brand-new user
+ *   turn, and the controller *rejects* any recovery combined with regenerate/continue/edit or
+ *   an arbitrary override id. Those shapes can reuse or skip the user-message row, so
+ *   consuming the parked source from one of them would destroy the only durable copy of the
+ *   user's words without proving a new row contains them. The single permitted override is the
+ *   steer id itself, which lets retries upsert one stable recovery row while each attempt uses
+ *   a fresh `clientRequestId`.
+ * - Job-claim validation (`isValidGenerationClaim`, `isValidLegacyGenerationClaim`,
+ *   `liveJobBelongsToRequester`) authorizes reattachment by user *and* tenant, with a legacy
+ *   path for jobs created before the current claim format.
+ * - `waitForJobRecord` bridges the window where the job row is being written but a status poll
+ *   arrives first — without it a fast client sees a spurious "not found".
+ * - Preliminary message ids (`getPreliminaryResponseMessageId`,
+ *   `getPreliminaryUserMessage`) let the client render optimistically before persistence
+ *   completes; `rejectPreliminaryParentMessageId` refuses a client-invented parent id, which
+ *   would corrupt the message tree.
+ * - Icon/model resolution is layered: model spec -> endpoint -> agent, so the UI labels the
+ *   response with the most specific source available.
+ * - Concurrency accounting via `checkAndIncrementPendingRequest`/`decrementPendingRequest`, and
+ *   abort content filtered by `filterPersistableAbortContent` so a partial response is saved
+ *   without malformed parts.
+ * - `tenantStorage` re-establishes tenant context on the async continuations that outlive the
+ *   request scope.
+ *
+ * Connections:
+ * - client: `server/controllers/agents/client.js`; init:
+ *   `server/services/Endpoints/agents/initialize.js`
+ * - resume: `resume.js`; steering: `steer.js`; protocol: `protocol.js`
+ * - route: `server/routes/agents/chat.js`
+ */
 const { logger, tenantStorage } = require('@librechat/data-schemas');
 const { v5: uuidv5 } = require('uuid');
 const {

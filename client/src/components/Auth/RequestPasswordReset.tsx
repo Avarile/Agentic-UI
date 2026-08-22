@@ -1,3 +1,5 @@
+// Requesting a password reset email.
+
 import { useState, ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { useOutletContext } from 'react-router-dom';

@@ -1,3 +1,10 @@
+// Folds token-usage and context events into the usage atoms.
+//
+// The accumulate-then-finalize split described in store/usage.ts is implemented
+// here: deltas land in the pending holder during the run and are flushed once into
+// the per-message index at finalize, which is what guarantees a response is counted
+// exactly once even if the stream reconnects.
+
 import { useRef, useMemo } from 'react';
 import { getDefaultStore } from 'jotai';
 import { Constants, reconcileContextUsage, promptTokensFromUsage } from 'librechat-data-provider';

@@ -1,3 +1,18 @@
+// Auto-sends queued follow-up messages, one per completed run.
+//
+// Driven by the one-shot `runEndByIndex` signal: each drained message starts a
+// normal turn whose own terminal event drains the next, so the queue advances
+// without a scheduler. Aborts and errors do not drain (a failed run should not
+// fire off the next message) unless "interrupt & send" explicitly armed it.
+//
+// The file-usage renewal is the non-obvious part. Queued messages carry
+// already-uploaded attachments, and the server holds an unused upload for a limited
+// window — so a message sitting in the queue behind a long run would have its files
+// swept before it sends. The hook re-touches them every 30 minutes, well inside the
+// shortest server hold, batching the ids because the server caps how many one
+// request may touch. Truncating instead would leave everything past the first batch
+// on its original hold.
+
 import { useEffect, useMemo } from 'react';
 import { Constants } from 'librechat-data-provider';
 import { useRecoilValue, useRecoilCallback } from 'recoil';

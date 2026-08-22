@@ -1,3 +1,6 @@
+// Typed reads of the localStorage keys the app writes, including the grouped
+// `getLocalStorageItems` used when seeding a new conversation.
+
 import { LocalStorageKeys, TConversation, isUUID } from 'librechat-data-provider';
 
 export function getLocalStorageItems() {

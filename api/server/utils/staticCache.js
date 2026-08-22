@@ -1,3 +1,18 @@
+/**
+ * Express static-file middleware with precompressed asset serving and configurable caching.
+ *
+ * Wraps `express-static-gzip` so `.br`/`.gz` variants are served when present, with
+ * `STATIC_CACHE_MAX_AGE` / `STATIC_CACHE_S_MAX_AGE` controlling browser and CDN lifetimes
+ * (defaults: 2 days and 1 day).
+ *
+ * Design: `s-maxage` is intentionally shorter than `max-age` so a CDN revalidates before
+ * browsers do — a deploy then propagates without waiting out the longest cache. `skipGzipScan`
+ * exists for directories where scanning for compressed variants is wasted I/O (generated images
+ * — see `server/routes/static.js`), since the scan happens per directory at startup.
+ *
+ * Connections: mounted in `server/index.js` (dist, fonts, assets) and
+ * `server/routes/static.js`
+ */
 const path = require('path');
 const express = require('express');
 const expressStaticGzip = require('express-static-gzip');

@@ -1,3 +1,14 @@
+/**
+ * User avatar upload (`POST /api/files/images/avatar`).
+ *
+ * Design: resizes via `resizeAvatar` and stores through the configured strategy
+ * (`getStrategyFunctions`/`getFileStrategy`), so avatars follow the same storage backend as
+ * everything else. Kept separate from the generic image route because avatars have fixed
+ * dimensions, are not conversation files, and overwrite the user's previous avatar rather than
+ * accumulating.
+ *
+ * Connections: `server/services/Files/images/avatar.js`, `services/Files/strategies.js`
+ */
 const fs = require('fs').promises;
 const express = require('express');
 const { logger } = require('@librechat/data-schemas');

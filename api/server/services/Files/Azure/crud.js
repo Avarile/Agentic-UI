@@ -1,3 +1,18 @@
+/**
+ * Azure Blob Storage backend.
+ *
+ * Mirrors the local/Firebase backends' function surface so `strategies.js` can substitute it
+ * freely: `saveBufferToAzure`, `saveURLToAzure`, `uploadFileToAzure`, `streamFileToAzure`,
+ * `getAzureURL`, `getAzureFileStream`, `deleteFileFromAzure`.
+ *
+ * Design: `streamFileToAzure` exists alongside the buffer upload so large files are streamed
+ * rather than fully buffered in memory. Remote fetches are bounded by the same SSRF/size/timeout
+ * guards as the other backends (`assertRemoteFileURL`,
+ * `assertRemoteFileContentLength`, `getRemoteFileFetch*`), and container clients come from
+ * `getAzureContainerClient` so credentials are resolved in one place.
+ *
+ * Connections: registered as `azureStrategy` in `strategies.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const mime = require('mime');

@@ -1,3 +1,8 @@
+// Initializes the RUM agent and reports route changes.
+//
+// Initialization is one-shot and guarded, since the agent installs global handlers;
+// mounting it twice would double-report every event.
+
 import { useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { TRumConfig, TUser } from 'librechat-data-provider';

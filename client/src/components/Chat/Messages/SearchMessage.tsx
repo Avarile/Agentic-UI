@@ -1,3 +1,7 @@
+// A message rendered as a search result: full content, no interaction. Rendered
+// inside the virtualized list in routes/Search.tsx, which is why it must measure
+// stably and tolerate having no chat form context.
+
 import { memo, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import type { TMessage } from 'librechat-data-provider';

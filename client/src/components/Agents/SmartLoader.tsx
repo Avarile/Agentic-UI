@@ -1,3 +1,6 @@
+// A loading state that only appears if the wait exceeds a threshold, so a fast
+// response does not flash a skeleton.
+
 import { AgentListResponse } from 'librechat-data-provider';
 import React, { useState, useEffect } from 'react';
 

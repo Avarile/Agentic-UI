@@ -1,3 +1,11 @@
+// localStorage values that expire.
+//
+// Many per-conversation preferences (tool toggles, MCP selections) are written under
+// conversation-scoped keys, and conversations are unbounded — so without expiry the
+// store grows for the lifetime of the browser profile. Values are written with a
+// timestamp and swept by `cleanupTimestampedStorage`, called once at startup.
+// `migrateE...` upgrades entries written before the timestamping scheme existed.
+
 import { LocalStorageKeys } from 'librechat-data-provider';
 
 /** Suffix for timestamp entries */

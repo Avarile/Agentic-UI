@@ -1,3 +1,11 @@
+// Which message actions are available on a given message — regenerate, continue,
+// fork, edit.
+//
+// The rules depend on the endpoint, whether the message is the latest, whether it
+// errored, and whether it was user-authored, and they are needed identically by the
+// hover buttons, the keyboard shortcuts, and the message menu. One hook, so the
+// three cannot disagree about what is possible.
+
 import { EModelEndpoint, isAssistantsEndpoint } from 'librechat-data-provider';
 
 type TUseGenerations = {

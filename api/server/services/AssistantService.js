@@ -1,3 +1,29 @@
+/**
+ * Drives an OpenAI Assistants run: polling, step processing, tool submission, streaming.
+ *
+ * Used by the v1/v2 assistants chat controllers for the non-streaming (or partially streaming)
+ * run lifecycle.
+ *
+ * Design:
+ * - `createInProgressHandler` incrementally reflects run steps to the client while the run is
+ *   still executing, so a long Assistants run is not a blank screen.
+ * - `hasToolCallChanged` exists because polling returns the *whole* run state repeatedly;
+ *   without a change comparison the client would receive duplicate tool-call events on every
+ *   poll tick.
+ * - `filterSteps` drops steps that should not be surfaced (already-processed or internal).
+ * - `klona` deep-clones run state before mutation — the same objects are compared against on the
+ *   next poll, so in-place edits would defeat change detection.
+ * - `retrieveAndProcessFile` routes assistant-produced files through the normal file pipeline,
+ *   and `imageGenTools` output is handled specially so images render rather than appearing as
+ *   raw ids.
+ * - Tool outputs are submitted through `processRequiredActions` in `ToolService`.
+ * - `sleep` implements the poll backoff.
+ *
+ * Connections:
+ * - `server/services/Runs/` (RunManager, waitForRun), `services/Threads/`,
+ *   `services/ToolService.js`, `services/Files/process.js`
+ * - consumers: `server/controllers/assistants/chatV1.js`, `chatV2.js`
+ */
 const { klona } = require('klona');
 const { sleep } = require('@librechat/agents');
 const { sendEvent } = require('@librechat/api');

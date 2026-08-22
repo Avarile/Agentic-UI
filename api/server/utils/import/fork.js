@@ -1,3 +1,27 @@
+/**
+ * Forking and duplicating conversations — including forking from a shared link.
+ *
+ * `forkConversation` (from a message, with several `ForkOptions` strategies),
+ * `forkSharedConversation` (from a public share), and `duplicateConversation` (whole thread).
+ *
+ * Design:
+ * - Fork strategies are separate traversals over the message tree:
+ *   `getAllMessagesUpToParent` (direct path), `getMessagesUpToTargetLevel` (include siblings),
+ *   `splitAtTargetLevel` (branch at a level). Each produces a different subtree, which is the
+ *   actual user-facing choice.
+ * - `cloneMessagesWithTimestamps` rewrites message ids while preserving parent-child structure
+ *   and assigning fresh, ordered timestamps — reusing ids would alias the fork to the original,
+ *   and reusing timestamps would break ordering in the new thread.
+ * - `stripSharedFileIds` is a security boundary: forking a shared conversation must not carry
+ *   over file references the forking user has no access to.
+ * - `isSameRevision(storedUpdatedAt, clientRevision)` guards against forking a stale view of a
+ *   shared conversation that has since changed.
+ * - Writes go through `ImportBatchBuilder`, so a fork is one bulk write rather than N inserts.
+ * - `tenantStorage` re-establishes tenant context, since forking a share crosses tenant scope.
+ *
+ * Connections: `importBatchBuilder.js`, `defaults.js`, `app/clients/BaseClient.js`;
+ * route `server/routes/convos.js` (fork/duplicate share one rate-limit budget)
+ */
 const { v4: uuidv4 } = require('uuid');
 const { logger, tenantStorage } = require('@librechat/data-schemas');
 const { EModelEndpoint, Constants, ForkOptions } = require('librechat-data-provider');

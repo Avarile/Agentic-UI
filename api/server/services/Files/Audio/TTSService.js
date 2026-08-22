@@ -1,3 +1,25 @@
+/**
+ * Text-to-speech: provider abstraction, request construction, and streamed synthesis.
+ *
+ * `TTSService` handles OpenAI, Azure OpenAI, ElevenLabs, LocalAI and generic providers behind one
+ * interface; `textToSpeech` and `streamAudio` are the route handlers, `getProvider` resolves the
+ * configured provider.
+ *
+ * Design:
+ * - Long text is split (`splitTextIntoChunks`, 4000-char default) and synthesized progressively
+ *   so playback starts before the whole response is rendered — providers cap input length, and
+ *   waiting for a full synthesis would be a long silence.
+ * - `createChunkProcessor` drives chunking off *message* text, which is what allows streaming TTS
+ *   of a response that is itself still being generated.
+ * - `getRandomVoiceId` supports configuring a voice pool rather than a single voice.
+ * - Outbound requests use `applyAxiosProxyConfig` and `applySSRFSafeAgentIfDirect` — provider
+ *   base URLs are operator-configurable, so a direct call must still be SSRF-guarded.
+ * - Secrets are resolved through `resolveConfigSecret`/`extractEnvVariable`, so config may
+ *   reference env vars rather than embedding keys.
+ * - `genAzureEndpoint` builds Azure's deployment-scoped URL.
+ *
+ * Connections: `streamAudio.js`, `getVoices.js`, `server/routes/files/speech/tts.js`
+ */
 const axios = require('axios');
 const { logger } = require('@librechat/data-schemas');
 const {

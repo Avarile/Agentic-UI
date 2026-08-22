@@ -1,3 +1,7 @@
+// The `@` popover: switch endpoint, model, agent, assistant or preset from the
+// composer. Selection routes through `useSelectMention` because it can change the
+// conversation's identity.
+
 import { memo, useState, useRef, useEffect } from 'react';
 import { AutoSizer, List } from 'react-virtualized';
 import { EModelEndpoint } from 'librechat-data-provider';

@@ -1,3 +1,30 @@
+// The provider stack. Ordering is the whole content of this file.
+//
+// Outside-in, each layer is above the ones that depend on it:
+//
+//   QueryClientProvider   server cache — data-provider hooks feed atoms below it
+//   RecoilRoot            client state (conversations, submissions, settings)
+//   LiveAnnouncer         a11y live regions, needed by anything that announces
+//   ThemeProvider         paints CSS variables the rest of the tree styles against
+//   Toast / Dnd           cross-cutting UI services
+//   RouterProvider        the app itself (see routes/index.tsx)
+//
+// The QueryClient is built with `networkMode: 'always'` because LibreChat is
+// routinely self-hosted: `navigator.onLine` reports false on a machine with no
+// WiFi whose localhost backend is perfectly reachable, and the default mode would
+// pause every query. Its `QueryCache.onError` funnels 401s to the boundary set up
+// in main.jsx — one place to notice an expired session, no matter which query saw
+// it first.
+//
+// Theme resolution is intentionally conditional: `initialTheme`/`themeRGB` are
+// spread in only when an env theme exists, so on a default deployment the
+// localStorage preference stays authoritative instead of being overwritten on
+// every boot.
+//
+// The default export wraps App in `ScreenshotProvider` and mounts a hidden silent
+// audio iframe — the standard workaround for browsers that refuse programmatic
+// TTS playback until the document has had an autoplay-permitted audio element.
+
 import { useEffect } from 'react';
 import { RecoilRoot } from 'recoil';
 import { DndProvider } from 'react-dnd';

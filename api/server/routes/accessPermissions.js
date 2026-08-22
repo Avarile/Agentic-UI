@@ -1,3 +1,26 @@
+/**
+ * Generic resource-sharing API: read/write ACL grants for any resource type.
+ *
+ * URL pattern is `/api/permissions/:resourceType/:resourceId/...`, so one router serves
+ * agents, prompt groups, MCP servers, skills and files instead of each having its own sharing
+ * endpoints.
+ *
+ * Design:
+ * - Router-wide `requireJwtAuth -> checkBan -> uaParser`. `uaParser` is applied here (it is
+ *   not global) because sharing endpoints are an attractive enumeration target.
+ * - `searchPrincipals` is gated by `checkPeoplePickerAccess`, which authorizes per *requested
+ *   principal type* — so a role may be allowed to share with groups without being able to
+ *   enumerate users.
+ * - Granting public access is a separate gate (`checkSharePublicAccess`) from granting access
+ *   to a person or group.
+ * - The `:resourceType` parameter is resolved against known types with explicit id resolvers
+ *   (`findMCPServerByObjectId`, `getSkillById`, ...) rather than being trusted as a collection
+ *   name.
+ *
+ * Connections:
+ * - controller: `server/controllers/PermissionsController.js`
+ * - ACL middleware: `server/middleware/accessResources/canAccessResource.js`
+ */
 const mongoose = require('mongoose');
 const express = require('express');
 const {

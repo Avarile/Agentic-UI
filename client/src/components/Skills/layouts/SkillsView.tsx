@@ -1,3 +1,6 @@
+// The skills page shell, lazily loaded by the router. Owns the list/detail/edit
+// routing for `/skills/*`.
+
 import { Spinner, useMediaQuery } from '@librechat/client';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
 import { Navigate, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';

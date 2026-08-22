@@ -1,3 +1,6 @@
+// Terms acceptance, mounted at the root and shown when startup config requires
+// modal acceptance and the user has not accepted.
+
 import { useMemo } from 'react';
 import { OGDialog, Button, OGDialogTemplate, useToastContext } from '@librechat/client';
 import type { TTermsOfService } from 'librechat-data-provider';

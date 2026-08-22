@@ -1,3 +1,11 @@
+/**
+ * ACL gate for prompt-group routes (`/prompts/groups/:groupId`).
+ *
+ * Resolves via `getPromptGroup({ _id })`. Prompt groups are the unit that owns permissions —
+ * see `canAccessPromptViaGroup.js` for how individual prompts inherit them.
+ *
+ * Connections: wraps `canAccessResource.js`; used by `server/routes/prompts.js`
+ */
 const { ResourceType } = require('librechat-data-provider');
 const { canAccessResource } = require('./canAccessResource');
 const { getPromptGroup } = require('~/models');

@@ -1,3 +1,6 @@
+// Groups a run's activity labels into phases, so a long agent run reads as a few
+// named stages instead of a flat event list.
+
 import { ChevronDown, ListTree } from 'lucide-react';
 import { ContentTypes } from 'librechat-data-provider';
 import type { TMessageContentParts } from 'librechat-data-provider';

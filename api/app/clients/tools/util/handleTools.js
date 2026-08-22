@@ -1,3 +1,30 @@
+/**
+ * Loads and authorizes the tools for a request — the tool-construction entry point.
+ *
+ * `validateTools(user, tools)` filters a requested tool list to what the user may actually use;
+ * `loadTools({...})` constructs the instances.
+ *
+ * Design:
+ * - `loadToolWithAuth(userId, authFields, ToolConstructor, options)` wraps every credentialed
+ *   tool so its API key is resolved *at call time* from the user's stored plugin auth, not at
+ *   construction. A revoked key therefore takes effect immediately, and a tool object never holds
+ *   a stale secret. `getAuthFields(toolKey)` supplies the field list per tool.
+ * - MCP tools are recognized by `mcpToolPattern` and resolved through the namespaced-name
+ *   helpers (`splitMCPToolKey`, `buildServerNameAliases`, `findShadowedServerNames`,
+ *   `isNormalizationSensitiveName`), so a renamed or shadowed server is handled rather than
+ *   silently producing a missing tool.
+ * - Permission checks (`checkAccess`) run per tool, and `toolkitParent` maps a toolkit member
+ *   back to its parent for the permission decision — otherwise each member of a toolkit would
+ *   need its own grant.
+ * - Built-ins come from `@librechat/agents` (`Calculator`, `createSearchTool`,
+ *   `createCodeExecutionTool`); web search additionally resolves provider auth through
+ *   `loadWebSearchAuth`, and its HTTP client is SSRF-guarded (see the dedicated test).
+ * - `createSafeUser` strips the user object down before it is handed to tool code.
+ *
+ * Connections:
+ * - `server/services/PluginService.js`, `services/Tools/credentials.js`, `services/MCP.js`
+ * - consumers: `server/services/ToolService.js`, `controllers/tools.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { Calculator, createSearchTool, createCodeExecutionTool } = require('@librechat/agents');
 const {

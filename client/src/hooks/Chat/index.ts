@@ -1,3 +1,9 @@
+// The send side of a conversation: composing a submission, aborting it, steering it
+// mid-run, and draining the follow-up queue.
+//
+// Read with hooks/SSE, which is the receive side. The boundary between them is the
+// submission atom: this folder writes it, SSE reads it and writes messages back.
+
 export { default as useChatHelpers } from './useChatHelpers';
 export { default as useTokenLimits } from './useTokenLimits';
 export { default as useTokenUsage } from './useTokenUsage';

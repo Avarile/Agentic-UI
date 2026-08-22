@@ -1,3 +1,11 @@
+// Artifact identity, templates, and Sandpack configuration.
+//
+// Decides what an artifact *is* from its type: its key and filename, whether it can
+// be previewed, whether it is code-only, and for runnable artifacts the Sandpack
+// template and dependency set. `TOOL_ARTIFACT_TYPES` covers artifacts produced by
+// tool output rather than authored in a message — which is why they are keyed
+// `tool-artifact-${file_id}` and deduped through the claim atom.
+
 import dedent from 'dedent';
 import { excelMimeTypes, shadcnComponents } from 'librechat-data-provider';
 import type {

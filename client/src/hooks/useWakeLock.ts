@@ -1,3 +1,8 @@
+// Holds the Screen Wake Lock while a generation is running, so a long answer is not
+// interrupted by the display sleeping. Gated on the `keepScreenAwake` preference;
+// released on unmount and on visibility change, since the API revokes a lock on a
+// hidden document anyway.
+
 import { useEffect, useRef } from 'react';
 
 /**

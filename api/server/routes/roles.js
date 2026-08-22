@@ -1,3 +1,20 @@
+/**
+ * Reads a role and updates its per-feature permission sets.
+ *
+ * Design:
+ * - `permissionConfigs` maps a URL segment to `{ schema, permissionType, errorMessage }`, so
+ *   each feature's permissions route is a table entry validated by its own Zod schema from
+ *   `librechat-data-provider`. Adding a feature's permissions means adding a row, not a
+ *   handler — and the schema is the single source of truth for the valid shape.
+ * - Writes require the `MANAGE_ROLES` capability. Reads are more nuanced: `READ_ROLES` only
+ *   gates reading *other* roles — a user may always read their own role, and non-admin default
+ *   roles are readable without the capability probe (an explicit comment marks this), which
+ *   avoids a permission lookup on a path the UI hits constantly.
+ *
+ * Connections:
+ * - capabilities via `server/middleware/roles/capabilities.js`
+ * - role storage via `~/models`; defaults from `roleDefaults`
+ */
 const express = require('express');
 const { logger, SystemCapabilities } = require('@librechat/data-schemas');
 const {

@@ -1,3 +1,18 @@
+// The endpoint facts an upload target needs, resolved once per conversation.
+//
+// Whether a dropped file is accepted, and how it is processed, depends on the
+// endpoint, its resolved type, and whether the responses API is in use. For an
+// agent conversation those live on the agent record, which may not be in the
+// shared map yet — hence the narrowly gated `useGetAgentByIdQuery`, enabled only
+// when the map is missing `model_parameters`.
+//
+// The explicit `conversation?.useResponsesApi !== undefined` check preserves an
+// existing conversation's own value instead of letting the agent's default
+// override it.
+//
+// `useDragDropContext` falls back to an all-undefined value rather than throwing,
+// so drop targets can render outside a chat.
+
 import React, { createContext, useContext, useMemo } from 'react';
 import { isAgentsEndpoint, resolveEndpointType } from 'librechat-data-provider';
 import type { EModelEndpoint } from 'librechat-data-provider';

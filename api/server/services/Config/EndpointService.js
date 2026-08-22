@@ -1,3 +1,21 @@
+/**
+ * Resolves per-endpoint credentials and base URLs from environment variables.
+ *
+ * Exports `config`: a table of endpoint -> `{ apiKey, baseURL, ... }` built once at module load
+ * via `generateConfig`.
+ *
+ * Design: `isUserProvided` marks an endpoint whose key is supplied per user (BYOK) rather than
+ * by the operator, so downstream code knows to look up the user's stored key instead of failing
+ * on a missing env var. `firstNonEmpty` implements the documented precedence between overlapping
+ * env vars (e.g. `ASSISTANTS_BASE_URL` vs `AZURE_OPENAI_BASEURL`) in one place rather than
+ * repeating `||` chains.
+ *
+ * Built at module scope because these are process-level environment values; per-user overrides
+ * happen later, at client initialization.
+ *
+ * Connections: `loadDefaultEConfig.js`, `loadAsyncEndpoints.js`,
+ * `server/utils/handleText.js` (`generateConfig`)
+ */
 const { isUserProvided, isEnabled } = require('@librechat/api');
 const { EModelEndpoint } = require('librechat-data-provider');
 const { generateConfig } = require('~/server/utils/handleText');

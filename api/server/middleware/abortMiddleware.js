@@ -1,3 +1,34 @@
+/**
+ * Terminates an in-flight generation cleanly — on user abort or on error — and settles billing.
+ *
+ * Exports `handleAbort` (the `/abort` endpoint handler), `handleAbortError` (the error path
+ * shared by every chat controller) and `spendCollectedUsage`.
+ *
+ * Why this is non-trivial: aborting mid-stream leaves several things half-done — a partial
+ * assistant message the user should still see, token usage already consumed by the provider,
+ * an SSE connection to close, an abort key in the cache, and a pending-request slot to
+ * release. This module is the one place that settles all of it in the right order, so every
+ * endpoint gets identical behaviour.
+ *
+ * Design details:
+ * - `isAbortError` walks the error `cause` chain with a `visited` set rather than checking
+ *   only the top-level error. Abort signals arrive wrapped by fetch/undici/provider SDKs, and
+ *   the chain can be circular — a naive check misclassifies user aborts as server errors and
+ *   surfaces a spurious failure to the user.
+ * - The partial response is saved and transmitted (via `sanitizeMessageForTransmit`) so the
+ *   user keeps the text generated before the abort instead of losing it.
+ * - `spendCollectedUsage` charges what the provider actually consumed up to the abort point;
+ *   silently discarding it would let abuse avoid all billing.
+ * - Text is truncated (`truncateText`/`smartTruncateText`) before being persisted or logged.
+ * - `clearPendingReq` is always called so the concurrency counter cannot leak a slot.
+ *
+ * Connections:
+ * - assistants runs delegate to `server/middleware/abortRun.js`
+ * - error transmission via `server/middleware/error.js`; concurrency via
+ *   `cache/clearPendingReq.js`; usage/metadata helpers from `packages/api`
+ * - callers: `server/controllers/agents/*`, `server/controllers/assistants/*`,
+ *   `server/routes/agents/*`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { isAssistantsEndpoint, ErrorTypes } = require('librechat-data-provider');
 const {

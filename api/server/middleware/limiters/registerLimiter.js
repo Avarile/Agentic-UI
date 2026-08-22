@@ -1,3 +1,9 @@
+/**
+ * IP rate limit on account creation (`REGISTER_MAX` per `REGISTER_WINDOW`, default 5/60min).
+ *
+ * Deliberately much tighter than the login limiter: this is the primary defence against bulk
+ * account creation. Logs a `REGISTRATIONS` violation before responding 429.
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

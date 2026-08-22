@@ -1,3 +1,10 @@
+// Uploads: validation, client-side resizing, progress, deletion, drag-and-drop, and
+// the SharePoint picker.
+//
+// Uploading precedes sending, which is what most of the complexity here follows
+// from — a file exists before the message that uses it, so orphan cleanup and usage
+// marking are first-class concerns rather than afterthoughts.
+
 export { default as useAttachmentPreviewSync } from './useAttachmentPreviewSync';
 export { default as useDeleteFilesFromTable } from './useDeleteFilesFromTable';
 export { default as useSetFilesToDelete } from './useSetFilesToDelete';

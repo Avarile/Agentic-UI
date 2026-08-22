@@ -1,3 +1,5 @@
+// The OAuth callback landing on failure, surfacing the provider's error.
+
 import React from 'react';
 import { Button } from '@librechat/client';
 import { useSearchParams } from 'react-router-dom';

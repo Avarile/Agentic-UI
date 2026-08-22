@@ -1,3 +1,15 @@
+/**
+ * Converts an image file or buffer to the configured output type at a given resolution.
+ *
+ * Resizes first (`resizeImageBuffer`), then converts with `sharp`, then stores through the
+ * resolved strategy.
+ *
+ * Design: resize-before-convert is deliberate — converting first would encode pixels that are
+ * then thrown away. Storage metadata comes from `getStorageMetadata` so the stored object carries
+ * consistent attributes across backends.
+ *
+ * Connections: `images/resize.js`, `strategies.js`; used by the image upload paths
+ */
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');

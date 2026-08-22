@@ -1,3 +1,16 @@
+/**
+ * Root router for `/api/assistants`, mounting both API versions side by side.
+ *
+ * Applies `requireJwtAuth -> checkBan -> uaParser -> configMiddleware`, then mounts
+ * `/v1` + `/v1/chat` and `/v2` + `/v2/chat`.
+ *
+ * Design: v1 and v2 are served simultaneously and permanently rather than migrated, because
+ * they mirror OpenAI's own Assistants API versions — a deployment may have assistants created
+ * under either, and the request/response shapes differ. Shared middleware is applied once here
+ * so both versions get identical authentication and ban checks.
+ *
+ * Connections: `v1.js`, `v2.js`, `chatV1.js`, `chatV2.js`
+ */
 const express = require('express');
 const { uaParser, checkBan, requireJwtAuth, configMiddleware } = require('~/server/middleware');
 const router = express.Router();

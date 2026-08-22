@@ -1,3 +1,29 @@
+/**
+ * Open Responses API implementation backed by agents (`POST /v1/responses`).
+ *
+ * Implements the item-based, semantically-streamed Open Responses specification — items rather
+ * than chat messages, named stream events rather than opaque deltas.
+ *
+ * Design:
+ * - Conversation continuity comes from `previous_response_id`, not a conversation id, so this
+ *   controller owns the mapping in both directions: `loadPreviousMessages`,
+ *   `convertToInternalMessages`, `convertMessagesToOutputItems`, plus `saveInputMessages`,
+ *   `saveResponseOutput` and `saveConversation`. That persistence is what makes a stateless
+ *   client's follow-up request resolvable.
+ * - `GET /:id` can return a previously created response, which is why output items are stored
+ *   in retrievable form rather than only streamed.
+ * - Agent-scoped context is assembled with `buildAgentScopedContext` /
+ *   `buildAgentContextAttachmentsByAgentId` / `applyContextToAgent`, so a multi-agent run
+ *   attributes context and attachments to the right agent.
+ * - Same guardrails as the OpenAI-compatible surface: `createAgentRunEnvelope` validation,
+ *   `filterFilesByRemoteAgentAccess` for the remote caller's file permissions, definitions-only
+ *   tool loading, and per-call agent ACL checks.
+ *
+ * Connections:
+ * - route: `server/routes/agents/responses.js`; auth: `server/routes/agents/middleware.js`
+ * - tool-end handling: `createResponsesToolEndCallback` in `callbacks.js`
+ * - spec: https://openresponses.org/specification
+ */
 const { nanoid } = require('nanoid');
 const { v4: uuidv4 } = require('uuid');
 const { logger } = require('@librechat/data-schemas');

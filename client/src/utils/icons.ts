@@ -1,3 +1,5 @@
+// Icon resolution shared by the endpoint and entity surfaces.
+
 export function isImageURL(iconURL?: string | null): iconURL is string {
   if (!iconURL) {
     return false;

@@ -1,3 +1,7 @@
+// Watches deferred previews and flips the pending→ready edge signal in
+// store/artifacts.ts, which is what lets a late-resolving preview auto-open its
+// panel.
+
 import { useEffect, useRef } from 'react';
 import { useRecoilCallback, useSetRecoilState } from 'recoil';
 import type { TAttachment, TFile, TFilePreview } from 'librechat-data-provider';

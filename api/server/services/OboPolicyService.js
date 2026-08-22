@@ -1,3 +1,19 @@
+/**
+ * Trust policy deciding whether an MCP server config may perform an OBO token exchange.
+ *
+ * `createOboTrustChecker()` returns the predicate the MCP runtime calls before exchanging a
+ * token on the user's behalf.
+ *
+ * Design: OBO delegation is a privilege escalation surface — a user-created MCP server config
+ * that could trigger an exchange would obtain a downstream token minted for that user's
+ * identity. `isDbSourced` therefore identifies user-created configs using the same
+ * `isUserSourced` heuristics as the rest of the MCP layer (explicit `source` is authoritative;
+ * otherwise `dbId` presence), and the checker defers to `isOboConfigStillTrusted` so a config
+ * that was trusted when saved but has since been altered no longer qualifies.
+ *
+ * Connections: used by the MCP runtime via `server/services/MCP.js`; predicate implementation in
+ * `packages/api`
+ */
 const { isOboConfigStillTrusted } = require('@librechat/api');
 const db = require('~/models');
 

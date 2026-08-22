@@ -1,3 +1,10 @@
+// Form option builders for the agent and parameter panels.
+//
+// `getDefaultAgentFormValues` is the one with reach: it defines the agent builder's
+// initial shape, and AgentsProvider seeds react-hook-form from it — so every panel
+// in the builder registers against one schema. The dropdown/provider option helpers
+// exist so the many select fields render identically.
+
 import { EarthIcon } from 'lucide-react';
 import {
   FileSources,

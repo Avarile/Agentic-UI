@@ -1,3 +1,5 @@
+// The product wordmark, used on the auth pages and the sidebar.
+
 import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';
 

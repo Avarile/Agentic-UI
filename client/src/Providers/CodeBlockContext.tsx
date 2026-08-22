@@ -1,3 +1,11 @@
+// The same counter pattern as ArtifactContext, for code fences.
+//
+// Two sequences rather than one: mermaid fences are skipped by the executable
+// code-block counter, so they need their own to stay distinct from each other.
+// Both reset together, because a streaming block re-renders its fences on every
+// token and restarting is what keeps a diagram's index tied to its position in the
+// document instead of drifting upward as the message grows.
+
 import { createContext, useContext, ReactNode, useCallback, useRef } from 'react';
 
 type TCodeBlockContext = {

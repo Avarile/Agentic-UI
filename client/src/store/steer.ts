@@ -1,3 +1,15 @@
+// Two small Jotai families supporting the mid-run steering UI.
+//
+// `steerOverlayHeightFamily` is a layout channel rather than state: the in-flight
+// steer overlay floats above the composer, and the message list reserves an equal
+// band of bottom padding so the newest message clears it. The overlay measures
+// itself and publishes the number here because only it knows its rendered height.
+//
+// `escalatingSteerFamily` is a pure UX gate. Double-arming is harmless on the
+// server (a run seals once and drains its queue in order), but every escalation
+// control advertises "one interrupt at a time" by disabling, and the chip-derived
+// state cannot see an arm until its response lands.
+
 import { atom } from 'jotai';
 import { atomFamily } from 'jotai/utils';
 

@@ -1,3 +1,10 @@
+/**
+ * CRUD for chat projects (conversation grouping) and conversation assignment.
+ *
+ * Design: a thin binding — all handlers come from `createProjectHandlers` in `packages/api`
+ * with the model functions injected, keeping the logic in TypeScript per the workspace
+ * boundary. `requireJwtAuth` is applied router-wide.
+ */
 const express = require('express');
 const { createProjectHandlers } = require('@librechat/api');
 const requireJwtAuth = require('~/server/middleware/requireJwtAuth');

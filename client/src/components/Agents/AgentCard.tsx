@@ -1,3 +1,5 @@
+// One agent in the grid.
+
 import React, { useMemo, useState } from 'react';
 import { Label, OGDialog, OGDialogTrigger } from '@librechat/client';
 import type t from 'librechat-data-provider';

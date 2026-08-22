@@ -1,3 +1,16 @@
+// Steering reconciliation: matching server events to local steer state.
+//
+// The pure half of the steering feature (hooks/Chat/useSteering.ts is the stateful
+// half). It answers questions that must be decided identically from three
+// different arrival paths — the POST response, the SSE event, and a reconnect's
+// resume payload: which content part is a steer, which applied ids have already
+// been seen, which run-end a steer belongs to, and which steer an abort should
+// target.
+//
+// `appendAppliedSteerIds` caps the applied-id set rather than clearing it, because
+// a late event can arrive after the run's final frame and must still be recognized
+// as already-handled.
+
 import { Constants, ContentTypes } from 'librechat-data-provider';
 import type {
   TMessage,

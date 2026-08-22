@@ -1,3 +1,31 @@
+/**
+ * Constructs the `AgentClient` for a chat request — the agents endpoint's client factory.
+ *
+ * Resolves the provider and model config, validates the model
+ * (`validateAgentModel`), builds the tool loader, assembles skills, memory, connected agents and
+ * content aggregation, then instantiates the client.
+ *
+ * Design:
+ * - `createToolLoader(signal, streamId, definitionsOnly, jobCreatedAt)` returns a *lazy* loader.
+ *   Tool definitions are cheap and always needed; executable tools are only built when the model
+ *   actually calls one. `definitionsOnly` is the switch, and the abort signal is captured so a
+ *   cancelled turn stops tool construction.
+ * - Skills are resolved in layers: `loadSkillStates` (user's active set),
+ *   `extractManualSkills`/`primeInvokedSkills` (explicitly invoked in the message), and
+ *   agent/model-spec-scoped ids — so an explicit invocation wins over the user's defaults.
+ * - `discoverConnectedAgents` resolves the multi-agent graph the run will execute.
+ * - Memory is gated by `isMemoryEnabled` so a deployment without memory pays nothing.
+ * - `checkAccess` re-verifies permission at initialization time, not only in middleware:
+ *   initialization also happens on resume and on internal paths that do not pass through the
+ *   chat middleware stack.
+ * - `GenerationJobManager` wiring is passed in so the client can emit into the resumable job
+ *   stream rather than only to `res`.
+ *
+ * Connections:
+ * - client: `server/controllers/agents/client.js`; tools:
+ *   `server/services/ToolService.js`; skills: `./skillDeps.js`
+ * - callers: `server/routes/agents/chat.js`, `controllers/agents/request.js`, `resume.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { createContentAggregator } = require('@librechat/agents');
 const {

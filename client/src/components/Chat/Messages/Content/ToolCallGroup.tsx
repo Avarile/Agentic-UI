@@ -1,3 +1,6 @@
+// Consecutive tool calls collapsed into one group, so a long chain of calls does
+// not bury the answer.
+
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { useRecoilValue } from 'recoil';
 import { Button } from '@librechat/client';

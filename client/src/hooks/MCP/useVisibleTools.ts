@@ -1,3 +1,6 @@
+// The tools to show for the selected servers, after permission and consume-only
+// filtering.
+
 import { useMemo } from 'react';
 import { Constants, splitMCPToolKey, buildServerNameAliases } from 'librechat-data-provider';
 import type { TPlugin } from 'librechat-data-provider';

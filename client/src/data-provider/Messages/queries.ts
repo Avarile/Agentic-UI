@@ -1,3 +1,32 @@
+// Fetching a conversation's messages — and refusing to lose them.
+//
+// The query itself is one call. Everything else in this file defends the cache
+// against a race that is unavoidable in a streaming app: the server's persisted
+// message list can legitimately lag what the client already has. Mid-stream, the
+// assistant's reply exists in the cache as an unhydrated tail (no `createdAt`, or a
+// trailing-underscore id) but may not be persisted yet, so a refetch can return
+// fewer messages than the client is displaying — or even a 404 for a conversation
+// that is actively generating.
+//
+// Blindly trusting the response there wipes the reply out from under the user.
+// The two exported predicates encode when *not* to trust it:
+//
+//   getStableMessages              keep the cache when the response is a strict
+//                                  prefix of it, a stream is live, and the cache
+//                                  ends in a pending assistant tail
+//   shouldPreserveMessagesOnNotFound  same reasoning for a 404
+//
+// Both are narrow on purpose: prefix-only, streaming-only, pending-tail-only. A
+// response that is genuinely different (a fork, a deletion) still wins.
+//
+// `hasActiveJob` consults the active-jobs cache so the guard also holds after a
+// reload, when nothing is streaming in *this* tab but the run is still going. The
+// cache is re-read after the await and preferred if it changed, so a concurrent SSE
+// write is never clobbered by an in-flight fetch.
+//
+// All three `refetchOn*` options default to false: refetching a conversation is
+// always an explicit decision here, never an ambient one.
+
 import { useLayoutEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

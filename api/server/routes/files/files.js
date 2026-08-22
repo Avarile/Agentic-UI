@@ -1,3 +1,27 @@
+/**
+ * File API: list, per-agent listing, config, usage, delete, preview, download and download URLs.
+ *
+ * Design:
+ * - Every read of a specific file goes through the `fileAccess` middleware, which grants access
+ *   either directly or via an agent the caller can access (files attached to a shared agent
+ *   must be readable by its users).
+ * - Two download shapes: `/download/:userId/:file_id` streams through the server, while
+ *   `/download-url/:userId/:file_id` returns a pre-signed URL so large files bypass the app
+ *   entirely. `DOWNLOAD_METADATA_FIELDS` restricts what metadata accompanies a download.
+ * - Filenames are sanitized and dispositions built by `cleanFileName`/`getContentDisposition`
+ *   before reaching a `Content-Disposition` header — a header-injection boundary.
+ * - `/:file_id/preview` lazily sweeps `status: 'pending'` records older than
+ *   `PREVIEW_LAZY_SWEEP_CUTOFF_MS`, complementing the boot-time sweep in `server/index.js`:
+ *   together they recover previews orphaned by a crash mid-render without a background job.
+ * - Deletion must consider `AGENT_TOOL_RESOURCE_KEYS` — a file referenced by an agent's tool
+ *   resources cannot simply vanish, or the agent's tools break.
+ * - Code-interpreter outputs have their own route (`/code/download/:session_id/:fileId`)
+ *   because they live in the sandbox session, not in normal file storage.
+ *
+ * Connections:
+ * - storage: `server/services/Files/strategies.js`; processing:
+ *   `server/services/Files/process.js`; ACL: `server/services/PermissionService.js`
+ */
 const fs = require('fs').promises;
 const express = require('express');
 const { logger, SystemCapabilities } = require('@librechat/data-schemas');

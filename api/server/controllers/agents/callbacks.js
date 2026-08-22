@@ -1,3 +1,40 @@
+/**
+ * Stream event handlers that translate LangGraph run events into client SSE events and files.
+ *
+ * This is the bridge between `@librechat/agents` graph events and everything the user sees:
+ * text deltas, reasoning, tool calls and results, attachments, usage, and sandbox status.
+ *
+ * Key pieces:
+ * - `ModelEndHandler` — captures usage and thought signatures at each model boundary.
+ * - `getDefaultHandlers` — the handler table wired into every run.
+ * - `createToolEndCallback` — turns tool output into persisted artifacts/attachments; the
+ *   Responses-API variant is `createResponsesToolEndCallback`.
+ * - `createAttachmentEmitter`, `writeAttachment`, `writeAttachmentUpdate` — emit files to the
+ *   client as they materialize.
+ * - `buildSummarizationHandlers`, `markSummarizationUsage` — keep context-summarization usage
+ *   separate from the primary turn's.
+ *
+ * Design:
+ * - `isStreamWritable(res, streamId)` is checked before every write, and each write carries an
+ *   `expectedCreatedAt`. A client can reconnect to a *new* generation on the same conversation
+ *   while a stale handler is still firing; without the guard and the generation stamp, late
+ *   events from an old run would be written into the new stream.
+ * - Subagent output is aggregated per tool-call id (`feedSubagentAggregator`,
+ *   `subagentPhaseToGraphEvent`) so a nested agent's stream renders as one coherent block
+ *   rather than interleaved with the parent's.
+ * - `checkIfLastAgent` decides whether a node's output is the user-visible answer — in a
+ *   multi-agent graph only the final agent's text should be presented as the response.
+ * - `maybeEmitSandboxStarting` emits an early status event because sandbox cold start is slow
+ *   enough to look like a hang.
+ * - `isHostFileAuthoringArtifact`/`isCodeArtifactToolOutput` classify tool output so
+ *   file-producing tools route through the file pipeline instead of being rendered as text.
+ * - Attachments are collected as `artifactPromises` and awaited by the caller, so file uploads
+ *   proceed in parallel with the rest of the stream.
+ *
+ * Connections:
+ * - consumed by `client.js` (and the `openai.js`/`responses.js` compatibility controllers)
+ * - file handling: `server/services/Files/*`; job/stream state: `GenerationJobManager`
+ */
 const { nanoid } = require('nanoid');
 const { logger } = require('@librechat/data-schemas');
 const {

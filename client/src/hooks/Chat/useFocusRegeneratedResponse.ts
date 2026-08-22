@@ -1,3 +1,6 @@
+// Moves focus and the screen reader's attention to a regenerated response, which
+// replaces content in place and would otherwise be an announced-to-nobody change.
+
 import { useRecoilCallback } from 'recoil';
 import store from '~/store';
 

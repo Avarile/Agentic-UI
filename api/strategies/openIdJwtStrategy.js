@@ -1,3 +1,28 @@
+/**
+ * Passport JWT strategy that validates access tokens issued by the OpenID provider directly.
+ *
+ * Used when the deployment lets the IdP mint the API token rather than exchanging it for a
+ * LibreChat-signed JWT. Keys are fetched from the provider's JWKS endpoint via `jwks-rsa`.
+ *
+ * Design:
+ * - Audience acceptance is a *set*: `OPENID_CLIENT_ID` plus every entry in `OPENID_AUDIENCE`.
+ *   Multi-audience deployments (an SPA plus an API registration) would otherwise fail
+ *   validation for one of them.
+ * - Issuer matching supports the `{tenantid}` placeholder used by Microsoft Entra multi-tenant
+ *   issuers. The template is converted to an anchored regex with each literal segment escaped
+ *   and the placeholder matched as `[^/]+`, so a crafted issuer cannot widen the match past a
+ *   single path segment.
+ * - User documents are served from `CacheKeys.AUTH_USER_DOC` when caching is enabled. Token
+ *   validation happens on every request; the *database* read is what gets cached, and it is
+ *   explicitly invalidated on user mutation.
+ * - Cookies are parsed here because some flows carry the token in a cookie rather than the
+ *   Authorization header.
+ *
+ * Connections:
+ * - configuration comes from `strategies/openidStrategy.js` (`getOpenIdConfig`)
+ * - registered by `server/socialLogins.js`; cache from `cache/getLogStores.js`
+ * - helpers (`findOpenIDUser`, `normalizeOpenIdIssuer`, auth-doc cache) live in `packages/api`
+ */
 const cookies = require('cookie');
 const jwksRsa = require('jwks-rsa');
 const { logger } = require('@librechat/data-schemas');

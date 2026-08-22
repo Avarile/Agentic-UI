@@ -1,3 +1,6 @@
+// Publishes whether search is configured into the tri-state field in
+// store/search.ts.
+
 import { useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useGetSearchEnabledQuery } from '~/data-provider';

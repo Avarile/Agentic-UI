@@ -1,3 +1,13 @@
+// Favourite models/agents and favourite tools.
+//
+// Two separate sets with different shapes: model favourites are replaced wholesale
+// (`useUpdateFavoritesMutation`), while tool favourites are added and removed
+// individually, because the tool list is long enough that sending the whole set on
+// every toggle would be wasteful and lossy under concurrent edits.
+//
+// The server copy is authoritative; store/favorites.ts holds the tab-isolated local
+// mirror.
+
 import { dataService, QueryKeys } from 'librechat-data-provider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';

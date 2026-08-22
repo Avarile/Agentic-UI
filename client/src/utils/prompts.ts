@@ -1,3 +1,5 @@
+// Prompt text helpers: variable substitution and preview generation.
+
 import { specialVariables } from 'librechat-data-provider';
 import type { TPromptGroup } from 'librechat-data-provider';
 

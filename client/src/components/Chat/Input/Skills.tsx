@@ -1,3 +1,5 @@
+// The skills capability toggle.
+
 import React, { memo } from 'react';
 import { ScrollText } from 'lucide-react';
 import { CheckboxButton } from '@librechat/client';

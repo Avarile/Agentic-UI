@@ -1,3 +1,27 @@
+/**
+ * User provisioning and avatar handling shared by the social/OpenID/SAML login paths.
+ *
+ * `handleExistingUser` refreshes a returning user's avatar and email; `createSocialUser`
+ * creates the account and then attaches a processed avatar.
+ *
+ * Design:
+ * - The `?manual=true` marker on a stored avatar URL is the opt-out signal: if the user has
+ *   uploaded their own picture, provider logins must not overwrite it on every sign-in.
+ * - Avatar handling branches on file strategy. For local storage the provider URL is stored
+ *   as-is (cheap, no download); for remote strategies (S3, Azure, Firebase) the image is
+ *   fetched, resized and re-uploaded so the app never hotlinks a third-party CDN and the
+ *   avatar survives the provider revoking the URL.
+ * - `createSocialUser` creates first, then processes the avatar and updates — the user id is
+ *   required as the storage key, so the two-step write is unavoidable.
+ * - Email is refreshed because directory-backed providers (Google Workspace, Entra) can
+ *   change a user's primary address after the account was created.
+ *
+ * Connections:
+ * - consumed by `strategies/socialLogin.js`, `openidStrategy.js`, `samlStrategy.js`
+ * - storage indirection via `server/services/Files/strategies.js`; resizing via
+ *   `server/services/Files/images/avatar.js`
+ * - balance defaults for new users via `getBalanceConfig` from `packages/api`
+ */
 const { getBalanceConfig } = require('@librechat/api');
 const { FileSources } = require('librechat-data-provider');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');

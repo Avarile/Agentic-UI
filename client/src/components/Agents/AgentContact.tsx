@@ -1,3 +1,6 @@
+// The agent's support/contact affordance, shown on the landing page when the
+// selected agent defines one.
+
 import type t from 'librechat-data-provider';
 import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';

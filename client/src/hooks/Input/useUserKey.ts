@@ -1,3 +1,6 @@
+// Per-user provider API keys: presence, expiry, and the key dialog's state. Keys
+// never enter the store — they are written and read at the boundary only.
+
 import { useMemo, useCallback } from 'react';
 import { EModelEndpoint } from 'librechat-data-provider';
 import { useUserKeyQuery, useUpdateUserKeysMutation } from 'librechat-data-provider/react-query';

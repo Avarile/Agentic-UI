@@ -1,3 +1,56 @@
+/**
+ * Application entry point: builds the Express app, wires middleware, mounts routes, boots.
+ *
+ * Read this file first to understand the backend — the order of operations in `startServer()`
+ * *is* the architecture.
+ *
+ * Boot sequence (order is load-bearing):
+ * 1. `config/credentials` on line 1 — populates `process.env` and validates encryption keys
+ *    before any module that reads env at import time.
+ * 2. `telemetry` next, so OpenTelemetry instrumentation patches http/express/mongoose before
+ *    those libraries are required.
+ * 3. `module-alias` registers the `~` -> `api/` prefix used by every internal require.
+ * 4. `connectDb()`, then `indexSync()` fire-and-forget (a slow MeiliSearch must never delay
+ *    the HTTP listener).
+ * 5. `seedDatabase`, orphaned-preview sweep, `getAppConfig({ baseOnly: true })`, file storage,
+ *    deployment plugins/skills, tool-approval hooks, startup checks, interface permissions.
+ * 6. Middleware, routes, error handler, `app.listen()`.
+ * 7. *After* listening: MCP initialization, OAuth reconnect manager, migration checks — then
+ *    `serverReady = true`.
+ *
+ * Design rationale:
+ * - Two-phase readiness. `/livez` answers as soon as the process is up; `/readyz` only after
+ *   post-listen init completes. `rejectChatStartsUntilReady` returns 503 with `Retry-After`
+ *   for new chat POSTs during that window, so a rolling deploy never routes a conversation
+ *   into a half-initialized process while still allowing `/abort` through.
+ * - Fail-fast on boot errors (`startServer().catch(() => process.exit(1))`) *and* inside the
+ *   async `listen` callback. A partially initialized process that passes liveness checks
+ *   while serving broken requests is worse than a crash the orchestrator can restart.
+ * - `unhandledRejection` deliberately does *not* exit: MCP OAuth reconnect storms and
+ *   streamable-HTTP transport resets produce transient recoverable rejections. Non-Error
+ *   reasons are forwarded as-is so structured payloads survive instead of collapsing to
+ *   "[object Object]".
+ * - `uncaughtException` is a curated allow-list of known-unfixable upstream noise
+ *   (GoogleGenerativeAI, Meilisearch fetch failures, abort errors, agents-package errors)
+ *   rather than a blanket swallow, with `CONTINUE_ON_UNCAUGHT_EXCEPTION` as the operator
+ *   override.
+ * - Middleware order: `requestContextMiddleware` first (establishes async-local request/tenant
+ *   context everything downstream reads), then metrics, body parsing, the Express 5
+ *   `req.query` writability shim required by `express-mongo-sanitize`, sanitization, CORS,
+ *   cookies, compression, static assets. `capabilityContextMiddleware` must precede any route
+ *   calling `hasCapability`. `ErrorController` is last because Express identifies error
+ *   middleware by its 4-argument signature.
+ * - `preAuthTenantMiddleware` is applied only to the routes reachable before authentication
+ *   (`/oauth`, `/api/auth`, `/api/config`, `/api/share`) — they still need tenant scoping.
+ * - `index.html` is read once at boot and cached in memory; per-request it is only patched for
+ *   `lang` and the optional query-devtools bootstrap, with `Vary` set accordingly.
+ *
+ * Connections:
+ * - routes: `server/routes/index.js`; middleware: `server/middleware/*`
+ * - strategies: `strategies/index.js`, `server/socialLogins.js`
+ * - config: `server/services/Config`; paths: `config/paths.js`
+ * - see `server/experimental.js` for the clustered variant of this same boot
+ */
 require('../config/credentials');
 
 const telemetry = require('./telemetry');

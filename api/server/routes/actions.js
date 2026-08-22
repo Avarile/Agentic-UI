@@ -1,3 +1,24 @@
+/**
+ * OAuth handshake endpoints for Actions (user-defined OpenAPI tools).
+ *
+ * Three-step flow mirroring the MCP one: `POST /:action_id/oauth/bind` sets a CSRF cookie
+ * scoped to `/api/actions` *before* the user is sent to the IdP, then
+ * `GET /:action_id/oauth/callback` validates that binding and exchanges the code.
+ *
+ * Design:
+ * - The CSRF cookie is scoped to this path (not `/`) so an action flow cannot be confused with
+ *   the MCP flow, which uses the same cookie names on its own path.
+ * - Flow id is `"<userId>:<action_id>"`, tying pending state to both the user and the action.
+ * - Flow state uses `getActionFlowStateManager()` — the *short*-TTL manager (see
+ *   `config/index.js`), so an unclicked action login does not hold a tool call open for the
+ *   full MCP OAuth window.
+ * - Exchanged tokens are stored encrypted through the token model, never returned to the
+ *   client.
+ *
+ * Connections:
+ * - flow manager: `config/index.js`; token helpers from `packages/api`
+ * - service: `server/services/ActionService.js`
+ */
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { logger } = require('@librechat/data-schemas');

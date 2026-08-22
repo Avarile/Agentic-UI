@@ -1,3 +1,14 @@
+/**
+ * ACL gate for individual prompts, enforcing the permissions of their parent prompt group.
+ *
+ * Design: permissions are managed at group granularity — that is the sharing unit users
+ * reason about — but the API also exposes individual prompts by id. Rather than duplicating
+ * ACL rows per prompt (and having to keep them in sync on move/share), the resolver looks the
+ * prompt up and returns its `groupId` as the resource id. A prompt with no group resolves to
+ * null and is denied.
+ *
+ * Connections: wraps `canAccessResource.js`; used by `server/routes/prompts.js`
+ */
 const { ResourceType } = require('librechat-data-provider');
 const { canAccessResource } = require('./canAccessResource');
 const { getPrompt } = require('~/models');

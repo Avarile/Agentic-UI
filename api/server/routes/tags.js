@@ -1,3 +1,12 @@
+/**
+ * CRUD for conversation tags (bookmarks) and tag assignment.
+ *
+ * Router-wide chain is `requireJwtAuth -> checkBookmarkAccess`, so the whole feature can be
+ * disabled by role via the `BOOKMARKS`/`USE` permission.
+ *
+ * Design: tag names are the route parameter, so they are `decodeURIComponent`-ed before use —
+ * tags may contain spaces and non-ASCII characters.
+ */
 const express = require('express');
 const { logger } = require('@librechat/data-schemas');
 const { generateCheckAccess } = require('@librechat/api');

@@ -1,3 +1,6 @@
+// The helpers for the second response pane, mirroring useChatHelpers at index 1+.
+// What AddedChatContext provides in a multi-model run.
+
 import { useCallback, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';

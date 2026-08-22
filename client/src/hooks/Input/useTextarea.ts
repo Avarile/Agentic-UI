@@ -1,3 +1,13 @@
+// The composer textarea: sizing, key handling, paste, and placeholder.
+//
+// Where Enter's meaning is decided. `resolveComposerKeyDown` (utils/shortcuts.ts)
+// is consulted rather than branching inline, because the same keystroke means
+// different things depending on the enter-to-send preference, whether a run is
+// generating, the steer-vs-queue default, and whether a popover has focus.
+//
+// Also owns paste-to-upload, which is why the file upload router and upload modal
+// context are reached from here: a pasted image is an upload, not text.
+
 import { useEffect, useRef, useCallback } from 'react';
 import debounce from 'lodash/debounce';
 import { useToastContext } from '@librechat/client';

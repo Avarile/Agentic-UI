@@ -1,3 +1,6 @@
+// Shared polling intervals and backoff for the MCP queries — one place so status,
+// tools and OAuth checks do not each invent a cadence.
+
 import type {
   MCPServerStatus,
   MCPOAuthStatusResponse,

@@ -1,3 +1,9 @@
+// Renders whichever sidebar panel is active.
+//
+// Deliberately tiny: it resolves the stored panel id through
+// `resolveActivePanel`, so a panel that is no longer available (permission or
+// config changed) falls back to the first one instead of rendering nothing.
+
 import type { NavLink } from '~/common';
 import { useActivePanel, resolveActivePanel } from '~/Providers';
 

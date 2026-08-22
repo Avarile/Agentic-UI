@@ -1,3 +1,18 @@
+/**
+ * Agent CRUD, versioning, duplication and avatar upload (`/api/agents`).
+ *
+ * Also mounts `/actions` and `/tools` sub-routers (both with `configMiddleware`) and exports a
+ * separate `avatar` router that `server/routes/files/index.js` mounts under
+ * `/api/files/images/agents` — avatar upload belongs with the file-upload middleware stack, not
+ * here, so the router is defined next to its resource but mounted where multer lives.
+ *
+ * Design: two authorization layers, as elsewhere — `checkAgentAccess`/`checkAgentCreate` for
+ * role permission, then `canAccessAgentResource` with an explicit `PermissionBits` value per
+ * route (view for GET, edit for PATCH, delete for DELETE, share for permission changes). Each
+ * route names the bit it needs rather than relying on a coarse "can access" check.
+ *
+ * Connections: controller `server/controllers/agents/v1.js`
+ */
 const express = require('express');
 const { generateCheckAccess } = require('@librechat/api');
 const { PermissionTypes, Permissions, PermissionBits } = require('librechat-data-provider');

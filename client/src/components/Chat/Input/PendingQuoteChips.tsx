@@ -1,3 +1,5 @@
+// Dismissible chips for text quoted via "Add to chat", before send.
+
 import { memo, useRef, useState, useEffect, useCallback } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { TextQuote, X } from 'lucide-react';

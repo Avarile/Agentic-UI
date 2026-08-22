@@ -1,3 +1,6 @@
+// Maps prompt group records into the shapes the nav list and the composer's command
+// menu need — both derived from one fetch (see Providers/PromptGroupsContext).
+
 import { InfiniteCollections, QueryKeys } from 'librechat-data-provider';
 import type { InfiniteData, QueryClient } from '@tanstack/react-query';
 import type {

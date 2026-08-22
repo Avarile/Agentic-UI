@@ -1,3 +1,14 @@
+/**
+ * Returns per-model context windows, and pricing when `interface.contextCost` is enabled.
+ *
+ * Design: resolution lives in `resolveTokenConfigMap` in `packages/api`; this controller only
+ * supplies request-scoped dependencies (`req.config`, the resolved models config, user/tenant)
+ * and the pricing lookups (`getValueKey`, `getMultiplier`, `getCacheMultiplier`) from
+ * `~/models`. That inversion keeps the token/pricing rules in TypeScript and testable without
+ * Express.
+ *
+ * Connections: `server/controllers/ModelController.js`; route `GET /api/endpoints/token-config`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { resolveTokenConfigMap } = require('@librechat/api');
 const { getModelsConfig } = require('~/server/controllers/ModelController');

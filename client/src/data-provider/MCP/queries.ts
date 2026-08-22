@@ -1,3 +1,11 @@
+// The configured MCP servers and their tool catalogues.
+//
+// Split because they resolve on different timescales: the server list comes from
+// config and is available immediately, while tools require a live connection and
+// may never arrive for a request-scoped server (see store/mcp.ts's
+// `connectionDeferred`). Consumers must be able to render a server before its
+// tools exist.
+
 import { useQuery, UseQueryOptions, QueryObserverResult } from '@tanstack/react-query';
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import type * as t from 'librechat-data-provider';

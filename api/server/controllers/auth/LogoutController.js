@@ -1,3 +1,17 @@
+/**
+ * Ends a session, and for OpenID users builds the provider's RP-initiated logout URL.
+ *
+ * Design:
+ * - Local logout clears the app's cookies and deletes the session row. OpenID logout must also
+ *   end the session *at the IdP*, or the next login would silently re-authenticate — so the
+ *   controller returns a `redirect` URL the client navigates to.
+ * - `parseMaxLogoutUrlLength` bounds that URL (`OPENID_MAX_LOGOUT_URL_LENGTH`, default 2000).
+ *   Some IdPs echo large state back into the logout URL, and browsers/proxies truncate long
+ *   URLs; an invalid env value logs a warning and falls back rather than breaking logout.
+ * - CloudFront cookies are cleared too, so signed media URLs stop working at logout.
+ *
+ * Connections: `server/services/AuthService.js`, `strategies/openidStrategy.js`
+ */
 const cookies = require('cookie');
 const { isEnabled, clearCloudFrontCookies } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');

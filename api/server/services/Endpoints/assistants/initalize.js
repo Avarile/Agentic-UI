@@ -1,3 +1,16 @@
+/**
+ * Constructs the OpenAI client for the Assistants endpoint. (Filename typo is load-bearing —
+ * it is the import path used by `index.js` and elsewhere.)
+ *
+ * Design: supports BYOK. When `ASSISTANTS_API_KEY`/`ASSISTANTS_BASE_URL` are marked
+ * user-provided (`isUserProvided`), the user's stored values are read and
+ * `checkUserKeyExpiry` rejects an expired key with a typed `ErrorTypes` error so the UI can
+ * prompt for a new one instead of showing a provider error. `getProxyDispatcher` applies the
+ * configured egress proxy.
+ *
+ * Connections: `server/controllers/assistants/helpers.js` (`getOpenAIClient`),
+ * `server/middleware/abortRun.js`
+ */
 const OpenAI = require('openai');
 const { isUserProvided, checkUserKeyExpiry, getProxyDispatcher } = require('@librechat/api');
 const { ErrorTypes, EModelEndpoint } = require('librechat-data-provider');

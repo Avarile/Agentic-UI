@@ -1,3 +1,20 @@
+/**
+ * Run lifecycle helpers: create a run, wait for it to reach a terminal state, retrieve steps.
+ *
+ * Design:
+ * - `withTimeout` wraps every wait so a run that never settles cannot hang the request
+ *   indefinitely — and it clears the timer in both outcomes, so a resolved promise does not leak
+ *   a pending `setTimeout` for the full timeout duration.
+ * - `waitForRun` polls with `sleep` backoff rather than long-polling, because the Assistants API
+ *   offers no completion webhook.
+ * - The run id is tracked through `CacheKeys.ABORT_KEYS` so `abortRun` can cancel an in-flight
+ *   run.
+ * - `_retrieveRunSteps`/`_handleRun` are prefixed with `_` to mark them as internals of this
+ *   module even though they must be exported for the managers to use.
+ *
+ * Connections: `./methods.js`, `./RunManager.js`, `server/services/AssistantService.js`,
+ * `server/middleware/abortRun.js`
+ */
 const { sleep } = require('@librechat/agents');
 const { logger } = require('@librechat/data-schemas');
 const { RunStatus, defaultOrderQuery, CacheKeys } = require('librechat-data-provider');

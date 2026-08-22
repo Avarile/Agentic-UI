@@ -1,3 +1,6 @@
+// Shared remark/rehype plugin configuration, so the full and lite renderers cannot
+// diverge in how they interpret the same text.
+
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import supersub from 'remark-supersub';

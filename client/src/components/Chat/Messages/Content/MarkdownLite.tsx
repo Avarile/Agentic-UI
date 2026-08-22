@@ -1,3 +1,7 @@
+// A reduced markdown renderer for short, non-streaming strings — tool arguments,
+// labels, descriptions. Avoids paying the full pipeline's cost where none of its
+// features apply.
+
 import { memo } from 'react';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';

@@ -1,3 +1,6 @@
+// The inline artifact card in a message, which focuses the artifact in the panel
+// when activated.
+
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import throttle from 'lodash/throttle';
 import { visit } from 'unist-util-visit';

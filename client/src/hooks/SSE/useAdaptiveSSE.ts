@@ -1,3 +1,12 @@
+// Chooses the streaming implementation: resumable, or plain SSE.
+//
+// Resumable is the default and standard SSE is the fallback for assistants
+// endpoints, which do not support resumption.
+//
+// Both hooks are always called — Rules of Hooks — with `null` passed to the
+// inactive one. That is why every hook below must treat a null submission as "do
+// nothing" rather than as an error.
+
 import { isAssistantsEndpoint } from 'librechat-data-provider';
 import type { TSubmission } from 'librechat-data-provider';
 import type { EventHandlerParams } from './useEventHandlers';

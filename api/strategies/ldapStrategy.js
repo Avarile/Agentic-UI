@@ -1,3 +1,22 @@
+/**
+ * LDAP / Active Directory bind authentication.
+ *
+ * Design:
+ * - The module short-circuits to `module.exports = null` when `LDAP_URL` or
+ *   `LDAP_USER_SEARCH_BASE` is unset, and `server/index.js` only registers the strategy when
+ *   both are present — so an LDAP-less deployment neither loads nor validates LDAP config.
+ * - `searchAttributes` starts from a broad union of the names different directories use for
+ *   the same concept (`displayName`/`cn`/`name`, `mail`, `uid`/`sAMAccountName`) and then
+ *   appends whatever the operator names in `LDAP_FULL_NAME`/`LDAP_ID`/`LDAP_USERNAME`/
+ *   `LDAP_EMAIL`. Requesting the union up front avoids a second directory round trip.
+ * - TLS is explicit: `LDAP_CA_CERT_PATH` for a private CA, `LDAP_STARTTLS` for opportunistic
+ *   upgrade, and `LDAP_TLS_REJECT_UNAUTHORIZED` as an audited escape hatch.
+ *
+ * Connections:
+ * - registered conditionally in `server/index.js`; entered via
+ *   `server/middleware/requireLdapAuth.js`
+ * - creates/updates accounts through `~/models`; config via `server/services/Config`
+ */
 const fs = require('fs');
 const LdapStrategy = require('passport-ldapauth');
 const { logger } = require('@librechat/data-schemas');

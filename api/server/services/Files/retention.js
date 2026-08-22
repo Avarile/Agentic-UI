@@ -1,3 +1,17 @@
+/**
+ * Computes file expiry dates from retention policy and conversation type.
+ *
+ * Binds the retention resolvers in `packages/api` to this app's `getConvo` and
+ * `createTempChatExpirationDate`.
+ *
+ * Design: expiry depends on the conversation — a temp chat's files must expire with the chat,
+ * which is why the conversation is read (`getConvoRetention ?? getConvo`, preferring the
+ * projection-limited variant when available). `getAgentFileRetentionExpiry` accepts both
+ * `tool_resource` and `toolResource` spellings because both appear at existing call sites;
+ * normalizing here avoids silently computing no expiry for the mismatched one.
+ *
+ * Connections: `server/services/Files/process.js`, `controllers/tools.js`
+ */
 const {
   getRetentionExpiry: getRetentionExpiryWithDeps,
   getAgentFileRetentionExpiry: getAgentFileRetentionExpiryWithDeps,

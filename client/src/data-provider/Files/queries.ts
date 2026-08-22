@@ -1,3 +1,19 @@
+// File listings, configuration, downloads, and deferred previews.
+//
+// Downloads and previews are the interesting half. `isDirectDownloadSource`
+// decides whether a file can be linked straight from its storage backend or must be
+// proxied through the API; when it is proxied the hook creates an object URL, so
+// `revokeDownloadURL` must be called or the blob leaks for the session. Separate
+// hooks exist for the authenticated, shared-link, and code-output cases because
+// each hits a different route with different auth.
+//
+// Previews are generated asynchronously server-side, so `useFilePreview` polls.
+// `previewRefetchInterval` backs off as attempts accumulate and
+// `PREVIEW_MAX_CONSECUTIVE_ERRORS` stops polling entirely after repeated failures —
+// without that ceiling a permanently unrenderable file would poll for the whole
+// session. `_resetPreviewErrorCounter` is a test seam for that module-level
+// counter.
+
 import { useRecoilValue } from 'recoil';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FileSources, QueryKeys, DynamicQueryKeys, dataService } from 'librechat-data-provider';

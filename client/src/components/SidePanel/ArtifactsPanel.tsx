@@ -1,3 +1,6 @@
+// The resizable panel that hosts the artifacts view, including its collapse
+// behaviour.
+
 import { useEffect, memo } from 'react';
 import { usePanelRef } from 'react-resizable-panels';
 import { ResizableHandleAlt, ResizablePanel } from '@librechat/client';

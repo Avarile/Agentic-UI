@@ -1,3 +1,6 @@
+// The `Artifact` shape and its type constants — client-side, because an artifact is
+// assembled from message content rather than fetched as an entity.
+
 export interface CodeBlock {
   id: string;
   language: string;

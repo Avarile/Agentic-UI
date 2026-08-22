@@ -1,3 +1,5 @@
+// Contains a diagram render failure to the diagram, not the message.
+
 import React from 'react';
 
 interface MermaidErrorBoundaryProps {

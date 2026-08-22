@@ -1,3 +1,16 @@
+/**
+ * Completes a successful local/LDAP login.
+ *
+ * Design: if `twoFactorEnabled`, it returns `{ twoFAPending: true, tempToken }` with status 200
+ * and issues **no** auth tokens — the user is authenticated but not yet logged in. Only
+ * `TwoFactorAuthController` can convert that temp token into a session. Otherwise it strips
+ * `password`, `totpSecret` and `__v` from the user document before responding and sets the auth
+ * cookies via `setAuthTokens`.
+ *
+ * Connections:
+ * - `server/services/AuthService.js`, `services/twoFactorService.js`
+ * - reached via `requireLocalAuth`/`requireLdapAuth` on `server/routes/auth.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { generate2FATempToken } = require('~/server/services/twoFactorService');
 const { setAuthTokens } = require('~/server/services/AuthService');

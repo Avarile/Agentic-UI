@@ -1,3 +1,29 @@
+// Walks the message tree, choosing which sibling to display at each branch point.
+//
+// The recursive core of message rendering, and the file where three hard-won
+// decisions live.
+//
+// Sibling selection is *positional* (a reversed index), so any change to a level's
+// children array would silently change what is displayed. Rather than reset on every
+// change, the effect reconciles by identity: an appended newest child means a
+// submission landed here (send, regenerate and edit-resubmit all append) and should
+// be followed, whereas a newest id that changed while the previous one vanished is
+// the same row being re-keyed mid-stream and must not move the selection.
+//
+// Rows are rendered *without* a React key, which is deliberate and documented
+// below: a streaming message's id changes three times (client UUID → created-handler
+// id → server id), so neither id is stable. With a key, React unmounts and remounts
+// the entire subtree on each SSE event, destroying memoized state and flickering
+// visibly. Without one it reuses the instance and updates props in place.
+//
+// The child recursion is a *sibling* of the row rather than nested inside it, so a
+// row that bails out via its memo comparator never severs the walk that delivers
+// streaming updates to its descendants.
+//
+// Three renderers, by message shape: `MessageParts` for assistants-endpoint content
+// parts, `MessageContent` for standard content parts, and `Message` for legacy
+// text-only messages.
+
 import { memo, useEffect, useRef, useCallback } from 'react';
 import { useRecoilState } from 'recoil';
 import { isAssistantsEndpoint } from 'librechat-data-provider';

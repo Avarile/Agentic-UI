@@ -1,3 +1,32 @@
+/**
+ * Actions: user-defined OpenAPI tools — encryption, domain encoding, tool construction, OAuth.
+ *
+ * Design:
+ * - Metadata (API keys, OAuth client secrets, header values) is encrypted with `encryptV2` and
+ *   decrypted on use (`encryptMetadata`/`decryptMetadata`,
+ *   `encryptSensitiveValue`/`decryptSensitiveValue`), so a database dump does not expose
+ *   third-party credentials.
+ * - Domain encoding exists because a tool *name* must be a short identifier while an action is
+ *   identified by its domain. `domainParser` encodes/decodes both ways, and
+ *   `legacyDomainEncode`/`stripProtocol` preserve compatibility with the earlier encoding — old
+ *   stored actions must keep resolving.
+ * - `createActionTool` builds the executable tool. Outbound requests go through
+ *   `createSSRFSafeAgents`: an action's URL is user-supplied, so the HTTP agent must refuse
+ *   internal addresses and unsafe redirects.
+ * - OAuth-backed actions refresh their token on use (`refreshAccessToken`) and, when
+ *   interaction is required, emit run-step events (`sendEvent`, `GraphEvents`, `StepTypes`) so
+ *   the authorize prompt appears inside the streaming response instead of failing the turn.
+ * - `validateActionOAuthMetadata` runs at save *and* at build time, so a config that became
+ *   invalid is caught before an outbound call.
+ * - `deleteAssistantActions` cleans up actions when their assistant is deleted, preventing
+ *   orphaned encrypted credentials.
+ *
+ * Connections:
+ * - routes: `server/routes/actions.js`, `routes/agents/actions.js`,
+ *   `routes/assistants/actions.js`
+ * - flow state: `config/index.js` (short-TTL action flow manager); tools:
+ *   `server/services/ToolService.js`
+ */
 const jwt = require('jsonwebtoken');
 const { nanoid } = require('nanoid');
 const { GraphEvents, sleep } = require('@librechat/agents');

@@ -1,3 +1,6 @@
+// The side panel's link definitions — id, icon, label, component — consumed by the
+// nav-link hooks.
+
 export const accounts = [
   {
     label: 'Alicia Koch',

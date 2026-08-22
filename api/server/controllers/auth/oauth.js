@@ -1,3 +1,23 @@
+/**
+ * Final handler for every OAuth/SAML callback — turns a verified provider identity into a session.
+ *
+ * `createOAuthHandler(redirectUri)` returns the handler mounted at the end of each callback
+ * chain in `server/routes/oauth.js`.
+ *
+ * Design:
+ * - `checkBan` is invoked *inside* the handler rather than as route middleware, because the
+ *   user identity only exists after the provider callback has been verified.
+ * - Entra group memberships are synced here (`syncUserEntraGroupMemberships`) so a user's group
+ *   ACLs are current from their first request, not one request late.
+ * - Admin-panel logins are detected (`isAdminPanelRedirect`) and handed a short-lived exchange
+ *   code (`generateAdminExchangeCode`) rather than tokens in the URL — the admin console runs
+ *   on a different origin, so tokens must not travel as query parameters.
+ * - OpenID users get `setOpenIDAuthTokens` (which can store the IdP tokens for reuse); everyone
+ *   else gets `setAuthTokens`.
+ * - Ends in a redirect, never JSON: the browser is mid-navigation.
+ *
+ * Connections: `server/services/AuthService.js`, `services/PermissionService.js`
+ */
 const { CacheKeys } = require('librechat-data-provider');
 const { logger, DEFAULT_SESSION_EXPIRY } = require('@librechat/data-schemas');
 const {

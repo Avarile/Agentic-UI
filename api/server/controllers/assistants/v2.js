@@ -1,3 +1,18 @@
+/**
+ * Assistants API v2 controllers: create/patch with v2 tool-resource semantics.
+ *
+ * Only the operations whose shape actually changed live here — `retrieve`, `delete` and `list`
+ * are reused from v1 by `server/routes/assistants/v2.js`.
+ *
+ * Design: v2 introduced `tool_resources` (file ids attached per tool rather than a flat list),
+ * so this file owns `addResourceFileId`/`deleteResourceFileId` and an `updateAssistant` that
+ * merges tool resources rather than replacing them — a blind overwrite would detach files the
+ * request did not mention. Action tools are revalidated on update
+ * (`validateAndUpdateTool`), and MCP tool names are healed before the upstream call as in v1.
+ *
+ * Connections: `./helpers.js`, `./v1.js`, `server/services/ActionService.js`,
+ * `services/MCP.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { ToolCallTypes } = require('librechat-data-provider');
 const validateAuthor = require('~/server/middleware/assistants/validateAuthor');

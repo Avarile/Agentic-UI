@@ -1,3 +1,17 @@
+/**
+ * Barrel for the middleware layer — the single import point used by route modules.
+ *
+ * Design: spreads the sub-barrels (`abortMiddleware`, `validate`, `limiters`, `roles`,
+ * `accessResources`) so a route can pull any middleware from one require. Note the deliberate
+ * omission documented in `roles/index.js`: capability helpers are *not* re-exported here
+ * because `roles/capabilities.js` depends on `~/models`, and this barrel is required by
+ * modules that load while it is still initializing — the resulting circular require would
+ * silently yield an empty exports object. Import capability helpers directly from
+ * `~/server/middleware/roles/capabilities`.
+ *
+ * Connections:
+ * - consumed by nearly every module under `server/routes/`
+ */
 const validatePasswordReset = require('./validatePasswordReset');
 const setTwoFactorTempUser = require('./setTwoFactorTempUser');
 const validateRegistration = require('./validateRegistration');

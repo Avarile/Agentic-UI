@@ -1,3 +1,9 @@
+// Effective permissions for one resource (agent, prompt, skill, project).
+//
+// Distinct from `useHasAccess`, which answers a *global* role question. This
+// answers a per-object one — can this user edit this specific agent — which
+// requires a server round trip because sharing is per-resource.
+
 import {
   hasPermissions,
   useGetEffectivePermissionsQuery,

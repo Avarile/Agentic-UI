@@ -1,3 +1,14 @@
+// The dismissible admin announcement bar.
+//
+// The banner message is admin-authored HTML, so it is sanitized through
+// `createConfigHtmlSanitizer` with a text-only tag allowlist — this is a config
+// injection boundary, not a trusted string.
+//
+// It measures itself and reports its height upward (`onHeightChange`) because the
+// app shell sizes the viewport as `100dvh - bannerHeight`; without that the
+// composer would be pushed off-screen. Dismissals are remembered per banner id in
+// `store.hideBannerHint`, so a new announcement still shows.
+
 import { useEffect, useMemo, useRef } from 'react';
 import { XIcon } from 'lucide-react';
 import { useRecoilState } from 'recoil';

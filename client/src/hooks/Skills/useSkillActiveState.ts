@@ -1,3 +1,6 @@
+// A skill's enabled/disabled state for this user, with optimistic toggling.
+// Separate from the skill record itself, which is shared.
+
 import { useCallback, useEffect, useMemo } from 'react';
 import { QueryKeys } from 'librechat-data-provider';
 import { useToastContext } from '@librechat/client';

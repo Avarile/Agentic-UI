@@ -1,3 +1,7 @@
+// The conversation search input. Writes both `query` and, debounced,
+// `debouncedQuery` into `store.search` — the gap between them is what the results
+// page uses to dim outgoing results and suppress pagination.
+
 import React, { forwardRef, useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import debounce from 'lodash/debounce';
 import { useRecoilState } from 'recoil';

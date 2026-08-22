@@ -1,3 +1,18 @@
+/**
+ * Rate-limits and audits attempts to access conversations the user does not own.
+ *
+ * Reads the conversation id from either `body.conversationId` or `body.arg.conversationId`
+ * (two client payload shapes), then verifies ownership.
+ *
+ * Design: an unauthorized access is recorded as a `CONVO_ACCESS` violation with a configurable
+ * score, so scraping other users' conversation ids counts toward a ban rather than just
+ * returning 403 each time. The middleware short-circuits when the cache store is unavailable
+ * rather than failing the request — availability of an abuse counter should not gate access
+ * control, which is enforced by the ownership query itself.
+ *
+ * Connections:
+ * - violations/cache via `cache/`; rejection via `server/middleware/denyRequest.js`
+ */
 const { isEnabled } = require('@librechat/api');
 const { Constants, ViolationTypes, Time } = require('librechat-data-provider');
 const denyRequest = require('~/server/middleware/denyRequest');

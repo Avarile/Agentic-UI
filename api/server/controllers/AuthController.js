@@ -1,3 +1,27 @@
+/**
+ * Registration, password reset, token refresh, and Graph token issuance.
+ *
+ * `refreshController` is the interesting one. It handles two very different token regimes:
+ * - Local/social users: rotate the refresh token, verify it against a live session row, issue a
+ *   new access token.
+ * - OpenID users with `OPENID_REUSE_TOKENS`: reuse the IdP's tokens instead of minting our own.
+ *   `getReusableOpenIDSessionToken` and `isRecentOpenIDSessionRefresh` throttle refreshes so a
+ *   chatty client cannot hammer the IdP's token endpoint, and `getValidOpenIDReuseUserId`
+ *   verifies the `openid_user_id` cookie signature — the raw cookie value is client-controlled
+ *   and trusting it would be an impersonation vector.
+ *
+ * Design:
+ * - `sanitizeUserForAuthResponse` is applied to every response body; auth endpoints are the
+ *   most likely place to accidentally serialize `password`, `totpSecret` or `backupCodes`.
+ * - Password-reset responses are deliberately uniform whether or not the email exists, so the
+ *   endpoint cannot be used to enumerate accounts.
+ * - CloudFront auth cookies are set alongside the app tokens so signed media URLs work for the
+ *   session.
+ *
+ * Connections:
+ * - service: `server/services/AuthService.js`; sessions/users via `~/models`
+ * - routes: `server/routes/auth.js`; OpenID config from `strategies/openidStrategy.js`
+ */
 const cookies = require('cookie');
 const jwt = require('jsonwebtoken');
 const openIdClient = require('openid-client');

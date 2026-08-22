@@ -1,3 +1,22 @@
+/**
+ * Establishes and memoizes the Mongoose connection.
+ *
+ * Caches the connection on `global.mongoose` so hot reloads (nodemon) and repeated requires
+ * reuse one pool instead of opening a new one each time — without this, connections grow
+ * exponentially in development. A cached-but-disconnected handle is detected via
+ * `_readyState` and reconnected.
+ *
+ * Design: every pool tuning knob (`maxPoolSize`, `minPoolSize`, `maxConnecting`,
+ * `maxIdleTimeMS`, `waitQueueTimeoutMS`, `autoIndex`, `autoCreate`) is read from an env var
+ * and only spread into the options object when actually set, so unset vars fall through to
+ * driver defaults rather than being pinned to a hardcoded value. `strictQuery` is enabled and
+ * `bufferCommands` disabled so queries fail fast instead of silently queueing before connect.
+ * Query metrics instrumentation is attached at import time, before any model is used.
+ *
+ * Connections:
+ * - called by `server/index.js` and `server/experimental.js` via `db/index.js`
+ * - metrics instrumentation from `packages/api` feeds the `/metrics` endpoint
+ */
 require('dotenv').config();
 const { isEnabled, instrumentMongooseQueryMetrics } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');

@@ -1,3 +1,9 @@
+// Confines tab focus within a container while it is open.
+//
+// Used by surfaces that are modal in behaviour but not built on the Radix dialog
+// primitive (which brings its own trap). Required for keyboard accessibility: a
+// visually-modal overlay whose focus can escape is worse than no overlay.
+
 import { useEffect, useRef, type RefObject } from 'react';
 
 const FOCUSABLE_SELECTOR =

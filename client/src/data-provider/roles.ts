@@ -1,3 +1,14 @@
+// Role reads and the per-permission-type update mutations.
+//
+// One mutation per permission family (prompts, agents, skills, memory, people
+// picker, MCP servers, marketplace, remote agents) rather than a single generic
+// update. That is deliberate: each targets its own endpoint and invalidates its own
+// feature queries, and a generic version would either over-invalidate or make the
+// call site responsible for knowing which caches to clear.
+//
+// `useGetRole` backs the `useHasAccess` hooks (hooks/Roles), so a permission change
+// here is what makes a gated feature appear without a reload.
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   QueryKeys,

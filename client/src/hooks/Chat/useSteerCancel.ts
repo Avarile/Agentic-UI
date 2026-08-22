@@ -1,3 +1,8 @@
+// Cancelling a pending steer, and reclaiming its text back into the composer.
+//
+// Reclaim exists so a cancelled steer is not lost — the user gets their words back
+// in the textarea rather than having to retype them.
+
 import { useCallback } from 'react';
 import { useRecoilCallback, useRecoilValue } from 'recoil';
 import type { PendingSteer } from '~/store/families';

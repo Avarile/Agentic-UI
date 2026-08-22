@@ -1,3 +1,9 @@
+// A syntax-highlighted code fence with copy, language label, and — where the
+// language supports it — a run action.
+//
+// Used from chat, share, search and artifacts, which is why it lives in the shared
+// Messages directory and takes no chat context.
+
 import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { Tools } from 'librechat-data-provider';
 import type { CodeBarProps } from '~/common';

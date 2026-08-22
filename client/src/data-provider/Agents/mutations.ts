@@ -1,3 +1,15 @@
+// Agent lifecycle: create, update, delete, duplicate, avatar, actions, and version
+// revert.
+//
+// Invalidation is the substance of this file. An agent appears in the shared map,
+// the permission-scoped lists, the marketplace listing, and its own detail and
+// version queries — so `allAgentViewAndEditQueryKeys` and
+// `invalidateAgentMarketplaceQueries` exist to make "everything that could be
+// showing this agent" one call instead of a list each hook has to remember.
+//
+// Missing one of those keys does not fail loudly; it shows a stale agent in one
+// surface while the others update. Prefer the helpers over ad-hoc invalidation.
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService, MutationKeys, PermissionBits, QueryKeys } from 'librechat-data-provider';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';

@@ -1,3 +1,9 @@
+// A mermaid diagram content part: render, zoom, export, and error containment.
+//
+// Diagram source streams in, so most intermediate states are invalid syntax —
+// failures are expected and rendered quietly rather than as errors. See
+// hooks/Mermaid for the debounced render that avoids parsing every token.
+
 import React, { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useLocation } from 'react-router-dom';

@@ -1,3 +1,6 @@
+// Form state for a structured ask-user-question prompt, where the model supplied
+// the options.
+
 import { useCallback, useMemo } from 'react';
 import { atomFamily, useRecoilState, useResetRecoilState } from 'recoil';
 import type { Agents } from 'librechat-data-provider';

@@ -1,3 +1,7 @@
+// Inline message editing, including resubmission — which appends a new sibling
+// rather than mutating in place, and is one of the appends MultiMessage's
+// reconciliation deliberately follows.
+
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useForm } from 'react-hook-form';

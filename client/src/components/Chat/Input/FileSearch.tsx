@@ -1,3 +1,5 @@
+// The file-search capability toggle.
+
 import React, { memo } from 'react';
 import { CheckboxButton, VectorIcon } from '@librechat/client';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';

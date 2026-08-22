@@ -1,3 +1,6 @@
+// Voice list normalization across TTS engines, which report voices in different
+// shapes.
+
 export type SpeechVoicesSnapshot = {
   voices: SpeechSynthesisVoice[];
   supported: boolean;

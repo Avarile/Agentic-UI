@@ -1,3 +1,11 @@
+/**
+ * IP rate limit on login attempts (`LOGIN_MAX` per `LOGIN_WINDOW` minutes, default 7/5min).
+ *
+ * Keyed by IP with the port stripped (`removePorts`) — including the ephemeral port would give
+ * every attempt its own bucket and defeat the limit entirely. Records a `LOGINS` violation
+ * before responding 429, so repeated bursts escalate toward a ban rather than just being
+ * throttled.
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

@@ -1,3 +1,18 @@
+// Startup config and endpoint capabilities — the queries everything else waits on.
+//
+// `useGetStartupConfig` is the most widely consumed query in the client: interface
+// flags, model specs, branding, terms, and feature availability all come from it,
+// which is why its key is exported (`startupConfigKey`) for direct cache access
+// outside React.
+//
+// `useGetSharedStartupConfig` is the public variant, used by the share route where
+// there is no session — it exists as a separate key so an anonymous response can
+// never populate the authenticated cache entry.
+//
+// `useGetEndpointsQuery` and `useTokenConfigQuery` describe which providers are
+// configured and their token limits; ChatRoute gates conversation initialization on
+// both.
+
 import { useRecoilValue } from 'recoil';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKeys, dataService } from 'librechat-data-provider';

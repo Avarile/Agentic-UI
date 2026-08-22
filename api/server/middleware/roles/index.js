@@ -1,4 +1,6 @@
 /**
+ * Barrel for role-based authorization middleware — deliberately minimal.
+ *
  * NOTE: hasCapability, requireCapability, hasConfigCapability, and
  * capabilityContextMiddleware are intentionally NOT re-exported here.
  *

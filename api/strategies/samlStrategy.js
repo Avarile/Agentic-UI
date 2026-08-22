@@ -1,3 +1,24 @@
+/**
+ * SAML 2.0 single sign-on strategy.
+ *
+ * `setupSaml()` builds the base configuration and registers the user-facing strategy;
+ * `setupSamlAdmin()` registers the admin-callback variant with `existingUsersOnly`.
+ *
+ * Design:
+ * - Every profile field is read through `getSamlClaim(profile, envVar, defaultKey)`, so an
+ *   operator can remap any attribute (email, username, given/family name, picture) to whatever
+ *   URN their IdP emits without code changes. SAML attribute naming is not standardized in
+ *   practice, which is why nothing is hardcoded.
+ * - `getCertificateContent` accepts either an inline PEM string or a filesystem path,
+ *   resolved against `config/paths.js` — the same variable works for env-injected secrets and
+ *   mounted secret files.
+ * - `convertToUsername`/`getFullName` mirror the OpenID equivalents so an account created via
+ *   either protocol ends up with consistent field shapes.
+ *
+ * Connections:
+ * - called by `server/socialLogins.js`; admin variant by `server/routes/admin/auth.js`
+ * - provisioning via `strategies/process.js`; avatar handling via `server/services/Files/*`
+ */
 const fs = require('fs');
 const path = require('path');
 const passport = require('passport');

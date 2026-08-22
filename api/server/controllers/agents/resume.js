@@ -1,3 +1,34 @@
+/**
+ * Resumes a paused generation — human-in-the-loop tool approval or an ask-user answer.
+ *
+ * `ResumeAgentController` reloads the LangGraph checkpoint for a paused run, applies the user's
+ * decision, and continues streaming from where it stopped.
+ *
+ * Design:
+ * - The pause/resume contract is validated hard before touching the graph:
+ *   `findUndecidedToolCalls`, `findIncompleteDecisions` and `findDisallowedDecisions` ensure the
+ *   submitted decisions cover exactly the calls that were actually pending and nothing else — a
+ *   crafted body must not approve a tool the model never requested.
+ * - `isPendingActionStale` + `computeAgentRequestFingerprint` guard against resuming into a
+ *   changed world: if the agent, model or request shape has changed since the pause, the
+ *   checkpoint is not resumable and the turn is failed rather than silently run under different
+ *   parameters.
+ * - Checkpoints are cleaned up on every terminal path (`deleteResumedGenerationCheckpoint`,
+ *   `deleteFailedResumeCheckpoint`) so a failed resume cannot be replayed.
+ * - A resume can itself pause again; `persistRePauseProgress` saves the partial content so the
+ *   second pause does not lose the work done between the two.
+ * - `resolveAccumulatedAttachments`/`mergeAttachments` merge attachments produced before and
+ *   after the pause, deduplicating rather than appending — the pre-pause set is re-read from
+ *   the saved message.
+ * - `resolveSegmentContent` recovers the streamed content for the segment so replay after
+ *   reconnect stays consistent.
+ * - `hasTenantMismatch` treats untenanted (pre-multi-tenancy) jobs as accessible when the user
+ *   check passes, so old paused jobs remain resumable.
+ *
+ * Connections:
+ * - HITL helpers from `packages/api`; job/stream state via `GenerationJobManager`
+ * - route: `POST /api/agents/chat/resume` (`server/routes/agents/chat.js`)
+ */
 const { logger } = require('@librechat/data-schemas');
 const { Constants, EModelEndpoint } = require('librechat-data-provider');
 const {

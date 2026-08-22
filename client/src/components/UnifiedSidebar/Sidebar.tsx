@@ -1,3 +1,7 @@
+// The desktop sidebar's two-part layout: the always-visible rail and the panel
+// area, which fades rather than unmounts so collapsing does not tear down panel
+// state. Marked `aria-hidden` and made non-interactive while collapsed.
+
 import { memo } from 'react';
 import type { NavLink } from '~/common';
 import SidePanelNav from '~/components/SidePanel/Nav';

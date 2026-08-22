@@ -1,3 +1,17 @@
+/**
+ * Chooses the storage strategy for a file from its context.
+ *
+ * `getFileStrategy(appConfig, { isAvatar, isImage, context })` returns a `FileSources` value.
+ *
+ * Design: supports both the legacy single `fileStrategy` setting and the newer per-kind
+ * `fileStrategies` map, so an existing deployment keeps working while a new one can send avatars
+ * to one backend and documents to another (e.g. avatars to a public CDN, documents to private
+ * object storage). Resolution is a lookup, not a branchy chain: kind (avatar/image/context) then
+ * fall back to the global default.
+ *
+ * Connections: `server/services/Files/strategies.js` (`getStrategyFunctions`), avatar and skill
+ * upload paths
+ */
 const { FileSources, FileContext } = require('librechat-data-provider');
 
 /**

@@ -1,3 +1,13 @@
+/**
+ * Gate for LDAP/Active Directory login — runs the `ldapauth` Passport strategy.
+ *
+ * Uses the callback form so a bind failure can be distinguished from a missing user (404 with
+ * the strategy's `info` payload forwarded, which carries the directory's reason).
+ *
+ * Connections:
+ * - strategy: `strategies/ldapStrategy.js` (registered only when LDAP env vars are set)
+ * - used by `server/routes/auth.js`
+ */
 const passport = require('passport');
 
 const requireLdapAuth = (req, res, next) => {

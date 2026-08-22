@@ -1,3 +1,6 @@
+// The `< 2/3 >` control for moving between alternate responses at a branch point.
+// The visible half of MultiMessage's positional sibling index.
+
 import { Button } from '@librechat/client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { TMessageProps } from '~/common';

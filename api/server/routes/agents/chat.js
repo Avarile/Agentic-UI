@@ -1,3 +1,29 @@
+/**
+ * The main agent chat endpoint: `POST /api/agents/chat` (plus `/resume` and `/:endpoint`).
+ *
+ * Middleware order is the contract — each layer assumes the previous one ran:
+ * 1. `restoreResumeContext` — rebuilds request context for a HITL resume, whose body does not
+ *    carry the full original request.
+ * 2. `createMessageFilterPii` — PII redaction runs **first** among the content checks, so
+ *    sensitive text is never forwarded to the external moderation API by the next step.
+ * 3. `moderateText` — optional OpenAI moderation.
+ * 4. `checkAgentAccess` — role permission to use agents at all.
+ * 5. `checkAgentResourceAccess` (`canAccessAgentFromBody`) — ACL on the specific agent, read
+ *    from the body rather than the path.
+ * 6. `validateConvoAccess` — conversation ownership.
+ * 7. `buildEndpointOption` — normalizes the body into `endpointOption`, applying model specs
+ *    before the controller can be reached.
+ *
+ * Design: `/resume` is a separate route with its own controller because resuming a
+ * human-in-the-loop checkpoint (tool approval or an ask-user answer) is not a new turn — it
+ * continues an existing run. `/:endpoint` exists so an endpoint can be addressed by URL as
+ * well as by body field.
+ *
+ * Connections:
+ * - controllers: `server/controllers/agents/request.js`, `resume.js`
+ * - client init: `server/services/Endpoints/agents/initialize.js`; titles via
+ *   `services/Endpoints/agents/title.js`
+ */
 const express = require('express');
 const { logger } = require('@librechat/data-schemas');
 const {

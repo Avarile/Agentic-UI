@@ -1,9 +1,13 @@
-/* `useLocalStorage`
- *
- * Features:
- *  - JSON Serializing
- *  - Also value will be updated everywhere, when value updated (via `storage` event)
- */
+// A `useState` that persists to localStorage and syncs across tabs.
+//
+// The simple variant: JSON-serialized, and a `storage` event listener so every
+// tab holding the same key sees a change. Use it for state genuinely local to a
+// component that should survive a reload — anything shared belongs in `~/store`.
+//
+// Note the near-duplicate: useLocalStorageAlt.tsx exports a hook with the *same*
+// name and a superset of this signature (a global setter and a write predicate).
+// They are separate because call sites depend on this one's simpler, always-write
+// behaviour. Import by path and check which you mean.
 
 import { useEffect, useState } from 'react';
 

@@ -1,3 +1,17 @@
+/**
+ * Boot-time check for pending permission migrations, with operator warnings.
+ *
+ * Checks whether agents and prompts still need their ACL permissions migrated
+ * (`checkAgentPermissionsMigration`, `checkPromptPermissionsMigration`) and logs actionable
+ * warnings if so.
+ *
+ * Design: it *warns* rather than migrating. A permissions migration rewrites access-control data
+ * across every shared resource, so it must be an explicit, observable operator action — running
+ * it implicitly at boot could silently change who can see what. Called last in the boot sequence
+ * (after `app.listen`) because it needs every other subsystem initialized.
+ *
+ * Connections: called from `server/index.js`; helpers from `packages/api`
+ */
 const mongoose = require('mongoose');
 const { logger } = require('@librechat/data-schemas');
 const {

@@ -1,3 +1,18 @@
+/**
+ * Image resizing with `sharp` — the shared primitive every storage backend uses.
+ *
+ * `resizeImageBuffer(buffer, resolution, endpoint)` accepts `'low'` (max 512x512), `'high'`
+ * (max 768x2000) or a custom `{ percentage, px }` object; `resizeAndConvert` produces a small
+ * fixed-width image for avatars.
+ *
+ * Design: the low/high presets mirror the vision-model detail tiers — sending a larger image than
+ * the tier uses costs tokens for pixels the model discards, so resizing to the tier is a direct
+ * cost control, not just bandwidth. The `endpoint` parameter exists because providers differ in
+ * their maximum accepted dimensions.
+ *
+ * Connections: used by `Local/images.js`, `Azure/images.js`, `Firebase/images.js`,
+ * `images/convert.js`, `images/avatar.js`
+ */
 const sharp = require('sharp');
 const { EModelEndpoint } = require('librechat-data-provider');
 

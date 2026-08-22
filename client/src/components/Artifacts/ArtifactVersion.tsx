@@ -1,3 +1,5 @@
+// Version history for an artifact edited more than once.
+
 import React, { useState } from 'react';
 import { MenuButton } from '@ariakit/react';
 import { History, Check } from 'lucide-react';

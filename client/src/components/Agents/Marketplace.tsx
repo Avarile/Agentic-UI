@@ -1,3 +1,5 @@
+// The agent marketplace page: categories, search, and a virtualized grid.
+
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useMediaQuery } from '@librechat/client';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';

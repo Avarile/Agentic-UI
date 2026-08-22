@@ -1,3 +1,36 @@
+/**
+ * The file pipeline: upload, download, delete, and conversion for every file the app touches.
+ *
+ * The largest file service. Entry points by intent: `processFileUpload` (generic),
+ * `processAgentFileUpload` (agent tool resources), `processImageFile` / `uploadImageBuffer`
+ * (images), `processFileURL` (remote URL), `processOpenAIFile` / `processOpenAIImageOutput`
+ * (assistant outputs), `retrieveAndProcessFile` (fetch back for citations/attachments),
+ * `processDeleteRequest`, and the expired-file sweeper.
+ *
+ * Design:
+ * - Every upload goes through `createSanitizedUploadWrapper`, so filename sanitization cannot be
+ *   forgotten by a new call site.
+ * - Deletion is the subtle part. `getDeleteMethod` resolves the deleter from the *file's own*
+ *   source rather than the current default, so files survive a storage migration.
+ *   `createDeleteFileWithSecondaryStorage` handles files that exist in two places (e.g. object
+ *   storage plus the vector DB) and must be removed from both.
+ *   `isMissingStorageError` treats an already-absent object as success — otherwise a retried
+ *   delete would fail forever and leave an undeletable database row.
+ *   `enqueueDeleteOperation` serializes deletes through the queue so a bulk delete cannot
+ *   saturate the storage backend.
+ * - `hasCodeEnvRef` marks files that also live in a code-interpreter session, which need sandbox
+ *   cleanup in addition to storage deletion.
+ * - Retention: `startExpiredFileSweep` (called from `server/index.js`) periodically runs
+ *   `sweepExpiredFiles`, so temp-chat and retention-bounded files are actually removed rather
+ *   than only marked.
+ * - `filterFile` enforces size/type limits before any bytes are processed, and `base64ToBuffer` /
+ *   `saveBase64Image` handle model-generated images.
+ *
+ * Connections:
+ * - storage indirection: `strategies.js`; images: `images/*`; sandbox: `Code/*`;
+ *   retention: `retention.js`; queue: `server/utils/queue.js`
+ * - consumers: file routes, agents/assistants controllers, tools, avatars
+ */
 const fs = require('fs');
 const path = require('path');
 const mime = require('mime');

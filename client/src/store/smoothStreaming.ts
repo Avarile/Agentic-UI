@@ -1,3 +1,10 @@
+// Whether streamed text fades in.
+//
+// Purely visual — token delivery and state updates are identical either way, and
+// the animation is disabled under `prefers-reduced-motion`. Separate from
+// settings.ts for the same reason as showThinking: message rendering imports it
+// directly.
+
 import { createStorageAtom } from './jotai-utils';
 
 const DEFAULT_SMOOTH_STREAMING = true;

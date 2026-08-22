@@ -1,3 +1,10 @@
+// Development-only: logs which of the values you pass it changed since the last
+// render.
+//
+// The practical tool for finding the identity change behind an unexpected
+// re-render in the message tree. Off unless `window.__LC_RENDER_DEBUG__ = true` is
+// set in the console, and compiled out of production builds.
+
 import { useEffect, useRef } from 'react';
 
 type DebugWindow = Window & {

@@ -1,3 +1,26 @@
+// The conversation surface: header, message list or landing, composer, footer.
+//
+// Where the chat's providers are established (`ChatFormProvider`, `ChatContext`,
+// `AddedChatContext`) and where the streaming hooks are attached. Rendered by
+// ChatRoute once conversation state has settled.
+//
+// The branching between landing, spinner and message list is more subtle than it
+// looks. `isLandingPage` means "no messages AND this is a new chat", while
+// `isNavigating` means "no messages yet but a conversation is named" — the second
+// must show a spinner, not the landing page, or navigating to an existing
+// conversation flashes the greeting before its messages arrive.
+//
+// `refetchOnMount: true` on the messages query is paired with the fact that
+// navigation now *invalidates* rather than removes the cache: a warm conversation
+// renders instantly and reconciles in the background instead of unmounting into a
+// spinner. That in turn is why `useResumeOnLoad` is gated on `!isFetching` as well
+// as `!isLoading` — a stale invalidated cache reports `isLoading: false` while its
+// refetch is still in flight, and resume must not build from it.
+//
+// The `sr-only` heading and the guard around `conversationTitle` exist because
+// Recoil's conversation can lag the route mid-navigation; announcing a title that
+// belongs to the previous conversation is worse than announcing nothing.
+
 import { memo, useCallback } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useForm } from 'react-hook-form';

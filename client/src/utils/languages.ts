@@ -1,3 +1,5 @@
+// The supported UI languages and their display names.
+
 export const languages = new Set([
   'adoc',
   'apacheconf',

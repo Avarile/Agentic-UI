@@ -1,3 +1,8 @@
+// Smooth, cancellable scroll-to-element, shared by the message list and the nav.
+//
+// The scroll is throttled and abortable because the two callers both need to stop
+// mid-animation when the user takes over — see hooks/Messages/useMessageScrolling.ts.
+
 import { RefObject, useCallback } from 'react';
 import throttle from 'lodash/throttle';
 

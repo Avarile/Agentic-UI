@@ -1,3 +1,14 @@
+// i18next setup, and the safe language-change path.
+//
+// Catalogues are loaded per language rather than bundled together, which is why
+// `initializeI18n` is awaited in main.jsx before the first render — painting before
+// it resolves flashes raw `com_*` keys.
+//
+// `changeLanguageSafely` and `normalizeLocale` exist because stored and
+// browser-reported locales come in inconsistent forms (`pt-br`, `pt_BR`, `zh-Hans`)
+// and a language change that throws must not leave the app without a catalogue.
+// Only `en/translation.json` is hand-edited; the rest are synchronized externally.
+
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 

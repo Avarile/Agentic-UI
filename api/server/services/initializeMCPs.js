@@ -1,3 +1,30 @@
+/**
+ * Boot-time MCP initialization: build the registry and manager, connect servers, publish tools.
+ *
+ * Called from `server/index.js` *after* the HTTP server is listening, because connecting to
+ * remote MCP servers can be slow and must not delay readiness.
+ *
+ * Design:
+ * - Registers change handlers (`setMCPToolsChangedHandler` and the generation/revision variants)
+ *   so a server whose tool list changes at runtime republishes into the tool cache. Tool caches
+ *   are versioned by *generation* (`getMCPToolsCacheGeneration`,
+ *   `renewMCPToolsCacheGeneration`) and *publication revision*
+ *   (`getNextAppToolsPublicationRevision`) so replicas can detect a stale catalog rather than
+ *   serving one indefinitely.
+ * - `refreshChangedServerTools` is exported separately so a targeted refresh can be triggered
+ *   without a full re-initialization; it is also the seam the tests use.
+ * - `withPluginServers` merges MCP servers declared by deployment plugins
+ *   (`getDeploymentPluginMcpServers`) with configured ones, so plugin-provided servers are
+ *   first-class.
+ * - `resolveMCPAllowlists` computes the permitted server set once per init rather than per
+ *   connection.
+ * - `registerShutdownTask` ensures connections are closed on shutdown, so a rolling deploy does
+ *   not leave sockets open against remote servers.
+ *
+ * Connections:
+ * - `config/index.js` (manager/registry singletons), `server/services/MCP.js`,
+ *   `services/Config/mcp.js`
+ */
 const mongoose = require('mongoose');
 const { logger } = require('@librechat/data-schemas');
 const {

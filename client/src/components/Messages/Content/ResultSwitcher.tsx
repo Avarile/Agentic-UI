@@ -1,3 +1,5 @@
+// Switches between multiple execution results for one code block.
+
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLocalize } from '~/hooks';
 

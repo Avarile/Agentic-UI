@@ -1,3 +1,6 @@
+// Parses a skill's markdown into frontmatter and body. Pure, so the round trip
+// between editing and serializing is testable.
+
 import { InvocationMode } from 'librechat-data-provider';
 import { parseFrontmatter } from './frontmatter';
 

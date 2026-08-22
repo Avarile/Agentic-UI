@@ -1,3 +1,7 @@
+// Renders a UI resource returned by an MCP tool — arbitrary provider-supplied
+// content, so it is treated as untrusted and isolated rather than composed into the
+// message.
+
 import React from 'react';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import { useOptionalMessagesConversation, useOptionalMessagesOperations } from '~/Providers';

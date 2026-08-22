@@ -1,3 +1,6 @@
+// The avatar beside a message: user, agent, assistant, or provider mark. Resolves
+// from conversation and entity maps so every surface shows the same icon.
+
 import { useMemo, memo } from 'react';
 import { getEndpointField } from 'librechat-data-provider';
 import type { Assistant, Agent } from 'librechat-data-provider';

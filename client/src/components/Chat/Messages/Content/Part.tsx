@@ -1,3 +1,6 @@
+// One content part: chooses the renderer for its type. The switch that
+// ContentParts drives.
+
 import { memo } from 'react';
 import {
   Tools,

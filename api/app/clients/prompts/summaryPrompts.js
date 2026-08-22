@@ -1,3 +1,14 @@
+/**
+ * Prompt templates for conversation summarization (context-window overflow handling).
+ *
+ * Design: the header comment on the default template records the token count (98 tokens without
+ * the substituted variables, 101 with the assistant label) and links a tokenizer. That is not
+ * trivia — the summary prompt is counted against the summary's own max-context budget, so
+ * changing the wording changes how much conversation fits. Re-measure if you edit it.
+ *
+ * Connections: `app/clients/BaseClient.js` (`summarizeMessages`); `PromptTemplate` from
+ * `@librechat/agents`
+ */
 const { PromptTemplate } = require('@librechat/agents/langchain/prompts');
 /*
  * Without `{summary}` and `{new_lines}`, token count is 98

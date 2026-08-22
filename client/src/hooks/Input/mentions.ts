@@ -1,3 +1,6 @@
+// Pure matching and formatting helpers for mentions. Separated from the hook so the
+// ranking rules are unit-testable without React.
+
 import { EModelEndpoint, isAgentsEndpoint, isAssistantsEndpoint } from 'librechat-data-provider';
 
 export function filterMentionEndpoints({

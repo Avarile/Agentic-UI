@@ -1,3 +1,11 @@
+/**
+ * OpenAI DALL·E 3 image generation tool.
+ *
+ * Generates an image, then downloads and stores it through the app's file pipeline rather than
+ * returning the provider URL — OpenAI's image URLs expire, so a returned link would break in the
+ * transcript. `getImageBasename`/`extractBaseURL` derive the stored filename and honour a
+ * reverse-proxy base URL; `getProxyDispatcher` applies the egress proxy.
+ */
 const path = require('path');
 const OpenAI = require('openai');
 const { v4: uuidv4 } = require('uuid');

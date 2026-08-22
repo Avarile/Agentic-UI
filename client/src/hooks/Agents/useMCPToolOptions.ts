@@ -1,3 +1,5 @@
+// MCP servers and their tools shaped for the agent builder's pickers.
+
 import { useCallback } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import type { AgentToolOptions, AllowedCaller, AgentToolType } from 'librechat-data-provider';

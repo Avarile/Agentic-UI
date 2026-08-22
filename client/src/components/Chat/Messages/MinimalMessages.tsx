@@ -1,3 +1,5 @@
+// A stripped-down message list for embedding a transcript outside a live chat.
+
 import React from 'react';
 import { cn } from '~/utils';
 

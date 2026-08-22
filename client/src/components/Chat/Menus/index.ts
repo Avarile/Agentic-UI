@@ -1,2 +1,4 @@
+// The chat header's menus.
+
 export { default as PresetsMenu } from './PresetsMenu';
 export { default as OpenSidebar } from './OpenSidebar';

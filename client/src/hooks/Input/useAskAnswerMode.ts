@@ -1,3 +1,6 @@
+// State for the model's own clarifying-question flow: whether the composer is
+// answering a question rather than starting a turn.
+
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { atom, useRecoilState, useRecoilValue } from 'recoil';
 import {

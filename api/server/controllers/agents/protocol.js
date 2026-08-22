@@ -1,3 +1,28 @@
+/**
+ * Generation-protocol version negotiation between client and server.
+ *
+ * Two versions exist (`GENERATION_PROTOCOL_V1`, `V2`) governing the shape of the
+ * generation-control envelopes (start, status, abort, steer, resume).
+ *
+ * Design — the safety rule is *lowest wins*:
+ * - `getRequestedGenerationProtocol` reads the marker from every transport that can carry it
+ *   (header, query, body) and, when they disagree, takes the lower value. A proxy or
+ *   token-refresh path that drops one marker must never accidentally *upgrade* a legacy
+ *   request into V2 semantics it cannot parse.
+ * - `negotiateNewGenerationProtocol` = min(requested, server-supported).
+ *   `negotiateExistingGenerationProtocol` = min(requested, the version the *job* was created
+ *   under) — an in-flight generation cannot change protocol mid-run.
+ * - `parseProtocolVersion` accepts number or string and returns `undefined` for anything else,
+ *   so an unrecognized marker degrades to the default rather than throwing.
+ * - `GENERATION_PROTOCOL_HEADER` is exported so both the header and the JSON body can carry the
+ *   agreed version; the body is the client's fail-closed source of truth because auth-refresh
+ *   adapters can strip headers.
+ *
+ * Connections:
+ * - consumed by `server/routes/agents/index.js`, `controllers/agents/request.js`, `resume.js`,
+ *   `steer.js`
+ * - server capability is read from `GenerationJobManager` (`packages/api`)
+ */
 const GENERATION_PROTOCOL_HEADER = 'x-librechat-generation-protocol';
 const GENERATION_PROTOCOL_V1 = 1;
 const GENERATION_PROTOCOL_V2 = 2;

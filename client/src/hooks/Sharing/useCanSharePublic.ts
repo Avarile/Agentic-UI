@@ -1,3 +1,6 @@
+// Whether public (anyone-with-the-link) sharing is permitted — a separate check
+// because it is commonly disabled while user-to-user sharing stays on.
+
 import { ResourceType, PermissionTypes, Permissions } from 'librechat-data-provider';
 import { useHasAccess } from '~/hooks';
 

@@ -1,3 +1,6 @@
+// Resolves a message's file references into full records via the shared file map,
+// so an attachment renders without its own query.
+
 import { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import type { TAttachment, TFile } from 'librechat-data-provider';

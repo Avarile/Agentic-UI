@@ -1,3 +1,7 @@
+// Reconciles stored speech preferences against what the server actually supports,
+// so a saved engine or voice that is no longer available degrades instead of
+// failing silently at playback time.
+
 import { useEffect, useRef } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { useGetCustomConfigSpeechQuery } from 'librechat-data-provider/react-query';

@@ -1,3 +1,10 @@
+// Serializes a rendered diagram SVG for download.
+//
+// A rendered SVG references the page's fonts and CSS variables, so exporting the
+// node verbatim produces a file that looks wrong elsewhere. This inlines computed
+// styles, resolves theme colors to literals, and sets explicit dimensions before
+// serializing — and for PNG, rasterizes at a scale factor.
+
 import { fixSubgraphTitleContrast } from '~/utils/mermaid';
 import { triggerDownload } from '~/utils/downloadFile';
 

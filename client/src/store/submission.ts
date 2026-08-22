@@ -1,3 +1,10 @@
+// The legacy single-pane submission atoms.
+//
+// Superseded by `submissionByIndex` / `isSubmittingFamily` in families.ts, which
+// the multi-pane chat requires. These remain because a handful of older call sites
+// still read them; the comment block below is the original contract, kept as-is
+// since it documents the submission shape that families.ts inherited.
+
 import { atom } from 'recoil';
 import { TSubmission } from 'librechat-data-provider';
 

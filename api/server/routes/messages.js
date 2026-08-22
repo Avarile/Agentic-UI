@@ -1,3 +1,26 @@
+/**
+ * Message CRUD, editing, branching, feedback and artifact updates.
+ *
+ * Design notes worth knowing before editing:
+ * - Token counts are recomputed with `mergeQuotedTextForCount`, matching how quotes are merged
+ *   when building the prompt — otherwise an edited message's stored count would drift from
+ *   what the model actually saw, and billing/context math would be wrong.
+ * - A user turn's persisted `quotes` are re-prepended into the prompt on resend, which is why
+ *   quote handling lives here and not only in the client.
+ * - Assistants-endpoint messages store a text part as either a plain string or
+ *   `{ value, annotations }`; the update paths handle both shapes because thread sync produces
+ *   the annotated form.
+ * - `unescapeLaTeX` is applied on the way out so stored escaping does not reach the renderer
+ *   double-escaped.
+ * - `prepareMessageRequestValidation` / `sendValidationResponse` are used for the
+ *   validate-then-respond flow shared with the agent chat routes.
+ * - Feedback is validated against `feedbackSchema` and forwarded via `sendFeedbackScore`, with
+ *   `traceIdForMessage` linking it to the originating trace.
+ *
+ * Connections:
+ * - artifacts: `server/services/Artifacts/update.js`
+ * - validation: `server/middleware/messageValidation.js`
+ */
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { logger } = require('@librechat/data-schemas');

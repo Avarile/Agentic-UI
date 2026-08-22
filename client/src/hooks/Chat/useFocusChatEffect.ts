@@ -1,3 +1,6 @@
+// Returns focus to the composer after navigation and after a run ends, so keyboard
+// users are never stranded without a focused input.
+
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { consumeChatFocus, logger } from '~/utils';

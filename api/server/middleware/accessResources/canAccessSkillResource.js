@@ -1,3 +1,19 @@
+/**
+ * ACL gate for skill routes, with a deployment-skill exemption.
+ *
+ * Wraps `canAccessResource` with `ResourceType.SKILL` and `getSkillById`, then adds a check
+ * for deployment skills (`getDeploymentSkillById`). Deployment skills ship with the
+ * installation rather than being created by a user, so they have no ACL row — they must be
+ * resolved separately or every user would be denied.
+ *
+ * `requiredPermission` is validated as a number at factory time so a wiring mistake fails at
+ * startup instead of silently allowing access.
+ *
+ * Connections:
+ * - wraps `canAccessResource.js`; used by `server/routes/skills.js`,
+ *   `server/routes/admin/skills.js`
+ * - deployment skills registered by `initializeDeploymentSkills` in `server/index.js`
+ */
 const { ResourceType, PermissionBits } = require('librechat-data-provider');
 const { canAccessResource } = require('./canAccessResource');
 const { getSkillById } = require('~/models');

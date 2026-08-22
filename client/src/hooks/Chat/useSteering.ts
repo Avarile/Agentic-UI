@@ -1,3 +1,24 @@
+// Steering: injecting a message into a run that is already generating.
+//
+// The largest hook in the client, because a steer has more states than a message
+// does and every one of them is reconciled against the server. A steer can be
+// sending, queued awaiting its injection boundary, applied, cancelled, converted
+// into a queued follow-up, or failed with the delivery genuinely uncertain.
+//
+// The recurring problem is ordering across two transports. The steer POST's ACK and
+// the run's `on_steer_applied` SSE event travel on different connections, so the
+// "applied" event can arrive *before* the ACK that created the local chip. Rather
+// than assume an order, the hook records what has already happened —
+// `appliedSteerIdsByConvoId` for server-applied ids,
+// `acceptedSteerClientIdsByConvoId` for optimistic ids the server has acknowledged
+// — and every path consults those sets. That is also why a late POST error cannot
+// resurrect a chip the user already cancelled.
+//
+// `deliveryUncertain` is the honest case: the transport failed with no definitive
+// server answer, so the enqueue may have committed. Under protocol v2 a same-id
+// retry is safe (the server dedupes); under v1 the destructive options stay hidden
+// rather than risk a double injection.
+
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { v4 } from 'uuid';
 import { useToastContext } from '@librechat/client';

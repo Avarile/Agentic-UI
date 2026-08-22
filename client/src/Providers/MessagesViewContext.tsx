@@ -1,3 +1,16 @@
+// A narrowed, re-render-aware projection of ChatContext for the message list.
+//
+// ChatContext's value changes whenever anything in the chat changes, including on
+// every streamed token. The message list is the most expensive subtree in the app,
+// so this context re-exports only the fields it actually needs, grouped into four
+// separately memoized clusters (conversation, submission state, operations,
+// message state) before being combined. A change in one cluster does not produce
+// new identities for the others.
+//
+// The context itself is exported, not just the provider, so alternate hosts —
+// notably the share view's ShareMessagesProvider — can supply the same shape
+// without a live chat behind it.
+
 import React, { createContext, useContext, useMemo } from 'react';
 import { useChatContext } from './ChatContext';
 

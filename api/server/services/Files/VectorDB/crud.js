@@ -1,3 +1,18 @@
+/**
+ * RAG vector-store backend: embeds uploaded documents and deletes their vectors.
+ *
+ * `uploadVectors` posts the file to the RAG service; `deleteVectors` removes its embeddings.
+ *
+ * Design: authenticates with `generateShortLivedToken` rather than a static secret, so the RAG
+ * service can verify the request came from this app without a shared long-lived credential.
+ * `entity_id` scopes the embeddings to an agent/assistant, which is what allows per-agent
+ * retrieval isolation. Errors go through `logAxiosError` for consistent diagnostics.
+ *
+ * Note this is a *secondary* store: a file usually also exists in object storage, which is why
+ * `process.js` has `createDeleteFileWithSecondaryStorage`.
+ *
+ * Connections: registered as `vectorStrategy` in `strategies.js`
+ */
 const fs = require('fs');
 const axios = require('axios');
 const FormData = require('form-data');

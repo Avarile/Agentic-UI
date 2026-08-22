@@ -1,3 +1,6 @@
+// Per-server MCP configuration and credentials, reachable from both the composer
+// and the settings panel — hence the shared init state in store/mcp.ts.
+
 import React, { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input, Label, SecretInput, OGDialog, OGDialogTemplate } from '@librechat/client';

@@ -1,3 +1,10 @@
+// Holds the Screen Wake Lock while any conversation is generating.
+//
+// Mounted at the root so the lock survives navigation between conversations — a
+// long answer in one chat should not be interrupted by the screen sleeping because
+// the user opened another. Reads `anySubmittingSelector` (not a single pane's flag)
+// for exactly that reason, and respects the `keepScreenAwake` preference.
+
 import { useRecoilValue } from 'recoil';
 import useWakeLock from '~/hooks/useWakeLock';
 import store from '~/store';

@@ -1,3 +1,30 @@
+/**
+ * Social / SSO login redirect and callback endpoints (mounted at `/oauth`, not `/api`).
+ *
+ * Every provider follows the same two-route shape: a redirect route that starts the
+ * authorization request, and a callback route chained as
+ * `passport.authenticate(...) -> setBalanceConfig -> checkDomainAllowed -> oauthHandler`.
+ *
+ * Design:
+ * - `logHeaders` and `loginLimiter` are applied router-wide, so all providers are rate limited
+ *   and proxy-header problems are diagnosable. (The file-level `deepcode ignore` comment
+ *   documents this for the scanner.)
+ * - Failures redirect to `/oauth/error` -> the client domain rather than returning JSON: the
+ *   browser is mid-redirect, so a JSON body would be shown as raw text. `failureMessage: true`
+ *   is what makes the provider's reason available to the error route.
+ * - `session: false` everywhere — the app issues its own JWT in `oauthHandler` instead of
+ *   keeping a server-side login session. (OpenID/SAML still use a session for the *handshake*;
+ *   see `server/socialLogins.js`.)
+ * - OpenID gets a fresh `randomState()` per authorization request (CSRF binding), and its
+ *   callback uses `createOpenIDCallbackAuthenticator` for provider-specific error mapping.
+ * - Apple and SAML callbacks are `POST` because both post the assertion back as form data.
+ * - SAML skips `checkDomainAllowed`: the IdP is the authority on which users exist, so an
+ *   email-domain allow-list is not the right control there.
+ *
+ * Connections:
+ * - strategies registered by `server/socialLogins.js`; verify callbacks in `strategies/*`
+ * - handler: `server/controllers/auth/oauth.js`
+ */
 // file deepcode ignore NoRateLimitingForLogin: Rate limiting is handled by the `loginLimiter` middleware
 const express = require('express');
 const passport = require('passport');

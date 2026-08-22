@@ -1,3 +1,6 @@
+// Resets a conversation's parameters when its endpoint or model changes, dropping
+// settings the new target does not accept.
+
 import type { TMessage } from 'librechat-data-provider';
 
 export default function resetConvo(messages: TMessage[], sender: string) {

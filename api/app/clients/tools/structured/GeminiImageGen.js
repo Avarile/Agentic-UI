@@ -1,3 +1,16 @@
+/**
+ * Google Gemini image generation and editing tool.
+ *
+ * Design:
+ * - `checkForSafetyBlock(response)` is required because Gemini signals a safety refusal as a
+ *   *successful* response with no image payload. Without this check the tool would return an
+ *   empty result and the model would see an unexplained failure instead of a reportable reason.
+ * - Authenticates with either an API key or a service-account key
+ *   (`loadServiceKey`, `getDefaultServiceKeyPath`), matching the two ways Google deployments are
+ *   configured.
+ * - `sharp` post-processes the returned image, and `replaceUnwantedChars` sanitizes filenames.
+ * - Proxy support via a module-scope `getEnvProxyDispatcher()` so it is resolved once.
+ */
 const path = require('path');
 const sharp = require('sharp');
 const { v4 } = require('uuid');

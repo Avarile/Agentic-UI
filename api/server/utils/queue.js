@@ -1,4 +1,19 @@
 /**
+ * Leaky-bucket queue that paces outbound API calls to ~60 requests/second.
+ *
+ * `LB_QueueAsyncCall(asyncFunc, args, callback)` enqueues a call; a single interval timer
+ * drains one item per tick.
+ *
+ * Design: a shared process-wide bucket rather than a per-caller limiter, because the thing
+ * being protected is a *provider's* rate limit, which every request in the process shares.
+ * The interval is started lazily and cleared when the queue empties, so an idle process holds
+ * no timer.
+ *
+ * Connections:
+ * - used by `server/services/Files/process.js` (bulk-delete pacing) and other
+ *   provider-facing batch paths; exported through `server/utils/index.js`
+ */
+/**
  * A leaky bucket queue structure to manage API requests.
  * @type {{queue: Array, interval: NodeJS.Timer | null}}
  */

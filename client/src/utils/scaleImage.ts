@@ -1,3 +1,6 @@
+// Display-size arithmetic for images in messages — the intrinsic-to-rendered
+// mapping that keeps layout stable before an image loads.
+
 import type { RefObject } from 'react';
 
 const MAX_HEIGHT_VH = 0.45;

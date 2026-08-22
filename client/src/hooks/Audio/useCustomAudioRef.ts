@@ -1,3 +1,14 @@
+// The global audio player's ref, with stall detection.
+//
+// The global element is shared across the session (auto-playback, the header
+// player), so it carries extra bookkeeping the per-message element does not: custom
+// `started`/`ended`/`paused` flags so a consumer can tell where in the lifecycle it
+// is without replaying events, and a `timeupdate` watcher that counts repeated
+// identical timestamps to detect a stream that has stalled rather than finished.
+//
+// A stalled stream fires no `ended` event, so without that counter playback would
+// appear to run forever.
+
 import { useEffect, useRef } from 'react';
 
 interface CustomAudioElement extends HTMLAudioElement {

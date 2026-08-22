@@ -1,3 +1,6 @@
+// The action handlers a single message needs: edit, copy, regenerate, continue,
+// fork, feedback. Bound to one message so the hover buttons stay dumb.
+
 import { useCallback, useMemo } from 'react';
 import throttle from 'lodash/throttle';
 import { isAssistantsEndpoint, isAgentsEndpoint } from 'librechat-data-provider';

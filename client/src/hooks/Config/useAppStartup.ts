@@ -1,3 +1,13 @@
+// One-time startup effects, run after the user and startup config are known.
+//
+// Everything that must happen exactly once per session and needs both of those
+// inputs: analytics init, the default preset, CloudFront image retry installation,
+// MCP prefetch (gated on permission), speech settings initialization, and expiry of
+// timestamped localStorage entries.
+//
+// Grouped here rather than scattered across mount effects so the ordering is
+// visible and the "has this already run" question has one answer.
+
 import { useEffect } from 'react';
 import { useRecoilState } from 'recoil';
 import TagManager from 'react-gtm-module';

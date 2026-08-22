@@ -1,3 +1,10 @@
+// Three unrelated small queries: the announcement banner, the user's balance, and
+// whether search is configured.
+//
+// Grouped only by not warranting a directory each. `useGetSearchEnabledQuery`
+// feeds the tri-state `enabled` field in store/search.ts, which is why the UI can
+// withhold the search affordance until the answer is known.
+
 import { useRecoilValue } from 'recoil';
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import { useQuery } from '@tanstack/react-query';

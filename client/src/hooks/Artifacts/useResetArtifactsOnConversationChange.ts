@@ -1,3 +1,9 @@
+// Clears artifact state on conversation change.
+//
+// The reason revisiting an old conversation does not pop the panel open: this resets
+// `currentArtifactId`, and Presentation gates the panel on focus rather than
+// existence.
+
 import { useEffect, useRef } from 'react';
 import { useRecoilValue, useResetRecoilState } from 'recoil';
 import store from '~/store';

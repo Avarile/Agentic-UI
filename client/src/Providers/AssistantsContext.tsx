@@ -1,3 +1,8 @@
+// react-hook-form provider for the assistant builder form.
+//
+// The assistants-endpoint analogue of AgentsProvider; defaults come from
+// `librechat-data-provider` since the assistant shape is defined by the API.
+
 import { useForm, FormProvider } from 'react-hook-form';
 import { createContext, useContext } from 'react';
 import { defaultAssistantFormValues } from 'librechat-data-provider';

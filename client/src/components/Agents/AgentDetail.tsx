@@ -1,3 +1,6 @@
+// The agent detail view: description, capabilities, tools, and the action to start
+// a conversation with it.
+
 import React, { useRef } from 'react';
 import { Link, Pin, PinOff } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';

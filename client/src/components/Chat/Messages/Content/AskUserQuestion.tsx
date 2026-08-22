@@ -1,3 +1,5 @@
+// The model's structured question rendered inline, with its options.
+
 import { useContext, useMemo, useState } from 'react';
 import { ChevronUp, TriangleAlert } from 'lucide-react';
 import { Button, TextareaAutosize } from '@librechat/client';

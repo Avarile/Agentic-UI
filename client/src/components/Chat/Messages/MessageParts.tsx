@@ -1,3 +1,10 @@
+// A content-parts message row for the assistants endpoints.
+//
+// Assembles the author header, icon, content parts, sibling switcher and hover
+// actions. Kept separate from the standard content renderer because the assistants
+// endpoints' part shapes and available actions differ enough that one component
+// would be mostly branching.
+
 import React, { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import type { TMessageContentParts } from 'librechat-data-provider';

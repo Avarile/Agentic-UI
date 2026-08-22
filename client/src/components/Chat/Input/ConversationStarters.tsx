@@ -1,3 +1,6 @@
+// The suggested prompts on the landing page, from the selected agent or spec.
+// Clicking one prefills and sends.
+
 import { useMemo, useCallback } from 'react';
 import { EModelEndpoint, Constants } from 'librechat-data-provider';
 import {

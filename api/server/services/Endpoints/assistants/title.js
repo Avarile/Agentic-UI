@@ -1,3 +1,13 @@
+/**
+ * Generates a conversation title for the Assistants endpoint using a direct OpenAI call.
+ *
+ * Design: does *not* reuse the assistant to title the conversation — titling with a full
+ * assistant run would cost a thread, tool loading and the assistant's system prompt. A plain
+ * chat-completion call is cheaper and more predictable. Output passes through `sanitizeTitle`,
+ * and results are cached under `CacheKeys.GEN_TITLE` so a retry does not re-generate.
+ *
+ * Connections: `./initalize.js`, `saveConvo` via `~/models`
+ */
 const { isEnabled, sanitizeTitle } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 const { CacheKeys } = require('librechat-data-provider');

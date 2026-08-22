@@ -1,3 +1,38 @@
+/**
+ * OpenID Connect / OAuth2 authorization-code login — the largest and most configurable strategy.
+ *
+ * Handles discovery, the authorization-code exchange, userinfo merging, avatar import, role
+ * and group synchronization, and (for Microsoft Entra) resolution of the group *overage*
+ * claim. `setupOpenId()` performs discovery and registers the strategy; `getOpenIdConfig()`
+ * exposes the resolved configuration to `openIdJwtStrategy.js`.
+ *
+ * Key design decisions:
+ * - `CustomOpenIDStrategy` overrides `currentUrl()` to build the callback URL from
+ *   `DOMAIN_SERVER` rather than trusting `req.host`. Originally a workaround for Express 4
+ *   dropping the port; retained deliberately so the redirect URI is explicit configuration
+ *   instead of a header-derived value (which is attacker-influenced behind a proxy).
+ * - `authorizationRequestParams()` is extended to inject `audience` (required by Auth0-style
+ *   providers to get an API-scoped token) and, behind `OPENID_GENERATE_NONCE`, a nonce for
+ *   federated providers that mandate one.
+ * - `customFetch` wraps all provider HTTP traffic so requests can be traced under
+ *   `DEBUG_OPENID_REQUESTS` and proxy settings apply uniformly.
+ * - Group overage (`exchangeTokenForOverage` + `resolveGroupsFromOverage`): when a user is in
+ *   too many groups, Entra omits the `groups` claim and points at Graph instead. The app's own
+ *   access token has the wrong audience for Graph, so an on-behalf-of JWT-bearer exchange
+ *   mints a Graph-scoped token with the minimum `User.Read` scope. It is cached under a
+ *   dedicated `${sub}:overage` key so it cannot collide with the other OBO exchanges in the
+ *   codebase (userinfo, principal search).
+ * - `getRoleSource` resolves whether a role claim is read from the access token, id token, or
+ *   userinfo, and *throws* on an invalid `kind` — misconfiguration must fail loudly rather
+ *   than silently denying every login.
+ * - Avatar import is origin-restricted (`shouldAuthorizeOpenIDAvatar`) so the server will not
+ *   be induced into fetching an arbitrary URL from a claim (SSRF guard).
+ *
+ * Connections:
+ * - `setupOpenId` called from `server/socialLogins.js`; config consumed by `openIdJwtStrategy.js`
+ * - provisioning via `strategies/process.js`; avatar storage via `server/services/Files/*`
+ * - token/session caches from `cache/getLogStores.js`; app config from `server/services/Config`
+ */
 const undici = require('undici');
 const { get } = require('lodash');
 const passport = require('passport');

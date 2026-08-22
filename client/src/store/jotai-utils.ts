@@ -1,3 +1,25 @@
+// The Jotai counterparts to store/utils.ts, in four variants.
+//
+// The meaningful distinction is cross-tab behaviour, and it is a product decision
+// rather than a technical one:
+//
+//   createStorageAtom            persisted, syncs across tabs. Correct for user
+//                                *preferences* — a font size change should follow
+//                                the user everywhere.
+//   createTabIsolatedAtom        persisted, does NOT sync. Correct for per-tab
+//                                working state — MCP selections, favourites
+//                                toggles — where two tabs on different chats must
+//                                not overwrite each other.
+//   createStorageAtomWithEffect  persisted plus a side effect on write, for values
+//                                that must also reach the DOM.
+//   initializeFromStorage        a synchronous boot-time read for applying a stored
+//                                value before first paint.
+//
+// Isolation is achieved by omitting `subscribe` from the SyncStorage adapter — no
+// `storage` event listener, no cross-tab propagation. Every accessor is
+// try/caught and `typeof window` guarded, so a private-mode browser or a
+// quota-exceeded write degrades to the default instead of throwing during render.
+
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { SyncStorage } from 'jotai/vanilla/utils/atomWithStorage';

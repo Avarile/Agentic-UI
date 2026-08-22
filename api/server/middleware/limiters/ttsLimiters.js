@@ -1,3 +1,11 @@
+/**
+ * Factory for text-to-speech rate limits (IP and user, defaults 100/50 per minute).
+ *
+ * TTS calls a paid upstream API per request, so it is metered separately from chat. Exported
+ * as a factory because the speech routes build limiters from config at mount time.
+ *
+ * Connections: mounted in `server/routes/files/speech/tts.js`
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

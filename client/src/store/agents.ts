@@ -1,3 +1,19 @@
+// Ephemeral agent state, keyed by conversation id.
+//
+// An "ephemeral agent" is the un-saved agent implied by the composer's own
+// toggles — which tools, capabilities and MCP servers this conversation should run
+// with — as opposed to a persisted agent record from the catalogue.
+//
+// It is keyed per conversation because those choices must not leak between chats,
+// and `Constants.NEW_CONVO` acts as the template: the user configures the new-chat
+// composer, and `useApplyNewAgentTemplate` copies that state onto the real
+// conversation id once the server assigns one. Without that copy the first message
+// of every conversation would lose its toggles.
+//
+// The accessors are `useRecoilCallback`-based on purpose: the submit pipeline needs
+// to *read* this state at send time without subscribing to it, since subscribing
+// would re-render the composer on every toggle.
+
 import { Constants } from 'librechat-data-provider';
 import { atomFamily, useRecoilCallback } from 'recoil';
 import type { TEphemeralAgent } from 'librechat-data-provider';

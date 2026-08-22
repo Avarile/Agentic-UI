@@ -1,9 +1,13 @@
-/* `useLocalStorage`
- *
- * Features:
- *  - JSON Serializing
- *  - Also value will be updated everywhere, when value updated (via `storage` event)
- */
+// The extended `useLocalStorage`: same persistence, plus two escape hatches.
+//
+// `globalSetState` mirrors each write into external state (a store atom), so one
+// call keeps both in step instead of the caller remembering to. `storageCondition`
+// gates whether a value is written at all, which is how a default or a transient
+// value can be held in memory without being persisted.
+//
+// Confusingly it exports the same hook *name* as useLocalStorage.tsx — the two
+// coexist because the simpler one's unconditional write is what its callers rely
+// on. Import by path.
 
 import { useEffect, useState, useCallback } from 'react';
 

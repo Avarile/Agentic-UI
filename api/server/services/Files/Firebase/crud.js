@@ -1,3 +1,15 @@
+/**
+ * Firebase Cloud Storage backend.
+ *
+ * Same function surface as the other backends. `extractFirebaseFilePath` parses a storage path
+ * back out of a Firebase download URL — Firebase URLs embed an encoded path plus a token, and
+ * deletion needs the path, which is why this parsing exists rather than storing the path
+ * separately.
+ *
+ * Remote fetches carry the same SSRF/size/timeout guards as the other backends.
+ *
+ * Connections: registered as `firebaseStrategy` in `strategies.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');

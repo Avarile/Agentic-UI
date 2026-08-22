@@ -1,3 +1,6 @@
+// Which upload affordances to offer for the current conversation (images, documents,
+// code files, SharePoint), derived from endpoint and agent capabilities.
+
 import { useCallback } from 'react';
 import { useRecoilValue } from 'recoil';
 import {

@@ -1,3 +1,12 @@
+/**
+ * Text-to-speech endpoints: synthesize speech and stream audio back.
+ *
+ * Streams the response so playback can start before synthesis finishes. Rate limits come from
+ * `speech/index.js`.
+ *
+ * Connections: `server/services/Files/Audio/TTSService.js`, `Audio/streamAudio.js`,
+ * `Audio/getVoices.js`
+ */
 const multer = require('multer');
 const express = require('express');
 const { restoreTenantContextFromReq } = require('@librechat/api');

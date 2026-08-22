@@ -1,3 +1,5 @@
+// Thumbs up/down with an optional reason, recorded against the message.
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { TFeedback, TFeedbackTag, getTagsForRating } from 'librechat-data-provider';

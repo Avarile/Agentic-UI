@@ -1,3 +1,6 @@
+// Push-to-talk dictation, wired to the STT engine hooks and suppressed by the mic
+// gate while the assistant is speaking.
+
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { MicOff } from 'lucide-react';
 import { useRecoilValue } from 'recoil';

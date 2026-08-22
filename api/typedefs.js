@@ -1,4 +1,23 @@
 /**
+ * Central JSDoc type registry for the backend — no runtime code, types only.
+ *
+ * `/api` is plain JavaScript, so it cannot `import type` from the TypeScript workspaces.
+ * This file re-declares (via `@typedef {import(...)}`) the types the JS layer needs from
+ * `librechat-data-provider`, `@librechat/agents`, `openai`, `express` and `mongoose`, plus
+ * the app-level shapes JS modules pass around (`ServerRequest`, `AppConfig`, `Agent`,
+ * `Action`, ...). Everything is `@memberof typedefs`, which makes each name globally
+ * resolvable in JSDoc without an import at every call site.
+ *
+ * Design: this is the seam that keeps `/api` type-checkable while the real definitions stay
+ * in `packages/data-provider` and `packages/data-schemas`. Consequently it is a *mirror*,
+ * not a source of truth — when a type changes upstream, update it here rather than
+ * defining a competing shape. New backend code should live in `packages/api` as TypeScript
+ * and not need this file at all.
+ *
+ * Connections:
+ * - resolved via the `~/*` path mapping in `jsconfig.json`
+ * - referenced by JSDoc annotations across `server/`, `app/`, `models/` and `strategies/`
+ *
  * @namespace typedefs
  */
 

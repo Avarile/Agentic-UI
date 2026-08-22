@@ -1,3 +1,15 @@
+/**
+ * Returns the operator's speech configuration for the client.
+ *
+ * Design: `normalizeSpeechEngine` collapses the legacy per-provider engine names
+ * (`openai`, `azureOpenAI`, `elevenlabs`, `localai`) to `'external'`. The client only needs to
+ * know whether speech runs in the browser or against an external service; exposing the specific
+ * provider would leak deployment detail to an endpoint the UI calls on load, and the legacy
+ * names are kept accepted so existing configs keep working.
+ *
+ * Connections: `server/routes/files/speech/customConfigSpeech.js`; config via
+ * `server/services/Config`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { getAppConfig } = require('~/server/services/Config');
 

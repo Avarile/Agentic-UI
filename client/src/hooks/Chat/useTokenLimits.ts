@@ -1,3 +1,6 @@
+// The active model's context window and the client's view of remaining room.
+// Drives the composer's warning states before a send is rejected server-side.
+
 import { useMemo } from 'react';
 import { Providers, EModelEndpoint, isAgentsEndpoint } from 'librechat-data-provider';
 import type { TConversation, TModelTokenomics } from 'librechat-data-provider';

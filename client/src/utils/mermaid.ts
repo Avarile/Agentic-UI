@@ -1,3 +1,6 @@
+// Mermaid source preparation and theme variable mapping, so diagrams follow the app
+// theme instead of shipping mermaid's own palette.
+
 import dedent from 'dedent';
 import DOMPurify from 'dompurify';
 

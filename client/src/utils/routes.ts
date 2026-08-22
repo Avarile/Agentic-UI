@@ -1,3 +1,6 @@
+// Route path construction and matching helpers, so link targets are built in one
+// place.
+
 import { matchPath } from 'react-router-dom';
 
 const matchesRouteStart = (pathname: string, pattern: string) =>

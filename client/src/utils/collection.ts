@@ -1,3 +1,9 @@
+// Generic add/update/delete/normalize helpers for cached collections, including the
+// paginated case.
+//
+// Used by the mutation hooks so optimistic updates against an infinite query do not
+// each hand-roll page traversal.
+
 import { InfiniteData, QueryClient } from '@tanstack/react-query';
 
 export const addData = <TCollection, TData>(

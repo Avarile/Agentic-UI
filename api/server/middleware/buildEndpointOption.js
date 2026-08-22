@@ -1,3 +1,27 @@
+/**
+ * Normalizes a chat request body into the `endpointOption` every chat controller consumes.
+ *
+ * Resolves the endpoint (including agents-by-URL detection), applies any model spec, parses
+ * the compact conversation payload, and dispatches to the per-endpoint `buildOptions`.
+ *
+ * Design: the `buildFunction` lookup table maps endpoint -> builder so adding an endpoint is a
+ * table entry, not a new branch. Endpoint detection checks both `req.body.endpoint` and
+ * `req.baseUrl`, because the agents routes are mounted under a URL prefix and a request can
+ * arrive without an explicit endpoint field.
+ *
+ * Model specs are applied here — before validation and before the controller runs — so a spec
+ * that pins a model, prompt prefix or parameters cannot be bypassed by a crafted body.
+ * `resolveModelSpecPromptPrefixVariables` interpolates user/date variables at this stage so
+ * downstream code sees a fully resolved prefix.
+ *
+ * `updateFilesUsage` is called here to stamp attached files as used, keeping that bookkeeping
+ * out of every individual controller.
+ *
+ * Connections:
+ * - builders: `server/services/Endpoints/{agents,assistants,azureAssistants}/build.js`
+ * - endpoint config via `server/services/Config/getEndpointsConfig.js`
+ * - runs before `validateModel` and the chat controllers on the chat routes
+ */
 const {
   handleError,
   applyModelSpecPreset,

@@ -1,3 +1,19 @@
+/**
+ * Registry of built-in structured tools, plus the manifest.
+ *
+ * Exports every tool class/factory (`DALLE3`, `FluxAPI`, `OpenWeather`, `StructuredWolfram`,
+ * `StructuredACS`, `StructuredSD`, `GoogleSearchAPI`, `TraversaalSearch`,
+ * `createOpenAIImageTools`, ...) alongside `availableTools`, `manifestToolMap` and
+ * `isAgentsOnlyTool` from the manifest.
+ *
+ * Design: an explicit static registry, not a directory scan at import time — so the set of tools
+ * is greppable and a missing/broken tool file fails loudly at startup rather than silently
+ * disappearing from the catalog. (The *manifest-driven* scan in
+ * `server/services/start/tools.js` is a separate path used for formatting schemas.)
+ *
+ * Connections: `app/clients/tools/util/handleTools.js`,
+ * `server/controllers/PluginController.js`, `server/services/ToolService.js`
+ */
 const manifest = require('./manifest');
 
 // Structured Tools

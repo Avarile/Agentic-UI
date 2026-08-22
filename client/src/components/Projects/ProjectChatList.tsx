@@ -1,3 +1,5 @@
+// The conversations belonging to a project.
+
 import {
   memo,
   useCallback,

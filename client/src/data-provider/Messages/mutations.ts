@@ -1,3 +1,10 @@
+// Message-level mutations: artifact edits and branching.
+//
+// `useEditArtifact` writes a code change back into the message that produced it —
+// the artifact is stored as message content, so editing one is a message mutation.
+// `useBranchMessageMutation` creates an alternate sibling, which is what makes the
+// message store a tree rather than a list (see utils/buildTree.ts).
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService, QueryKeys, Constants } from 'librechat-data-provider';
 import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-query';

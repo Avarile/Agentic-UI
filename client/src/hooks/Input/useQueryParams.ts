@@ -1,3 +1,6 @@
+// Reads `?prompt=`, `?q=`, `?submit=` from the URL to prefill and optionally
+// auto-send the composer — the deep-link-into-a-conversation entry point.
+
 import { useEffect, useCallback, useRef } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useSearchParams } from 'react-router-dom';

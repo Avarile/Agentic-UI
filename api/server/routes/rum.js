@@ -1,3 +1,19 @@
+/**
+ * OTLP ingest proxy for browser Real User Monitoring beacons.
+ *
+ * Design:
+ * - Returns 404 when the proxy is not configured, so an unconfigured deployment exposes no
+ *   ingest surface at all.
+ * - Uses `express.raw` with a protobuf/octet-stream type filter and its own body limit
+ *   (`getRumProxyBodyLimit`) — OTLP payloads are binary and must not go through the global
+ *   JSON parser.
+ * - Authenticated by `requireRumProxyAuth` rather than the normal JWT gate: browser beacons
+ *   (especially those sent during page unload via `sendBeacon`) cannot attach an Authorization
+ *   header.
+ *
+ * Connections: proxy implementation from `packages/api`; config via
+ * `server/services/Config/rum.js`
+ */
 const express = require('express');
 const { getRumProxyBodyLimit, isRumProxyEnabled, proxyRumRequest } = require('@librechat/api');
 const { requireRumProxyAuth } = require('~/server/middleware');

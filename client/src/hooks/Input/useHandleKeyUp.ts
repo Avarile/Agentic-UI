@@ -1,3 +1,7 @@
+// Key-up handling for the composer, where the command popovers (`@`, `+`, `/`, `$`)
+// are triggered — on key *up* so the character is already in the value when the
+// trigger is evaluated.
+
 import { useCallback, useEffect, useMemo } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { PermissionTypes, Permissions, isAssistantsEndpoint } from 'librechat-data-provider';

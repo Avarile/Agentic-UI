@@ -1,3 +1,21 @@
+/**
+ * CRUD for agent Actions (user-defined OpenAPI tools attached to an agent).
+ *
+ * Design:
+ * - Action metadata is encrypted before storage (`encryptMetadata` from `ActionService`) —
+ *   actions carry API keys and OAuth client secrets.
+ * - `domainParser` normalizes the action's domain, and `isActionDomainAllowed` enforces the
+ *   operator's allow-list, so an agent cannot be pointed at an arbitrary host.
+ * - OAuth metadata is validated (`validateActionOAuthMetadata`) at write time rather than at
+ *   first use, so a misconfiguration surfaces when the action is saved.
+ * - Listing resolves accessible agents via `findAccessibleResources` and enriches with
+ *   `attachOwnerContacts`, so shared actions show who owns them.
+ * - Per-agent ACL through `canAccessAgentResource`; actions inherit the agent's permissions
+ *   rather than having their own.
+ *
+ * Connections:
+ * - service: `server/services/ActionService.js`; OAuth flow: `server/routes/actions.js`
+ */
 const express = require('express');
 const { nanoid } = require('nanoid');
 const { logger } = require('@librechat/data-schemas');

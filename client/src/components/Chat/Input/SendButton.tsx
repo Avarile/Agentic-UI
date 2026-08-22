@@ -1,3 +1,5 @@
+// The idle send button.
+
 import React, { forwardRef } from 'react';
 import { useWatch } from 'react-hook-form';
 import { SendIcon, TooltipAnchor } from '@librechat/client';

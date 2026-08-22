@@ -1,3 +1,6 @@
+// The `@` mention source: endpoints, models, agents, assistants, presets, unified
+// into one searchable list with consistent labels and icons.
+
 import { useMemo } from 'react';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';
 import {

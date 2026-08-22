@@ -1,3 +1,22 @@
+/**
+ * Jest configuration for the `/api` workspace.
+ *
+ * Design notes that matter when adding tests:
+ * - `moduleNameMapper` reproduces the `~/*` alias that `module-alias` provides at runtime
+ *   (declared in `package.json` `_moduleAliases`), so `require('~/models')` resolves the same
+ *   way under test as in production.
+ * - `openid-client` and `openid-client/passport` are mapped to hand-written fakes in
+ *   `test/__mocks__` because the real package is ESM-only and performs network discovery.
+ * - `transformIgnorePatterns` whitelists the ESM-only dependencies (`jose`, `uuid`,
+ *   `@langchain/langgraph`, ...) that must be run through babel rather than loaded raw.
+ * - `setupFiles` loads `test/jestSetup.js` and the logger mock before any test module, so
+ *   no test writes to the real log files.
+ * - 30s default timeout accommodates `mongodb-memory-server` spin-up, which the project
+ *   prefers over mocking MongoDB.
+ *
+ * Connections:
+ * - run per-workspace: `cd api && npx jest <pattern>`
+ */
 const esModules = [
   'openid-client',
   'oauth4webapi',

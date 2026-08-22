@@ -1,3 +1,6 @@
+// The agent builder's main panel: identity, instructions, model, and capabilities.
+// One of several panels sharing state through AgentPanelContext.
+
 import React, { useMemo, useCallback, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button, useToastContext } from '@librechat/client';

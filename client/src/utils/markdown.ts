@@ -1,3 +1,5 @@
+// Markdown helpers shared by the renderers and by export.
+
 const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
 
 /**

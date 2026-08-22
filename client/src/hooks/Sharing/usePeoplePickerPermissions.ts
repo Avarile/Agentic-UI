@@ -1,3 +1,5 @@
+// Whether the people picker may be used, and which principals it may search.
+
 import { useMemo } from 'react';
 import { PermissionTypes, PrincipalType, Permissions } from 'librechat-data-provider';
 import { useHasAccess } from '~/hooks';

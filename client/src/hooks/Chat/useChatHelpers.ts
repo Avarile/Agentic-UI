@@ -1,3 +1,28 @@
+// The chat context's payload: everything one conversation pane can do.
+//
+// What ChatContext exposes (Providers/ChatContext.tsx types itself from this hook's
+// return), so it is the de-facto public interface of a chat pane.
+//
+// The hard part is abort, and most of the commentary below is about it. Aborting is
+// not one operation — the HTTP abort call, the SSE stream's own terminal event, and
+// the queue-drain signal all resolve independently and in any order. Two specific
+// hazards are handled explicitly:
+//
+//   A late response landing on the wrong run. Abort responses can settle after the
+//   pane has navigated to another conversation and armed its own interrupt, so
+//   every clear is identity-guarded on `(conversationId, generationCreatedAt)`
+//   rather than applied unconditionally.
+//
+//   A drain signal that never arrives. Clearing submissions can tear down the SSE
+//   before its aborted-final event is processed, and only that event writes the
+//   run-end the queue drain consumes — so `signalInterruptDrain` writes it from the
+//   abort response instead. The write is idempotent: if the SSE final does arrive
+//   later, it finds the flag consumed and drains nothing.
+//
+// `mutateAsync` is destructured rather than used through the mutation object
+// because the object is a fresh identity every render and would defeat the context
+// value memo.
+
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Constants, QueryKeys, isAssistantsEndpoint } from 'librechat-data-provider';

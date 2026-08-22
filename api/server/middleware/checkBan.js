@@ -1,3 +1,21 @@
+/**
+ * Blocks requests from banned users or IPs before any work is done.
+ *
+ * Design:
+ * - Bans are looked up by *both* user id and IP, because the point of an IP ban is to stop an
+ *   evasion attempt with a fresh account. The key helper switches between a prefixed Redis key
+ *   and a raw Mongo key since the two stores namespace differently.
+ * - The ban cache is `keyvMongo` with `ttl: 0` — bans must survive a Redis flush and a
+ *   restart, so expiry is carried in the stored record rather than by store eviction.
+ * - Response shape depends on the route: chat requests go through `denyRequest` so the ban
+ *   appears as a message in the conversation, while other routes get a plain 403. Returning
+ *   403 to an open SSE stream would leave the client hanging.
+ * - The user agent is parsed so non-browser ban attempts can be distinguished in logs.
+ *
+ * Connections:
+ * - bans are written by `cache/banViolation.js`
+ * - rejection path via `server/middleware/denyRequest.js`
+ */
 const { Keyv } = require('keyv');
 const uap = require('ua-parser-js');
 const { logger } = require('@librechat/data-schemas');

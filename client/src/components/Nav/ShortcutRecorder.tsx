@@ -1,3 +1,6 @@
+// Captures a key combination for a custom binding, rejecting combinations that
+// would shadow browser or accessibility shortcuts.
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import type { RefObject } from 'react';

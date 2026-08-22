@@ -1,3 +1,11 @@
+/**
+ * Assistants v2 chat endpoint and its abort route.
+ *
+ * Structurally identical to `chatV1.js` (same middleware order, same abort-first placement),
+ * pointing at the v2 controller.
+ *
+ * Connections: controller `server/controllers/assistants/chatV2.js`
+ */
 const express = require('express');
 
 const router = express.Router();

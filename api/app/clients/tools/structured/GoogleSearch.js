@@ -1,3 +1,9 @@
+/**
+ * Google Programmable Search (Custom Search JSON API) tool.
+ *
+ * Requires both an API key and a search-engine id (CX), since Google's API scopes results to a
+ * configured engine rather than the open web.
+ */
 const { Tool } = require('@librechat/agents/langchain/tools');
 const { getEnvironmentVariable } = require('@librechat/agents/langchain/utils/env');
 

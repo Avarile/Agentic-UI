@@ -1,4 +1,11 @@
-// client/src/hooks/Audio/useTTSExternal.ts
+// Message-level text-to-speech via the server's TTS endpoint.
+//
+// The network counterpart to useTTSBrowser, with the same interface and the same
+// role in the audio-output registry. The difference that matters: audio arrives as
+// a stream, so playback starts on the first chunk through the MediaSource appender
+// rather than waiting for a complete file — and it therefore has real failure modes
+// (a dropped connection mid-utterance) that the browser engine does not.
+
 import { useRef, useEffect } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { parseTextParts } from 'librechat-data-provider';

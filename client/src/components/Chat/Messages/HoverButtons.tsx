@@ -1,3 +1,7 @@
+// The per-message action row — copy, edit, regenerate, continue, fork, feedback,
+// audio. Which buttons appear comes from `useMessageActions`; this only renders
+// them, revealed on row hover or keyboard focus.
+
 import React, { useState, useMemo, memo } from 'react';
 import { useRecoilState } from 'recoil';
 import {

@@ -1,3 +1,5 @@
+// The shortcut reference, and the surface for rebinding them.
+
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { useRecoilState } from 'recoil';

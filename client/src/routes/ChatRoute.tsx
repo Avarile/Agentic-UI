@@ -1,3 +1,27 @@
+// Resolves a URL into conversation state, then hands off to ChatView.
+//
+// This is the most timing-sensitive file in the client. `/c/:conversationId` has
+// to reconcile four independent async sources — startup config, endpoints, models,
+// and the conversation itself — plus roles, the agent catalogue, and an optional
+// `?projectId` scope, before it can call `newConversation()` even once. Calling it
+// too early produces a conversation seeded from stale or half-loaded state that
+// then persists to localStorage; the `hasSetConversation` ref (from
+// SetConvoProvider, so it survives remounts) is what makes it fire once.
+//
+// The recurring principle in the gates below: distinguish *not yet known* from
+// *known to be absent*. A 404 means the conversation or project is genuinely gone
+// and the fallback should run; a 500 or a network blip must not unscope a valid
+// project or invalidate a stored agent pick. Queries here run with `retry: false`,
+// so `isNotFoundError` is checked explicitly rather than treating any error as
+// absence.
+//
+// The effect's dependency array is deliberately incomplete (see the eslint-disable):
+// including everything re-enters before `hasSetConversation.current` flips and
+// blows the call stack.
+//
+// Renders `ToolCallsMapProvider` around ChatView so tool-call lookups are scoped
+// to one conversation id.
+
 import { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRecoilCallback, useRecoilValue } from 'recoil';

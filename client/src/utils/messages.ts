@@ -1,3 +1,22 @@
+// Message helpers: branch selection, text extraction, and comparison.
+//
+// Three jobs. Branch resolution (`selectActiveBranchTail`,
+// `getMessageBranchSiblingIndexes`) answers "which leaf is currently displayed"
+// for a tree with alternate siblings — needed by export, by resume, and by the
+// submit path when choosing a parent id.
+//
+// Text extraction flattens content parts into a plain string for copy, export,
+// search and title generation, in one place so those never disagree about what
+// counts as message text.
+//
+// The comparators (`areMessageFieldsEqual`, `areMessageRowPropsEqual`) are the
+// field-level memo checks the message rows use. They exist because the message
+// object is a new reference on every streamed write, so shallow equality never
+// bails and the tree re-renders wholesale.
+//
+// `STREAM_START_FAILED_METADATA_KEY` marks a message whose generation never
+// started, which the UI must distinguish from an empty answer.
+
 import {
   QueryKeys,
   Constants,

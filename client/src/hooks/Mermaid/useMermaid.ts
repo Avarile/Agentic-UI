@@ -1,3 +1,9 @@
+// Renders a mermaid definition to SVG, with error capture.
+//
+// Diagram source arrives incrementally while streaming, so most intermediate states
+// are syntactically invalid. Failures are expected and rendered as a quiet
+// placeholder rather than an error.
+
 import { useContext, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { Md5 } from 'ts-md5';

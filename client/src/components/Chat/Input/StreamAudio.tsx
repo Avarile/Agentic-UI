@@ -1,3 +1,5 @@
+// Streams TTS audio for the response as it arrives, rather than after it completes.
+
 import { useParams } from 'react-router-dom';
 import { useEffect, useCallback } from 'react';
 import { QueryKeys } from 'librechat-data-provider';

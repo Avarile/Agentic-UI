@@ -1,3 +1,18 @@
+// Re-attaches to a generation that is already running when the page loads.
+//
+// The entry point for the resumability promise: on mount it asks the server whether
+// this conversation has a live stream and, if so, rebuilds enough local state
+// (submission, placeholder response, pending steers, branch sibling indexes) for the
+// normal streaming path to take over.
+//
+// It must not run against a half-loaded cache, which is why ChatView gates it on
+// `!isLoading && !isFetching` rather than just `!isLoading` — a stale invalidated
+// cache mounts with `isLoading` false while a refetch is in flight, and resuming
+// from that builds the wrong tail.
+//
+// `hasSubmissionUserMessage` is the idempotence check: if the run's user message is
+// already present, resume has already happened and must not duplicate it.
+
 import { useEffect, useRef } from 'react';
 import { useSetRecoilState, useRecoilValue, useRecoilCallback } from 'recoil';
 import { Constants, tMessageSchema, isAssistantsEndpoint } from 'librechat-data-provider';

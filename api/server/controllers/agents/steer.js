@@ -1,3 +1,24 @@
+/**
+ * Steering: injecting user text into a generation that is already running.
+ *
+ * Three handlers — `SteerController` (queue a steer), `SteerCancelController` (remove a
+ * still-queued steer), `SteerArmController` (escalate a queued steer to an interrupt).
+ *
+ * Design: the controllers are thin on purpose. Queueing/injection mechanics live in
+ * `handleSteerRequest`/`handleSteerCancel`/`handleSteerArm` in `packages/api`; what this file
+ * owns is *authorization* — the caller must hold the agent's ACL bits
+ * (`checkPermission`/`ResourceCapabilityMap`) and the agents role permission, with
+ * `isEphemeralAgentId` short-circuiting agents that have no ACL row. Every response goes
+ * through `sendProtocolResult`/`sendProtocolFailure` so the negotiated protocol version is
+ * carried in both header and body.
+ *
+ * Note the route-level asymmetry (see `server/routes/agents/index.js`): steer carries the PII
+ * filter and moderation because it is new model-bound user text, while cancel and arm do not,
+ * because they add no content.
+ *
+ * Connections: `protocol.js`, `server/services/PermissionService.js`,
+ * `server/middleware/roles/capabilities.js`
+ */
 const {
   checkAccess,
   GenerationJobManager,

@@ -1,3 +1,6 @@
+// The web-search capability toggle, including the credential prompt when the tool
+// needs a key before it can be enabled.
+
 import React, { memo } from 'react';
 import { Globe } from 'lucide-react';
 import { CheckboxButton } from '@librechat/client';

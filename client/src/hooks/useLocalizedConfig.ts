@@ -1,3 +1,7 @@
+// Resolves admin-configured strings that ship with per-language variants, falling
+// back to the default when the active language has no entry. Config text cannot go
+// through `useLocalize` because its keys do not exist at build time.
+
 import { useRecoilValue } from 'recoil';
 import store from '~/store';
 

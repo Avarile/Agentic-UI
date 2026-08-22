@@ -1,3 +1,7 @@
+// Applies a chosen mention: switching endpoint, model, agent or preset, and
+// rewriting the textarea. One place, because a mention can change the conversation's
+// identity and every path must persist consistently.
+
 import { useCallback, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useSearchParams } from 'react-router-dom';

@@ -1,3 +1,18 @@
+/**
+ * MCP tool-cache service: publishing and reading MCP server tool catalogs.
+ *
+ * Binds `createMCPToolCacheService` from `packages/api` to the cache primitives in
+ * `getCachedTools.js` and the `MCPServersRegistry`.
+ *
+ * Design: the generation/revision functions
+ * (`getMCPToolsCacheGeneration`, `renewMCPToolsCacheGeneration`,
+ * `getNextAppToolsPublicationRevision`) plus `setCachedToolsIfCurrent` implement
+ * compare-and-set publication. Multiple replicas may discover tool changes concurrently; without
+ * a generation check a slower replica could overwrite a newer catalog with a stale one, and
+ * clients would silently see disappearing tools.
+ *
+ * Connections: `server/services/initializeMCPs.js`, `services/MCP.js`, `Config/getCachedTools.js`
+ */
 const { createMCPToolCacheService, MCPServersRegistry } = require('@librechat/api');
 const {
   getCachedTools,

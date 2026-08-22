@@ -18,6 +18,17 @@
  *   }
  *
  * @see https://openresponses.org/specification
+ *
+ * Design: same API-key authentication chain as `openai.js`
+ * (`preAuthTenantMiddleware -> requireRemoteAgentAuth -> configMiddleware ->
+ * checkRemoteAgentsFeature`, then `checkAgentPermission`). Must be mounted BEFORE
+ * `/v1` in `server/routes/agents/index.js`, or the less specific mount captures
+ * these paths.
+ *
+ * Connections:
+ * - controller: `server/controllers/agents/responses.js`
+ * - auth middleware: `server/routes/agents/middleware.js`
+
  */
 const express = require('express');
 const {

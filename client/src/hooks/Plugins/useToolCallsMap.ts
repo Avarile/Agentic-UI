@@ -1,3 +1,5 @@
+// Builds the tool-call lookup behind ToolCallsMapContext for one conversation.
+
 import { ToolCallResult } from 'librechat-data-provider';
 import { useMemo } from 'react';
 import { useGetToolCalls } from '~/data-provider';

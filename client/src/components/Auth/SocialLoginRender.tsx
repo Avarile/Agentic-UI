@@ -1,3 +1,6 @@
+// Renders the configured OAuth providers. Which appear is entirely startup-config
+// driven, so the client ships no provider list of its own.
+
 import { TStartupConfig } from 'librechat-data-provider';
 import {
   GoogleIcon,

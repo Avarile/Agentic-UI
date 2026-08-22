@@ -1,3 +1,27 @@
+// Owns the composer's capability toggles: code interpreter, web search, file
+// search, artifacts, skills, memory, and MCP servers.
+//
+// The toggles look simple but their persistence rules are not, and centralizing
+// them here is the point of the file. Three-way key resolution:
+//
+//   spec active            -> no persistence; the admin's model spec is applied
+//                             fresh every time and must not be overwritten by a
+//                             user's earlier choice
+//   specs exist, none active -> a shared `__defaults__` key
+//   no specs configured    -> per-conversation keys (original behaviour)
+//
+// New conversations read from the environment key while existing ones read from
+// their own conversation key, so a fresh chat inherits defaults without a saved
+// chat losing its per-chat state.
+//
+// The hydration effect only fills keys that are still `undefined`, never
+// overwriting live state, and bails out entirely while `isSubmitting` so a
+// mid-stream re-render cannot reset a toggle the request was made with.
+//
+// Each toggle is the same `useToolToggle` hook parameterized by tool key and
+// storage key — one behaviour, seven instances, rather than seven near-duplicate
+// hooks.
+
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { Tools, Constants, LocalStorageKeys, AgentCapabilities } from 'librechat-data-provider';

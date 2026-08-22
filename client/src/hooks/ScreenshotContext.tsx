@@ -1,3 +1,15 @@
+// Captures a DOM subtree to a PNG, for shareable conversation screenshots.
+//
+// The constants at the top are the interesting part: browsers impose canvas limits
+// that `html-to-image` will not warn about, and exceeding them produces a *blank*
+// image rather than an error. So the capture is bounded on four axes — total area
+// (WebKit's ~16.7MP ceiling), single edge length (32767px), element count (each
+// node is cloned with ~340 computed styles), and a floor on pixel ratio below which
+// downscaling to fit would render the result illegible.
+//
+// When a capture cannot be made legible within those limits it throws
+// `ScreenshotLimitError` rather than silently producing something unusable.
+
 import { createContext, useRef, useContext, RefObject, ReactNode } from 'react';
 import { toCanvas } from 'html-to-image';
 import { ThemeContext, isDark } from '@librechat/client';

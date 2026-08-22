@@ -1,3 +1,21 @@
+/**
+ * Applies the auto-ban policy once a user's violation count crosses a `BAN_INTERVAL` step.
+ *
+ * Uses a threshold-crossing comparison (`floor(prev/interval)` vs `floor(current/interval)`)
+ * rather than a modulo test, so a single request that jumps the count by more than one still
+ * triggers exactly one ban and no step is ever skipped.
+ *
+ * Design: session teardown happens *before* the duration check. Even with an invalid or zero
+ * `BAN_DURATION` the user's sessions are deleted and all auth cookies cleared — a "soft ban"
+ * that ends the current session while letting the access token expire naturally. The ban is
+ * recorded under both user id and IP so an evasion attempt from the same address is caught by
+ * `checkBan` before authentication.
+ *
+ * Connections:
+ * - invoked only by `cache/logViolation.js`
+ * - ban records are read back by `server/middleware/checkBan.js`
+ * - session deletion via `deleteAllUserSessions` from `models/index.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { ViolationTypes } = require('librechat-data-provider');
 const { isEnabled, math, removePorts } = require('@librechat/api');

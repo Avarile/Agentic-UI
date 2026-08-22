@@ -1,4 +1,17 @@
 /**
+ * Builds the request body for an OpenAI Assistants run, injecting current date and time.
+ *
+ * `getDateStr`/`getTimeStr` accept an optional client timestamp and otherwise use server time.
+ *
+ * Design: the client's timestamp is preferred when supplied, because the *user's* local date
+ * is what matters for "today" in a prompt — a server in another timezone would otherwise tell
+ * the model the wrong date. Kept as a standalone module so both assistants controllers and
+ * their tests build identical run bodies.
+ *
+ * Connections:
+ * - used by `server/controllers/assistants/*` and `server/services/AssistantService.js`
+ */
+/**
  * Obtains the date string in 'YYYY-MM-DD' format.
  *
  * @param {string} [clientTimestamp] - Optional ISO timestamp string. If provided, uses this timestamp;

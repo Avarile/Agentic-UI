@@ -1,3 +1,6 @@
+// The code bar variant that follows a long block while it scrolls, so copy stays
+// reachable without scrolling back up.
+
 import React from 'react';
 import { InfoIcon } from 'lucide-react';
 import type { CodeBarProps } from '~/common';

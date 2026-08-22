@@ -1,3 +1,20 @@
+/**
+ * Authorizes people-picker searches by the principal types being requested.
+ *
+ * Maps each requested principal type to the permission it needs — `user` -> VIEW_USERS,
+ * `group` -> VIEW_GROUPS, `role` -> VIEW_ROLES — and, for an unfiltered mixed search, requires
+ * at least one of them.
+ *
+ * Design: authorizing per requested type (rather than one blanket "can use people picker"
+ * permission) means a role allowed to share with groups but not to enumerate individual users
+ * gets exactly that. Both `type` (singular) and `types` (comma-separated or array) query
+ * shapes are accepted because different UI call sites send different forms, and unknown types
+ * are rejected against `VALID_PRINCIPAL_TYPES` rather than ignored.
+ *
+ * Connections:
+ * - roles via `getRoleByName` from `~/models`
+ * - used by `server/routes/accessPermissions.js` and the sharing UI endpoints
+ */
 const { logger } = require('@librechat/data-schemas');
 const { PrincipalType, PermissionTypes, Permissions } = require('librechat-data-provider');
 const { getRoleByName } = require('~/models');

@@ -1,3 +1,22 @@
+/**
+ * Multer configuration: disk storage, filename sanitization, and MIME filtering.
+ *
+ * Design:
+ * - Filenames are `crypto`-randomized on disk and the original is sanitized
+ *   (`sanitizeFilename`) — the client-supplied name is never used as a path component, which is
+ *   the traversal boundary for uploads.
+ * - `normalizeUploadMimeType` reconciles the browser-reported type with the extension, because
+ *   browsers report inconsistent types for the same file (notably CSV and Office formats) and
+ *   a naive filter would reject valid uploads.
+ * - `createFileFilter(customFileConfig)` builds the filter from operator config, so allowed
+ *   types are configuration rather than code. Admin-supplied MIME patterns are compiled by a
+ *   linear-time (ReDoS-safe) engine — see `configureFileConfigRegexEngine()` in
+ *   `server/index.js`.
+ * - `importFileFilter` is a separate, narrower filter for conversation-import archives.
+ * - `createMulterInstance` is async because limits come from the loaded app config.
+ *
+ * Connections: used by `server/routes/files/index.js` and `server/routes/convos.js`
+ */
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');

@@ -1,3 +1,24 @@
+/**
+ * Root router for `/api/files`, exported as an async `initialize()` rather than a router.
+ *
+ * Why async: multer's configuration (size limits, MIME filter) depends on the loaded app
+ * config, which is not available at require time. `server/index.js` awaits
+ * `routes.files.initialize()` at mount time.
+ *
+ * Design:
+ * - Common chain: `requireJwtAuth -> configMiddleware -> checkBan -> uaParser`.
+ * - Upload routes are declared as *separate* `router.post(...)` statements that only run
+ *   `upload.single(...)` and `restoreTenantContextFromReq`, before the corresponding
+ *   `router.use(...)` mounts the handler router. Multer must consume the multipart body first,
+ *   and `restoreTenantContextFromReq` re-establishes the async-local tenant context that is
+ *   lost across multer's stream handling — without it, tenant-scoped writes in the handler
+ *   would fail.
+ * - Avatar routers for agents and assistants are imported from their own route modules and
+ *   mounted here (`/images/agents`, `/images/assistants`) so avatar uploads reuse this
+ *   file-upload stack.
+ *
+ * Connections: `files.js`, `images.js`, `avatar.js`, `speech/`, `multer.js`
+ */
 const express = require('express');
 const {
   createFileUsageLimiter,

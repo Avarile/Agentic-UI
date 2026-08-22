@@ -1,3 +1,15 @@
+/**
+ * CRUD for programmatic agent API keys (used by remote-agent callers).
+ *
+ * Handlers come from `createApiKeyHandlers` in `packages/api`; this file supplies the model
+ * functions and the authorization gate.
+ *
+ * Design: every route requires the `REMOTE_AGENTS`/`USE` permission — the keys only exist to
+ * authenticate remote agent invocations, so the ability to mint one is tied to the ability to
+ * use that feature rather than being a separate permission.
+ *
+ * Connections: models via `~/models`; consumed by the remote-agent request path
+ */
 const express = require('express');
 const { generateCheckAccess, createApiKeyHandlers } = require('@librechat/api');
 const { PermissionTypes, Permissions } = require('librechat-data-provider');

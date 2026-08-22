@@ -1,3 +1,9 @@
+// The pre-React RUM bootstrap.
+//
+// Plain JS, loaded before the bundle, so errors and timing during initial load —
+// including a failure that prevents React from mounting at all — are still
+// captured. That is the whole reason it is not part of the app's module graph.
+
 const RUM_QUEUE_KEY = 'lc-rum-queue';
 const MAX_RUM_QUEUE = 20;
 

@@ -1,3 +1,14 @@
+// Prompt library mutations: group and prompt CRUD, labels, production version, and
+// usage recording.
+//
+// The group/prompt split mirrors the data model — a group is the named entity users
+// see, holding versioned prompts, one of which is marked production
+// (`useMakePromptProduction`). `useRecordPromptUsage` is fire-and-forget telemetry
+// that backs the "recently used" ordering.
+//
+// A flat file predating the per-feature directory convention; prompt *queries* live
+// in queries.ts.
+
 import { useRecoilValue } from 'recoil';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService, QueryKeys } from 'librechat-data-provider';

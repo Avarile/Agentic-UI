@@ -1,3 +1,10 @@
+/**
+ * Wolfram Alpha tool for computation, unit conversion and factual queries.
+ *
+ * The file-level `eslint-disable no-useless-escape` is intentional: the query-encoding patterns
+ * contain escapes that are redundant to the linter but match Wolfram's documented escaping
+ * rules, and "fixing" them changes what is sent.
+ */
 /* eslint-disable no-useless-escape */
 const axios = require('axios');
 const { logger } = require('@librechat/data-schemas');

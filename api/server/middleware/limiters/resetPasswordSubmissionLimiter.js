@@ -1,3 +1,12 @@
+/**
+ * IP rate limit on password-reset token *submissions* (default 2 per 2 minutes).
+ *
+ * Design: separate from the request limiter because the two steps are attacked differently —
+ * requesting is email spam, submitting is token brute force. Its env vars fall back to the
+ * `RESET_PASSWORD_*` values, so operators who tune only the request limiter get consistent
+ * behaviour on both. The violation record carries `limiter: 'submission'` so the two are
+ * distinguishable in the logs.
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

@@ -1,3 +1,19 @@
+/**
+ * Reads and writes which skills the user has active.
+ *
+ * Design:
+ * - Orphan pruning: skill states can reference skills that were deleted, unshared, or removed
+ *   from the deployment. `pruneOrphanSkillStates` (from `packages/api`) is given live lookups by
+ *   `buildPruneDeps`, which checks both database skills *and* deployment skill ids
+ *   (`getDeploymentSkillIds`/`mergeDeploymentSkillIds`) — a deployment skill has no DB row, so
+ *   checking only the collection would prune valid entries.
+ * - ACL-aware: valid ids are intersected with `findAccessibleResources`, so losing access to a
+ *   shared skill deactivates it rather than leaving it silently enabled.
+ * - Bounded by `MAX_SKILL_STATES` and validated by `validateSkillStatesPayload`, since these
+ *   are stored on the user document.
+ *
+ * Connections: `server/services/PermissionService.js`; route `server/routes/settings.js`
+ */
 const mongoose = require('mongoose');
 const { logger } = require('@librechat/data-schemas');
 const {

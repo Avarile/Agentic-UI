@@ -1,3 +1,17 @@
+/**
+ * Sends templated transactional email via Mailgun API or SMTP.
+ *
+ * Templates are Handlebars files rendered with the caller's `payload`.
+ *
+ * Design: two transports because deployments differ — Mailgun's HTTP API works where outbound
+ * SMTP is blocked, SMTP works without a third-party account — and the transport is chosen from
+ * config so callers never care which. `throwError` defaults to true but can be disabled for
+ * non-critical mail (a notification failing should not fail the surrounding operation, while a
+ * verification email failing must).
+ *
+ * Connections: `server/services/AuthService.js` (verification, password reset); templates under
+ * `server/utils/emails/`
+ */
 const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');

@@ -1,3 +1,5 @@
+// Tag helpers for conversations, including reconciling tag lists after a change.
+
 import {
   TConversationTagRequest,
   TConversationTagResponse,

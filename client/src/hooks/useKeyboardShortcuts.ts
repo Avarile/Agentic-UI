@@ -1,3 +1,13 @@
+// Global keyboard shortcuts, with user-remappable bindings.
+//
+// One document-level listener rather than per-component handlers, so a shortcut
+// works regardless of focus — and so conflicts are resolvable in one place.
+// Bindings come from `store.customShortcuts` layered over the defaults, with
+// separate mac/other variants (see utils/shortcuts.ts).
+//
+// Mounted only after auth (see the wrapper in routes/Root.tsx) so pre-login pages
+// have no global key capture.
+
 import { useCallback, useEffect, useMemo } from 'react';
 import copy from 'copy-to-clipboard';
 import { useToastContext } from '@librechat/client';

@@ -1,3 +1,6 @@
+// Copy-to-clipboard for code blocks, with the copied-state timing shared across
+// every code surface.
+
 import { useRef, useState, useCallback, useEffect } from 'react';
 import copy from 'copy-to-clipboard';
 

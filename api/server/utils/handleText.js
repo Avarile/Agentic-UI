@@ -1,3 +1,19 @@
+/**
+ * Text/stream helpers shared by the chat paths, plus `generateConfig`.
+ *
+ * `createOnProgress` builds the streaming progress callback; `formatSteps`/`formatAction`
+ * render agent steps into text; `addSpaceIfNeeded`/`getString` are small normalizers used while
+ * concatenating streamed output.
+ *
+ * `generateConfig(key, baseURL, endpoint)` is the odd one out — it builds an endpoint's config
+ * entry, resolving `isUserProvided` keys and attaching default capabilities/models
+ * (`defaultAgentCapabilities`, `defaultRetrievalModels`, `defaultAssistantsVersion`). It lives
+ * here because `EndpointService` needs it at module load and this file has no service-layer
+ * imports, so requiring it cannot create a cycle.
+ *
+ * Connections: `server/services/Config/EndpointService.js`; streaming helpers used by the
+ * legacy clients and assistants controllers
+ */
 const partialRight = require('lodash/partialRight');
 const {
   Capabilities,

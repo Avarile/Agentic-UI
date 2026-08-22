@@ -1,3 +1,6 @@
+// Derives what the artifact renderer needs from an artifact record — type,
+// language, whether it is previewable.
+
 import { useContext, useMemo } from 'react';
 import { ThemeContext, isDark } from '@librechat/client';
 import { removeNullishValues } from 'librechat-data-provider';

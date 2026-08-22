@@ -1,3 +1,6 @@
+// Render-prop access to the announcer for components that would rather not call a
+// hook.
+
 import React from 'react';
 import AnnouncerContext from '~/Providers/AnnouncerContext';
 

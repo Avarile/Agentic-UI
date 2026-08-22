@@ -1,3 +1,5 @@
+// Applying, saving and managing conversation presets.
+
 import { useRef, useState } from 'react';
 import { Trans } from 'react-i18next';
 import { useRecoilValue } from 'recoil';

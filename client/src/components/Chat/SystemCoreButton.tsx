@@ -1,3 +1,8 @@
+// Opens the System Core modal by writing its Recoil atom.
+//
+// A button that owns no state: the dialog is mounted once at the root
+// (routes/Root.tsx), so any surface can raise it without hosting it.
+
 import { memo, useCallback } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { Boxes } from 'lucide-react';

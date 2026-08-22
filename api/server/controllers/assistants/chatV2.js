@@ -1,3 +1,16 @@
+/**
+ * Assistants v2 chat controller.
+ *
+ * Same orchestration as `chatV1.js` (thread init -> balance check -> run -> stream -> persist ->
+ * record usage) adapted to v2: `ToolCallTypes`/`retrievalMimeTypes` replace the v1 vision-tool
+ * shim, and file attachments are handled through v2 `tool_resources`.
+ *
+ * Kept as a separate controller rather than a branch inside v1 because the streaming event
+ * handling and tool-call shapes differ enough that a shared function would be mostly
+ * conditionals.
+ *
+ * Connections: `server/services/Threads/`, `services/Runs/`, `./helpers.js`, `./errors.js`
+ */
 const { v4 } = require('uuid');
 const { sleep } = require('@librechat/agents');
 const { logger } = require('@librechat/data-schemas');

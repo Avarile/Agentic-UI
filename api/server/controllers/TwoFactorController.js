@@ -1,3 +1,18 @@
+/**
+ * Account-settings 2FA management: enable, verify, confirm, disable, regenerate backup codes.
+ *
+ * Design — the enable flow is deliberately two-phase. `enable2FA` generates and stores the TOTP
+ * secret with 2FA still marked *disabled*; only `confirm2FA`, after the user proves they can
+ * produce a valid code, flips it on. Without that split a user could lock themselves out by
+ * enabling 2FA with a misconfigured authenticator app.
+ *
+ * Re-enrolling while 2FA is already on requires an OTP or backup code first, so a hijacked
+ * session cannot silently replace the second factor. Secrets are stored with `encryptV3`, and
+ * `safeAppTitle` strips whitespace from `APP_TITLE` because it becomes the issuer label in the
+ * `otpauth://` URI.
+ *
+ * Connections: `server/services/twoFactorService.js`; routes `POST /api/auth/2fa/*`
+ */
 const { encryptV3, logger } = require('@librechat/data-schemas');
 const {
   verifyOTPOrBackupCode,

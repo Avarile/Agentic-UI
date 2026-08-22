@@ -1,3 +1,11 @@
+/**
+ * Factory for conversation-import rate limits (IP and user, defaults 100/50 per 15 min).
+ *
+ * Imports are expensive — each one parses an archive and writes many documents — so they get
+ * their own limits rather than sharing the message limiter's budget.
+ *
+ * Connections: mounted in `server/routes/convos.js`; import logic in `server/utils/import/`
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

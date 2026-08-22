@@ -1,3 +1,24 @@
+/**
+ * Shared helpers for the Assistants controllers: version resolution, client construction, listing.
+ *
+ * Design:
+ * - `getCurrentVersion` derives v1/v2 from `req.baseUrl` (`/v1`, `/v2`), falling back to
+ *   `req.body.version` then to the endpoint's configured default. Deriving it from the mount
+ *   path means the v1 and v2 routers can share controllers without threading a version
+ *   parameter through every handler.
+ * - `getOpenAIClient` is the single place that decides between the OpenAI and Azure client
+ *   (`initAzureClient` vs. `initializeClient`), so no controller hardcodes a provider.
+ * - `listAssistantsForAzure` exists because Azure OpenAI assistants are partitioned per
+ *   deployment: the list must be gathered across deployments and merged, which the plain
+ *   OpenAI path does not need.
+ * - `filterAssistants` enforces `privateAssistants` at listing time, complementing
+ *   `validateAuthor`'s per-operation check.
+ *
+ * Connections:
+ * - `server/services/Endpoints/assistants/`, `Endpoints/azureAssistants/`
+ * - consumed by `assistants/v1.js`, `v2.js`, `chatV1.js`, `chatV2.js`,
+ *   `server/routes/assistants/actions.js`
+ */
 const {
   EModelEndpoint,
   defaultOrderQuery,

@@ -1,3 +1,5 @@
+// Marketplace categories with their icons and localized labels.
+
 import { useMemo } from 'react';
 
 import useLocalize from '~/hooks/useLocalize';

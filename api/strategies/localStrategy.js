@@ -1,3 +1,19 @@
+/**
+ * Passport strategy for email + password (local) authentication.
+ *
+ * Design: the callback distinguishes *why* a login failed via `ErrorTypes` codes rather than
+ * returning a single generic message, because the UI needs to differentiate "no password on
+ * this account, use your SSO provider" from "wrong password" from "email not verified". Where
+ * the distinction would leak account existence, the error is kept deliberately generic.
+ *
+ * Password comparison goes through `comparePassword` from `packages/api` so hashing/timing
+ * behaviour stays consistent with registration and password reset.
+ *
+ * Connections:
+ * - input validated by `strategies/validators.js` (`loginSchema`)
+ * - registered in `server/index.js` as `passportLogin`
+ * - invoked via `server/middleware/requireLocalAuth.js`
+ */
 const bcrypt = require('bcryptjs');
 const { logger } = require('@librechat/data-schemas');
 const { errorsToString } = require('librechat-data-provider');

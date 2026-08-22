@@ -1,3 +1,12 @@
+/**
+ * Black Forest Labs FLUX image generation tool.
+ *
+ * Design: the FLUX API is *asynchronous* — a generation request returns a job id that must be
+ * polled until the image is ready, which is why this file is large relative to the other image
+ * tools. `createMinimalRetentionRequest` asks the provider to retain the result for the minimum
+ * period (the image is copied into our own storage, so provider-side retention is unnecessary
+ * exposure). Proxy support via `applyAxiosProxyConfig`/`getHttpsProxyAgent`.
+ */
 const axios = require('axios');
 const fetch = require('node-fetch');
 const { v4: uuidv4 } = require('uuid');

@@ -1,5 +1,28 @@
 /**
  * @import { TUpdateResourcePermissionsRequest, TUpdateResourcePermissionsResponse } from 'librechat-data-provider'
+ *
+ * Implements the generic resource-sharing API — reading and writing ACL grants for any
+ * resource type (agents, prompt groups, MCP servers, skills, files).
+ *
+ * Design:
+ * - `validateResourceType` checks the incoming `:resourceType` against known types before
+ *   any query; it arrives from the URL and must never be treated as a collection name.
+ * - `matchesCurrentTenant` filters principals to the caller's tenant, treating
+ *   `SYSTEM_TENANT_ID` as unrestricted — without it a sharing dialog could surface
+ *   principals from another tenant.
+ * - Grant writes go through `bulkUpdateResourcePermissions`: a share operation adds and
+ *   removes several principals at once and must apply as one unit.
+ * - `ensurePrincipalExists`/`ensureGroupPrincipalExists` create local principal records on
+ *   demand, because a directory user or group may be granted access before ever signing in.
+ * - `searchPrincipals` can query Microsoft Entra directly (`entraIdPrincipalFeatureEnabled`,
+ *   `searchEntraIdPrincipals`) so admins can share with users who have no local record yet.
+ * - Remote agents need extra handling (`enrichRemoteAgentPrincipals`,
+ *   `backfillRemoteAgentPermissions`) since their principals originate outside this instance.
+ *
+ * Connections:
+ * - `server/services/PermissionService.js`, `services/GraphApiService.js`
+ * - route: `server/routes/accessPermissions.js`
+
  */
 
 const mongoose = require('mongoose');

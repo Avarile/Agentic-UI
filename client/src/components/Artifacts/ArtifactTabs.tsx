@@ -1,3 +1,6 @@
+// Switches an artifact between preview and code. Which tabs exist depends on the
+// artifact type — some are code-only, some preview-only (see utils/artifacts.ts).
+
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Spinner } from '@librechat/client';
 import * as Tabs from '@radix-ui/react-tabs';

@@ -1,3 +1,6 @@
+// Writes conversation parameter changes (temperature, prompt prefix, and the rest)
+// for a given pane, with the endpoint-specific validation applied.
+
 import {
   TPreset,
   TConversation,

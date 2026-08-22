@@ -1,3 +1,21 @@
+// Artifact panel state: what exists, what is showing, and which card owns it.
+//
+// `artifactsState` is the collection; `currentArtifactId` is focus, and the two are
+// separate because the panel opens on *focus*, not on existence — conversation
+// navigation clears the id so revisiting an old conversation full of artifacts does
+// not pop the panel open (see components/Chat/Presentation.tsx).
+//
+// The two atom families exist to solve identity problems that a single record
+// cannot. `toolArtifactClaim` dedupes the same file appearing across several tool
+// calls by recording which card instance most recently mounted for an id — losers
+// render nothing. `previewJustResolved` is a one-shot edge signal, needed because a
+// deferred preview can resolve *after* the stream closes, so the card mounts with
+// `isSubmitting === false` and the normal auto-focus path would skip it.
+//
+// Both are keyed per artifact so a claim or a resolution never re-renders unrelated
+// cards. Note the lifetime caveat documented below: Recoil does not GC atomFamily
+// entries, so unmount resets to a falsy value rather than removing the key.
+
 import { atom, atomFamily, selectorFamily } from 'recoil';
 import { logger } from '~/utils';
 import type { Artifact } from '~/common';

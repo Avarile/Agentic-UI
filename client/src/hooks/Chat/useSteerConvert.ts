@@ -1,3 +1,10 @@
+// Converts leftover steers into queued follow-up messages at run end.
+//
+// A steer that never reached its injection boundary before the run finished has to
+// go somewhere. Silently dropping it loses user input; auto-sending it is
+// presumptuous. Converting it into a queued message keeps it visible and
+// user-controlled. Called from the SSE terminal handlers and from resume.
+
 import { useCallback } from 'react';
 import { v4 } from 'uuid';
 import { useRecoilCallback } from 'recoil';

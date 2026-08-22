@@ -1,3 +1,29 @@
+/**
+ * Conversation CRUD plus archive, pin, fork, duplicate, import and title generation.
+ *
+ * Design:
+ * - `validateConvoAccess` guards the per-conversation routes; ownership violations are logged
+ *   as abuse (see that middleware) rather than just refused.
+ * - Fork and duplicate deliberately *share* one rate-limit budget — they are the same "clone a
+ *   message tree" operation class, so allowing separate budgets would double the abuse ceiling.
+ * - Import uses multer with `resolveImportMaxFileSize` and `importFileFilter` so archive size
+ *   and type are bounded before anything is parsed.
+ * - Deleting a conversation fans out to related state that would otherwise leak: shared links
+ *   (`deleteConvoSharedLinksWithCleanup` / `deleteAllSharedLinksWithCleanup`) and agent
+ *   checkpoints (`deleteAgentCheckpoints`). A deleted conversation must not remain publicly
+ *   reachable through a stale share.
+ * - `restoreTenantContextFromReq` is used on the async paths where work continues outside the
+ *   original request's async-local scope.
+ * - Assistants-endpoint conversations need an upstream client to clean up threads, hence the
+ *   `assistantClients` lookup table keyed by endpoint.
+ * - `isValidProjectFilter` validates the `projectId` query as `unassigned` or a 24-hex id
+ *   before it reaches a query.
+ *
+ * Connections:
+ * - fork/duplicate: `server/utils/import/fork.js`; import: `server/utils/import/`
+ * - title generation caches through `CacheKeys.GEN_TITLE`
+ * - limiters: `createImportLimiters`, `createForkLimiters`
+ */
 const multer = require('multer');
 const express = require('express');
 const { sleep } = require('@librechat/agents');

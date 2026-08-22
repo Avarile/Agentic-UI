@@ -1,3 +1,18 @@
+/**
+ * Builds RAG context retrieval and prompt injection for attached documents.
+ *
+ * Queries the RAG service for passages relevant to the user's message and appends them to the
+ * prompt with a fixed instruction `footer`.
+ *
+ * Design: the footer is the guardrail — it tells the model to admit ignorance, ask for
+ * clarification, and *not* mention that the information came from provided context. Without that
+ * last instruction the model narrates its retrieval ("according to the context you gave me"),
+ * which reads badly and leaks the mechanism. Authentication to the RAG service uses
+ * `generateShortLivedToken`, so no long-lived shared secret is needed.
+ *
+ * Connections: `server/controllers/agents/client.js` (`buildMessages`);
+ * `server/services/Files/VectorDB/crud.js` on the ingest side
+ */
 const axios = require('axios');
 const { isEnabled, generateShortLivedToken, logAxiosError } = require('@librechat/api');
 

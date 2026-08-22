@@ -1,3 +1,9 @@
+// Skill lifecycle: create, import, update, delete, and file attach/remove.
+//
+// Import is distinct from create because a skill can arrive as an uploaded archive
+// that the server unpacks into a skill plus its files — one request producing
+// several entities, so it invalidates both the skill list and the file list.
+
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {

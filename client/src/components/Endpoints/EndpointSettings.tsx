@@ -1,3 +1,5 @@
+// The parameter panel for the selected endpoint, rendered from its schema.
+
 import { useRecoilValue } from 'recoil';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';
 import { getEndpointField, SettingsViews } from 'librechat-data-provider';

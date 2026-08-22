@@ -1,3 +1,17 @@
+// State that has no better home: banner dismissals, dialog visibility, keyboard
+// shortcut overrides, composer badge order, and the per-message attachment map.
+//
+// A junk drawer by design rather than by neglect — each of these is a single atom
+// with no siblings, and giving each its own module would add files without adding
+// structure. Anything here that grows a second related atom should move out.
+//
+// `conversationAttachmentsSelector` is the one non-trivial member: attachments
+// arrive keyed by message id in a flat map, and this filters that map down to one
+// conversation so a chat does not subscribe to every attachment in the session.
+//
+// Note the ordering constraint on `chatBadges` — the array index is the badge
+// identity, so existing entries must not be reordered.
+
 import { atom, selectorFamily } from 'recoil';
 import { TAttachment } from 'librechat-data-provider';
 import { atomWithLocalStorage } from './utils';

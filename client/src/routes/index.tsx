@@ -1,3 +1,32 @@
+// The route table — the app's top-level shape, and the only place auth boundaries
+// are expressed as structure rather than as conditionals.
+//
+// Three sibling trees, in order of decreasing publicness:
+//
+//   share/:shareId, oauth/*   fully public; no AuthContextProvider above them, so
+//                             a shared transcript renders for anyone
+//   / (StartupLayout)         pre-auth forms (register, password reset) that need
+//                             startup config but not a session
+//   AuthLayout                everything else — the only subtree where
+//                             AuthContextProvider (and therefore a session) exists
+//
+// Putting `AuthContextProvider` on a route element rather than in App.jsx is what
+// keeps the public routes genuinely public: they never mount the session machinery
+// and never trigger a token refresh.
+//
+// `WithRum` sits just inside AuthLayout so real-user monitoring is scoped to
+// authenticated navigation. `ApiErrorWatcher` is a sibling of the Outlet, not a
+// wrapper, so it can react to auth errors without re-rendering the page.
+//
+// Heavy, rarely-first-visited views (prompts, skills, projects) use React Router's
+// `lazy:` so `three`-sized dependency trees stay out of the initial chunk. Routes
+// that exist only as redirects (`prompts`, `prompts/new`) are here because those
+// URLs are still linked from elsewhere; prompts open as a dialog, so there is no
+// page to land on.
+//
+// `basename` is read from the document's <base href> so the same build can be
+// served from a sub-path without rebuilding.
+
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import {
   Login,

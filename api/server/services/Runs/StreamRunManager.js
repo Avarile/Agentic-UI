@@ -1,3 +1,23 @@
+/**
+ * Streaming counterpart of `RunManager` — consumes the Assistants SSE stream.
+ *
+ * Handles `AssistantStreamEvents` as they arrive: message deltas, run-step creation and
+ * completion, tool calls, and required-action pauses.
+ *
+ * Design:
+ * - Because events arrive incrementally, no deduplication machinery is needed (unlike
+ *   `RunManager`); instead the complexity is in *assembling* deltas into content parts in the
+ *   right order and emitting them to the client with `sendEvent`.
+ * - Required actions (tool calls) are submitted mid-stream via `processRequiredActions`, and the
+ *   stream is resumed — the run stays open rather than being restarted.
+ * - Files produced by the run go through `retrieveAndProcessFile` so they land in normal file
+ *   storage.
+ * - `processMessages` reconciles the streamed content with the thread's authoritative messages
+ *   at the end, since the stream can drop events.
+ *
+ * Connections: `server/services/ToolService.js`, `services/Threads/`,
+ * `services/Files/process.js`; used by `controllers/assistants/chatV1.js`/`chatV2.js`
+ */
 const { sleep } = require('@librechat/agents');
 const { sendEvent } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');

@@ -1,3 +1,11 @@
+/**
+ * Gates the password-reset flow behind `ALLOW_PASSWORD_RESET`.
+ *
+ * Attempts while disabled are logged with the source IP — probing a disabled reset endpoint is
+ * worth seeing in the logs.
+ *
+ * Connections: used by `server/routes/auth.js`
+ */
 const { isEnabled } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 

@@ -1,3 +1,29 @@
+/**
+ * Serves `/api/config` — the startup payload the SPA needs before (and after) login.
+ *
+ * Returns which auth methods are available, feature flags, model specs, branding, balance and
+ * RUM settings — everything the client must know to render.
+ *
+ * Design:
+ * - Mounted with `optionalJwtAuth`, so it answers for anonymous visitors (the login screen
+ *   needs it) while returning a richer, role- and tenant-scoped payload once authenticated.
+ * - Model specs are filtered per caller via `sanitizeModelSpecs` and
+ *   `excludeHiddenModelSpecs`. This endpoint is reachable pre-auth, so leaking the full spec
+ *   list would disclose the deployment's model inventory.
+ * - `resolveBuildInfo()` is invoked at *module load* deliberately: it can shell out to `git`,
+ *   and doing that on the first request would put an `execFileSync` on the hot path. The
+ *   resolver memoizes afterwards.
+ * - Simple env-derived flags are computed once at module scope; anything that must reflect
+ *   per-request state or be re-evaluated under test is read inline (there is an explicit
+ *   comment marking those).
+ * - Section visibility is gated by `hasConfigCapability`, so an operator can expose parts of
+ *   the config to some roles and not others.
+ *
+ * Connections:
+ * - `getAppConfig` from `server/services/Config/app.js`; LDAP and RUM sub-configs from
+ *   `services/Config/ldap.js` and `services/Config/rum.js`
+ * - capability checks via `server/middleware/roles/capabilities.js`
+ */
 const express = require('express');
 const {
   isEnabled,

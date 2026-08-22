@@ -1,3 +1,18 @@
+/**
+ * The file-search (RAG retrieval) tool and its file-priming helper.
+ *
+ * `createFileSearchTool` builds the tool the model calls to search attached documents;
+ * `primeFiles` resolves which files are in scope before the run.
+ *
+ * Design: authorization happens in `primeFiles`, not inside the tool call —
+ * `filterFilesByAgentAccess` narrows the file set to what the caller may read *before* the model
+ * can search it, so a crafted query cannot reach another user's documents. The RAG service is
+ * called with a `generateShortLivedToken` rather than a static secret. `fileCitations` toggles
+ * whether results carry citation metadata (see `server/services/Files/Citations/`).
+ *
+ * Connections: `server/services/Files/permissions.js`, `services/Files/VectorDB/crud.js`,
+ * `services/ToolService.js`
+ */
 const axios = require('axios');
 const { logger } = require('@librechat/data-schemas');
 const { tool } = require('@librechat/agents/langchain/tools');

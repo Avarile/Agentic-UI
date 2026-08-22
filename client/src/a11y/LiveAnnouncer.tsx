@@ -1,3 +1,10 @@
+// Provides the announcement channel and hosts the live regions.
+//
+// Mounted high in App.jsx so anything below can announce. Two regions rather than
+// one, because `polite` and `assertive` have genuinely different semantics — a
+// polite announcement waits for the reader to finish, an assertive one interrupts
+// — and a single region cannot express both.
+
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { AnnounceOptions } from '~/common';
 import AnnouncerContext from '~/Providers/AnnouncerContext';

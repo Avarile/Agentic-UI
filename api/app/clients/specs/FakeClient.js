@@ -1,3 +1,18 @@
+/**
+ * Test double implementing the `BaseClient` contract.
+ *
+ * `FakeClient` provides the minimal subclass overrides (`setOptions`, completion methods) so
+ * `BaseClient`'s real logic — history loading, context-window fitting, persistence, token
+ * counting — can be exercised without a provider. `initializeFakeClient(apiKey, options,
+ * fakeMessages)` seeds a message history.
+ *
+ * Design: this is the project's testing philosophy applied to the client layer — exercise real
+ * code paths with a real base class rather than mocking `BaseClient` itself. Lives in
+ * `specs/` (not `__tests__/`) so Jest does not collect it as a test file while spec files import
+ * it.
+ *
+ * Connections: `app/clients/BaseClient.js`
+ */
 const { getModelMaxTokens } = require('@librechat/api');
 const BaseClient = require('../BaseClient');
 

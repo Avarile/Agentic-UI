@@ -1,3 +1,6 @@
+// Error handling for favourites mutations, which fail benignly and should not
+// interrupt the user.
+
 import type { TranslationKeys } from '~/hooks';
 
 type LocalizeFn = (key: TranslationKeys, options?: Record<string, string>) => string;

@@ -1,3 +1,6 @@
+// Drop-target wiring on top of react-dnd, including the distinction between a file
+// drop and an internal item drag.
+
 import { useRef, useMemo, useCallback } from 'react';
 import { useDrop } from 'react-dnd';
 import { useRecoilValue } from 'recoil';

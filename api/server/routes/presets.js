@@ -1,3 +1,12 @@
+/**
+ * CRUD for saved conversation presets (endpoint + parameter bundles).
+ *
+ * `requireJwtAuth` is applied router-wide; presets are strictly per-user, and every query is
+ * scoped by `req.user.id`. A missing `presetId` is filled with a random UUID so the client can
+ * create without pre-generating an id. Deletion is a `POST /delete` with a filter body rather
+ * than `DELETE /:id`, which is what lets "delete all presets" be expressed as an empty
+ * filter.
+ */
 const crypto = require('crypto');
 const express = require('express');
 const { logger } = require('@librechat/data-schemas');

@@ -1,3 +1,21 @@
+/**
+ * Attaches owner/support contact information to a list of agents.
+ *
+ * `attachOwnerContacts(agents)` resolves who to contact about a shared agent, so the UI can
+ * show a support path on an agent the viewer does not own.
+ *
+ * Design:
+ * - Agents that already declare a support contact (`hasSupportContact`) are skipped, so an
+ *   explicit contact always wins over an inferred owner.
+ * - Owners are resolved in **one batched query** for all remaining agents
+ *   (`getFirstOwnerIdsByResource`) rather than per agent — this runs on list endpoints, where a
+ *   per-row lookup would be an N+1.
+ * - "Owner" is defined as the principal holding the full bit set
+ *   (`VIEW|EDIT|DELETE|SHARE`), so a merely-shared collaborator is never surfaced as the contact.
+ *
+ * Connections: `server/routes/agents/actions.js` and the agent listing paths;
+ * `resolveAgentOwnerContact` from `packages/api`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { ResourceType, PrincipalType, PermissionBits } = require('librechat-data-provider');
 const { hasSupportContact, resolveAgentOwnerContact } = require('@librechat/api');

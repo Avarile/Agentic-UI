@@ -1,3 +1,5 @@
+// Per-agent file limits, for the builder's upload surfaces.
+
 import { useWatch } from 'react-hook-form';
 import {
   EModelEndpoint,

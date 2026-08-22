@@ -1,3 +1,5 @@
+// Prompt categories with icons and localized labels.
+
 import { useLocalize, TranslationKeys } from '~/hooks';
 import { CategoryIcon } from '~/components/Prompts';
 import { useGetCategories } from '~/data-provider';

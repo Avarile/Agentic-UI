@@ -1,3 +1,19 @@
+/**
+ * Error-handler factory for the Assistants chat controllers.
+ *
+ * `createErrorHandler({ req, res, getContext, originPath })` returns a handler that, on
+ * failure: cancels the upstream run if it is still active, reconciles the thread with
+ * `checkMessageGaps`, records whatever usage was incurred (`recordUsage`), clears the abort key
+ * from the cache, and reports the error into the conversation via `sendResponse`.
+ *
+ * Design: `getContext` is a *callback* rather than a value because the context (thread id, run
+ * id, message ids, `completedRun`) is still being filled in as the run progresses — the handler
+ * must read the state as of the moment it fires, not as of when it was constructed. Recording
+ * usage on the error path is deliberate: a run that failed midway has already consumed tokens.
+ *
+ * Connections: used by `chatV1.js` and `chatV2.js`; `server/services/Threads/`,
+ * `server/middleware/error.js`
+ */
 // errorHandler.js
 const { logger } = require('@librechat/data-schemas');
 const { CacheKeys, ViolationTypes, ContentTypes } = require('librechat-data-provider');

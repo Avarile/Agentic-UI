@@ -1,3 +1,11 @@
+/**
+ * Factory for speech-to-text rate limits (IP and user, defaults 100/50 per minute).
+ *
+ * Mirrors `ttsLimiters.js`; separate limits so a transcription burst cannot exhaust the
+ * synthesis budget or vice versa.
+ *
+ * Connections: mounted in `server/routes/files/speech/stt.js`
+ */
 const rateLimit = require('express-rate-limit');
 const { ViolationTypes } = require('librechat-data-provider');
 const { limiterCache, removePorts } = require('@librechat/api');

@@ -1,3 +1,10 @@
+/**
+ * Tavily search tool (legacy class form, JSON schema).
+ *
+ * Retained because existing agents and assistants reference it by its tool name
+ * (`tavily_search_results_json`); removing it would break their stored tool lists. New work
+ * should use `TavilySearch.js`.
+ */
 const { fetch } = require('undici');
 const { Tool } = require('@librechat/agents/langchain/tools');
 const { getEnvironmentVariable } = require('@librechat/agents/langchain/utils/env');

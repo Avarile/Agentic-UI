@@ -1,3 +1,6 @@
+// Debounces re-rendering while a diagram streams, so only settled source is parsed
+// instead of every token.
+
 import { useEffect, useState, useRef } from 'react';
 import { useMermaid } from './useMermaid';
 

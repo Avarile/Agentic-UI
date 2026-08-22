@@ -1,3 +1,20 @@
+/**
+ * File inspection and filename-safety helpers.
+ *
+ * `determineFileType`/`getBufferMetadata` sniff the *actual* type from the buffer (via
+ * `file-type`, plus `sharp` for image dimensions) rather than trusting the client-declared MIME
+ * type — a declared type is attacker-controlled and must never decide how a file is handled.
+ *
+ * `cleanFileName`, `getAsciiFilenameFallback` and `getContentDisposition` build safe
+ * `Content-Disposition` headers: the header is emitted with both an ASCII fallback and a
+ * UTF-8 `filename*` form, because a non-ASCII name breaks older clients and an unescaped one is
+ * a header-injection vector.
+ *
+ * Note `file-type` is loaded with a dynamic `import()` because it is ESM-only — one of the few
+ * places the project's no-dynamic-imports rule is unavoidable.
+ *
+ * Connections: `server/services/Files/process.js`, `routes/files/files.js`, `routes/share.js`
+ */
 const sharp = require('sharp');
 
 /**

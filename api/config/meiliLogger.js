@@ -1,3 +1,19 @@
+/**
+ * Dedicated Winston logger for the MeiliSearch sync job.
+ *
+ * Design: MeiliSearch sync is a noisy background process that runs on a timer and can emit
+ * thousands of lines during a full reindex. It gets its own logger — and its own
+ * `meiliSync-%DATE%.log` rotating file — so that traffic never drowns the main application
+ * log produced by `@librechat/data-schemas`.
+ *
+ * Log directory resolution is deliberately three-tiered: `LIBRECHAT_LOG_DIR` (operator
+ * override) -> `/app/logs` when running in the Docker image (a bind mount with the right
+ * permissions) -> `api/logs` for local development.
+ *
+ * Connections:
+ * - consumed by `db/indexSync.js` and the Meili sync plumbing in `packages/data-schemas`
+ * - distinct from `utils/logger.js` (auth/login audit log) and the shared app logger
+ */
 const path = require('path');
 const fs = require('fs');
 const winston = require('winston');

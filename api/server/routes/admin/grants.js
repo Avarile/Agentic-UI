@@ -1,3 +1,17 @@
+/**
+ * Admin API for capability grants — assigning capabilities to principals.
+ *
+ * Exposes listing, per-principal grants, effective (resolved) capabilities, assign and revoke.
+ *
+ * Design: `/effective` is the important one — capabilities are inherited across principal types
+ * (user <- groups <- roles), so the resolved set is not derivable from any single grant list and
+ * must be computed server-side. `getCachedPrincipals` is injected so resolution reuses the
+ * principal cache rather than re-walking group membership per request.
+ *
+ * Connections:
+ * - handlers: `createAdminGrantsHandlers` from `packages/api`
+ * - evaluation: `server/middleware/roles/capabilities.js`; seeded by `seedSystemGrants`
+ */
 const express = require('express');
 const { createAdminGrantsHandlers, getCachedPrincipals } = require('@librechat/api');
 const { SystemCapabilities } = require('@librechat/data-schemas');

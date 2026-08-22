@@ -1,3 +1,11 @@
+// Assigns each artifact in a message its document-order index.
+//
+// A ref-based counter, not state, because assignment happens during render and
+// must not trigger one. `baseIndex` exists because a long message is rendered as
+// independently memoized blocks: each block gets its own provider seeded with the
+// count of artifacts in earlier blocks, so indices stay stable in document order
+// without a single shared counter that memoization would defeat.
+
 import { createContext, useContext, ReactNode, useCallback, useRef } from 'react';
 
 type TArtifactContext = {

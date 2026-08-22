@@ -1,3 +1,8 @@
+// A remark plugin normalizing approximate-equals tildes.
+//
+// Exists because `~` is markdown strikethrough syntax: a model writing `~5 minutes`
+// would otherwise render as struck-through text. This distinguishes the two uses.
+
 import type { Node } from 'unist';
 
 interface TextNode extends Node {

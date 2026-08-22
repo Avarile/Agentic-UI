@@ -1,3 +1,8 @@
+// Contains a markdown render failure to the message that caused it.
+//
+// Streaming content is frequently mid-syntax and occasionally malformed; without a
+// boundary here one bad fence would blank the conversation.
+
 import React from 'react';
 import remarkGfm from 'remark-gfm';
 import supersub from 'remark-supersub';

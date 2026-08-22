@@ -1,3 +1,6 @@
+// A ticking clock as state, for relative timestamps that must age without an
+// external event. One shared interval instead of a timer per timestamp.
+
 import { useSyncExternalStore } from 'react';
 
 const listeners = new Set<() => void>();

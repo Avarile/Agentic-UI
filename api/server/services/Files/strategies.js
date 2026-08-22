@@ -1,3 +1,29 @@
+/**
+ * The storage strategy registry — maps a `FileSources` value to a set of file operations.
+ *
+ * Every storage backend implements the same function surface (`saveBuffer`, `handleFileUpload`,
+ * `getDownloadStream`, `deleteFile`, `processAvatar`, `prepareImagePayload`, ...) and
+ * `getStrategyFunctions(fileSource)` returns the right one.
+ *
+ * Design: this is the single indirection that makes storage pluggable. No caller anywhere in the
+ * backend imports `Local/crud.js` or `Azure/crud.js` directly; they ask for a strategy. That is
+ * why a deployment can switch from local disk to S3/CloudFront/Azure/Firebase by configuration
+ * alone, and why per-*file* source works too — a file stored under one backend is still readable
+ * after the default changes, because the strategy is chosen from the file's own `source`.
+ *
+ * The registry also covers non-storage "sources" that share the same shape: `vectorStrategy`
+ * (RAG), `openAIStrategy` (files that live at OpenAI), `codeOutputStrategy` (sandbox artifacts),
+ * and the OCR/document-parser strategies (Mistral, Azure Mistral, Vertex Mistral, generic).
+ * Treating them as strategies means the upload pipeline needs no branching for them.
+ *
+ * CloudFront reuses the S3 primitives with a signed-URL layer, which is why its image service is
+ * constructed once at module scope rather than per call.
+ *
+ * Connections:
+ * - backends: `Local/`, `Azure/`, `Firebase/`, `OpenAI/`, `VectorDB/`, `Code/`; S3/CloudFront
+ *   primitives from `packages/api`
+ * - consumers: `process.js`, `images/*`, `strategies/process.js`, share/file routes, skills
+ */
 const { FileSources } = require('librechat-data-provider');
 const {
   getS3URL,

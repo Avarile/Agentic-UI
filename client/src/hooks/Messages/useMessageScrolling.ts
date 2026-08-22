@@ -1,3 +1,17 @@
+// Auto-scroll during streaming, and yielding control the moment the user scrolls.
+//
+// A deceptively hard problem, and the asymmetric thresholds encode why. Leaving
+// the bottom is detected tightly (`detachThreshold`, 24px) because a deliberate
+// scroll up should hand over control immediately. Returning to it is detected
+// loosely (`attachThreshold`, 150px) because while an answer streams the bottom is
+// a *moving target*: it recedes between the reader's last wheel tick and the frame
+// that measures the position, so someone scrolling all the way down still lands
+// tens of pixels short. Symmetric thresholds mean they can never quite catch it.
+//
+// `glideTimeout` gives a programmatic smooth scroll time to land before per-frame
+// following resumes, so the two do not fight. `prefersReducedMotion` swaps glides
+// for jumps.
+
 import { useRef, useCallback, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import { Constants } from 'librechat-data-provider';

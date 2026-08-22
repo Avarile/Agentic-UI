@@ -1,3 +1,9 @@
+// Normalizes URLs into route patterns before reporting.
+//
+// Without this, `/c/<uuid>` produces one distinct route per conversation — the
+// metrics become unusable and the ids themselves are needlessly exported. Parameter
+// segments are replaced with placeholders here.
+
 const OBJECT_ID = /^[0-9a-f]{24}$/i;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

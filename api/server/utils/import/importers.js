@@ -1,3 +1,25 @@
+/**
+ * Format-specific importers: LibreChat, ChatGPT, Claude and ChatBot UI exports.
+ *
+ * `getImporter(jsonData)` sniffs the format and returns the right importer.
+ *
+ * Design — the hard part is that no export format matches LibreChat's message model:
+ * - LibreChat stores a message *tree* with parent links. ChatGPT exports a mapping graph, Claude
+ *   a flat list, ChatBot UI a simple array. `processConversation` normalizes each into the tree.
+ * - `breakParentCycles` is defensive but necessary: a malformed or manually-edited export can
+ *   contain a cycle, which would make the conversation unrenderable and could loop a traversal.
+ * - `adjustTimestampsForOrdering` synthesizes distinct, monotonically ordered timestamps.
+ *   Several formats give every message the same second (or none), and the UI orders by timestamp,
+ *   so imported turns would otherwise appear shuffled.
+ * - `extractClaudeContent`, `processAssistantMessage` and `formatMessageText` flatten each
+ *   format's content-part shape into text/parts.
+ * - Endpoint and model are resolved from the live config (`resolveImportDefaultModel`,
+ *   `getEndpointsConfig`) rather than trusting the export, since the exported model may not
+ *   exist in this deployment.
+ *
+ * Connections: `importBatchBuilder.js`, `defaults.js`, `fork.js`
+ * (`cloneMessagesWithTimestamps`)
+ */
 const { v4: uuidv4 } = require('uuid');
 const { logger, getTenantId } = require('@librechat/data-schemas');
 const { EModelEndpoint, Constants, openAISettings } = require('librechat-data-provider');

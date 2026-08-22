@@ -1,3 +1,6 @@
+// Which tools this user may attach to an agent, combining role permissions with the
+// tool catalogue.
+
 import { useMemo } from 'react';
 import { Tools, EToolResources } from 'librechat-data-provider';
 import type { TEphemeralAgent } from 'librechat-data-provider';

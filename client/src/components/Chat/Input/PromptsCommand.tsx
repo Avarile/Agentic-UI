@@ -1,3 +1,6 @@
+// The `/` popover for inserting a saved prompt, reading the catalogue already
+// loaded by PromptGroupsProvider.
+
 import { useState, useRef, useEffect, useMemo, memo, useCallback } from 'react';
 import { AutoSizer, List } from 'react-virtualized';
 import { useSetRecoilState, useRecoilValue } from 'recoil';

@@ -1,3 +1,6 @@
+// The sidebar toggle shown when the sidebar is collapsed. Exports its element id so
+// focus can be returned here after the sidebar closes.
+
 import { startTransition } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { TooltipAnchor, Button, Sidebar } from '@librechat/client';

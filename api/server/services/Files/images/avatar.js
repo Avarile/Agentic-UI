@@ -1,3 +1,18 @@
+/**
+ * Fetches, resizes and converts an avatar image, including from a remote provider URL.
+ *
+ * Design — this function takes a URL that ultimately comes from an identity provider claim, so it
+ * is a hardened SSRF surface:
+ * - `ALLOWED_AVATAR_PROTOCOLS` restricts to http/https, rejecting `file:`, `data:` and friends.
+ * - `createSSRFSafeAgents` prevents requests to internal addresses and unsafe redirects.
+ * - The response size is capped (see the inline note) so a malicious or compromised `picture`
+ *   URL cannot stream a multi-GB body into memory — real avatars are a few hundred kilobytes.
+ * - `fetchOptions` is threaded through so the OpenID strategy can attach an authorization header
+ *   when the provider's avatar endpoint requires one.
+ *
+ * Connections: `strategies/process.js`, `strategies/openidStrategy.js`,
+ * `samlStrategy.js`, `routes/files/avatar.js`; resizing via `images/resize.js`
+ */
 const sharp = require('sharp');
 const fs = require('fs').promises;
 const fetch = require('node-fetch');

@@ -1,4 +1,15 @@
 /**
+ * Converts a plain object into Google Vertex AI's typed-value wire format.
+ *
+ * Vertex's prediction API requires every value tagged by type (`struct_val`, `list_val`,
+ * `string_val`, `float_val`, `int_val`), so this walks the object recursively and wraps each
+ * leaf. Integers and floats are distinguished explicitly because Vertex rejects a float where
+ * an int is expected.
+ *
+ * Design: kept as its own module because the transformation is purely structural and worth
+ * testing in isolation from any client.
+ */
+/**
  * Formats an object to match the struct_val, list_val, string_val, float_val, and int_val format.
  *
  * @param {Object} obj - The object to be formatted.

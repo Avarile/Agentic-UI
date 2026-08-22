@@ -1,3 +1,19 @@
+/**
+ * Handles the "added" (side-by-side comparison) agent in a conversation.
+ *
+ * When the user compares two models/agents on the same prompt, this initializes and runs the
+ * secondary agent.
+ *
+ * Design: uses a fixed `ADDED_AGENT_ID` so the added response is identifiable in the message
+ * tree without inventing an id per request. Initialization failures are classified with
+ * `isFatalAgentInitializationError` — a non-fatal failure degrades to "no added response" while
+ * the primary agent still answers, because the comparison is an enhancement and must not take
+ * down the main turn. File access is filtered by `filterFilesByAgentAccess` so the added agent
+ * cannot reach files the primary agent's permissions do not cover.
+ *
+ * Connections: `server/controllers/agents/client.js`, `services/ToolService.js`,
+ * `services/MCP.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const {
   ADDED_AGENT_ID,

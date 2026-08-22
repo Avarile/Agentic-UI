@@ -1,3 +1,6 @@
+// Lays out content parts that share a `groupId` side by side rather than in
+// sequence — the case `useContentMetadata` detects.
+
 import { memo, useMemo } from 'react';
 import { ContentTypes } from 'librechat-data-provider';
 import type { TMessageContentParts, SearchResultData, TAttachment } from 'librechat-data-provider';

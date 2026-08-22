@@ -1,3 +1,19 @@
+/**
+ * Ollama provider client for locally hosted models.
+ *
+ * `ollamaPayloadSchema` (Zod) whitelists Ollama's generation parameters (`mirostat`,
+ * `num_ctx`, `repeat_penalty`, ...) so unknown keys are stripped before the request — Ollama
+ * rejects unrecognized options, and passing through arbitrary user parameters would break the
+ * call.
+ *
+ * Design: kept separate from the OpenAI-compatible path because Ollama's model listing and
+ * streaming shapes differ enough to need their own handling, even though its chat endpoint is
+ * nominally compatible. `deriveBaseURL` normalizes a user-supplied host and `resolveHeaders`
+ * applies configured headers.
+ *
+ * Connections: legacy client layer; model discovery feeds
+ * `server/services/Config/loadConfigModels.js`
+ */
 const { z } = require('zod');
 const axios = require('axios');
 const { Ollama } = require('ollama');

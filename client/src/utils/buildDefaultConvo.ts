@@ -1,3 +1,6 @@
+// Constructs a conversation from an endpoint's defaults and any preset — the
+// baseline `useNewConvo` layers explicit selections onto.
+
 import {
   parseConvo,
   EModelEndpoint,

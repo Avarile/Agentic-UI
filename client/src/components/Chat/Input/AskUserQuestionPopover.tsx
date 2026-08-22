@@ -1,3 +1,6 @@
+// The composer's answer mode: when the model has asked a structured question, the
+// composer presents its options instead of a free-text send.
+
 import { memo, useEffect, useRef } from 'react';
 import { useWatch } from 'react-hook-form';
 import { Button } from '@librechat/client';

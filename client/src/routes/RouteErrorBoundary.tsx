@@ -1,3 +1,14 @@
+// Router-level error element: the last screen before a blank page.
+//
+// Attached to every top-level route in routes/index.tsx, so a render or loader
+// throw anywhere lands here instead of unmounting the app.
+//
+// It is written to be self-sufficient in a broken app: no data fetching, no store
+// reads, only `useRouteError` and `useLocalize`. The download button serializes
+// the error together with browser/platform/window details into a JSON file, so a
+// user can hand over a usable report without opening devtools — that is why the
+// platform sniffing lives here rather than in a shared util.
+
 import { Button } from '@librechat/client';
 import { useRouteError } from 'react-router-dom';
 import { useLocalize } from '~/hooks';

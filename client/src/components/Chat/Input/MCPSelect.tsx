@@ -1,3 +1,6 @@
+// The MCP server picker, showing configured, connected and deferred servers —
+// including those whose tools cannot be enumerated ahead of a request.
+
 import React, { memo, useMemo } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { ChevronDown } from 'lucide-react';

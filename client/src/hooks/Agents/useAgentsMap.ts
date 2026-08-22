@@ -1,3 +1,8 @@
+// Builds the `id -> agent` map behind AgentsMapContext.
+//
+// Returns `undefined` while unknown rather than `{}` — the distinction the context
+// depends on (see Providers/AgentsMapContext.tsx).
+
 import { useMemo } from 'react';
 import { PermissionBits } from 'librechat-data-provider';
 import type { TAgentsMap } from 'librechat-data-provider';

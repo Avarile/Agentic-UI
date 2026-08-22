@@ -1,3 +1,10 @@
+// Whether a message contains parallel content — any content part carrying a
+// `groupId`.
+//
+// Parallel parts are rendered side by side rather than sequentially, so the
+// renderer has to know before it lays anything out. Memoized on the content array
+// so the check runs once per message rather than per part.
+
 import { useMemo } from 'react';
 import type { TMessage } from 'librechat-data-provider';
 

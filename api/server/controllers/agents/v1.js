@@ -1,3 +1,41 @@
+/**
+ * Agent CRUD, versioning, duplication, avatars and categories — the agent management API.
+ *
+ * The complexity here is almost entirely about *authorization of references*: an agent can point
+ * at tools, MCP servers, skills, files and other agents, and a user must not be able to gain
+ * access to something by referencing it from an agent they control.
+ *
+ * Design:
+ * - `filterAuthorizedTools` strips tools the caller may not use, so saving an agent cannot
+ *   smuggle in a privileged tool.
+ * - `classifyAgentReferences` / `validateEdgeAgentReferences` / `validateSubagentReferences`
+ *   validate agent-to-agent references (multi-agent graphs and subagents), preventing an
+ *   unauthorized or cyclic graph. `collectEdgeAgentIds`/`replaceEdgeSourceId` maintain those
+ *   edges through duplication.
+ * - `sanitizeViewerSkillScope` narrows the skills visible on an agent to those the *viewer* can
+ *   access, so a shared agent does not leak the owner's private skill names.
+ * - `pruneToolResourceFileIdsForAgent` drops file ids the agent should no longer reference,
+ *   keeping `tool_resources` from accumulating dangling ids after file deletion.
+ * - `getSafeModelParameters`/`sanitizeModelParameters` and the `agentCreateSchema`/
+ *   `agentUpdateSchema` Zod schemas bound what a client may set — model parameters reach the
+ *   provider, so an unvalidated passthrough is an injection surface.
+ * - `escapeRegex` is applied before any user string is used in a query pattern (search).
+ * - MCP tool keys are namespaced; `splitMCPToolKey`, `buildServerNameAliases` and
+ *   `findShadowedServerNames` resolve them and surface name collisions between user- and
+ *   operator-defined servers.
+ * - Versioning: agents keep a version history, with `getAgentVersionsHandler` and
+ *   `revertAgentVersionHandler`. `hasEditBit` is used for the fine-grained ACL checks.
+ * - Avatar list refresh is bounded by `MAX_AVATAR_REFRESH_AGENTS` and re-signs S3 URLs
+ *   (`refreshS3Url`, `refreshListAvatars`) — an unbounded refresh on a large list would be a
+ *   self-inflicted stampede.
+ * - `convertOcrToContextInPlace`/`mergeAgentOcrConversion` migrate the legacy `ocr` tool
+ *   resource to `context` on read, so old agents keep working without a data migration.
+ *
+ * Connections:
+ * - route: `server/routes/agents/v1.js`; ACL:
+ *   `server/middleware/accessResources/canAccessAgentResource.js`
+ * - files/avatars: `server/services/Files/*`; MCP: `server/services/MCP.js`
+ */
 const { z } = require('zod');
 const fs = require('fs').promises;
 const { nanoid } = require('nanoid');

@@ -1,3 +1,18 @@
+/**
+ * Resolves a tool's required credentials for a user.
+ *
+ * `loadAuthValues({ userId, authFields, optional, throwError })` reads each field from the
+ * user's stored plugin auth and returns them as an object.
+ *
+ * Design: `authFields` entries may be `"A||B"` alternatives (try A, fall back to B), which is how
+ * a tool accepts either of two env/key names. The `optional` set marks fields whose absence is
+ * acceptable, and `throwError` lets a capability probe get `null` where an executing tool wants
+ * an exception. Values are decrypted per call and never cached here, so a revoked credential
+ * takes effect immediately.
+ *
+ * Connections: `server/services/PluginService.js`; consumers: `services/ToolService.js`,
+ * `controllers/tools.js`, `app/clients/tools/util/handleTools.js`
+ */
 const { AuthType } = require('librechat-data-provider');
 const { getUserPluginAuthValue } = require('~/server/services/PluginService');
 

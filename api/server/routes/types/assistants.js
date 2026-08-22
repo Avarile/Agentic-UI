@@ -1,4 +1,19 @@
 /**
+ * JSDoc-only type declarations for the assistants routes — no runtime behaviour.
+ *
+ * `/api` is plain JavaScript and cannot import types from the TypeScript workspaces, so the
+ * assistant tool/request/response shapes are declared here as typedefs (and a frozen `Tools`
+ * enum) for intellisense and `checkJs` verification in the assistants controllers.
+ *
+ * Design: kept beside the routes it serves rather than in the project-wide `typedefs.js`,
+ * because these shapes mirror the OpenAI Assistants API surface and change with it.
+ *
+ * Connections:
+ * - consumed via JSDoc by `server/routes/assistants/*` and
+ *   `server/controllers/assistants/*`
+ * - project-wide equivalent: `typedefs.js`
+ */
+/**
  * Enum for the possible tools that can be enabled on an assistant.
  * @readonly
  * @enum {string}

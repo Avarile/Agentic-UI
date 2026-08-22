@@ -1,3 +1,19 @@
+// Creates a conversation: resolves the endpoint, model, preset and agent, seeds the
+// atoms, and navigates.
+//
+// The single most-called-into hook in the client, and the reason ChatRoute is so
+// careful about *when* it calls: everything this hook decides — which endpoint,
+// which model, which spec, which agent, which tools — is written into the
+// conversation atom, and the atom effect in store/families.ts then persists those
+// choices to localStorage. Calling it with half-loaded inputs does not just render
+// wrong once; it poisons the stored defaults for the next session.
+//
+// Resolution order is layered, most specific first: an explicit preset or template,
+// then URL query settings, then the default model spec, then the last selection
+// from localStorage, then the endpoint's own defaults. `isEphemeralAgentId` is
+// checked throughout because an ephemeral agent has no catalogue record and must
+// not be persisted as a selection.
+
 import { useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetModelsQuery } from 'librechat-data-provider/react-query';

@@ -1,3 +1,5 @@
+// Aborts the running generation.
+
 import { memo } from 'react';
 import { TooltipAnchor } from '@librechat/client';
 import { useLocalize } from '~/hooks';

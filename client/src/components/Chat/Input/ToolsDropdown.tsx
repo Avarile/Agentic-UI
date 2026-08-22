@@ -1,3 +1,6 @@
+// The combined tools menu when there are more capabilities than the badge row can
+// reasonably show.
+
 import React, { useState, useMemo, useCallback } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { TooltipAnchor, DropdownPopup, PinIcon, VectorIcon } from '@librechat/client';

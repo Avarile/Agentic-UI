@@ -1,3 +1,22 @@
+/**
+ * Speech-to-text: provider abstraction and audio upload handling.
+ *
+ * `STTService` covers OpenAI, Azure OpenAI and generic providers; `speechToText` is the route
+ * handler.
+ *
+ * Design:
+ * - `getFileExtensionFromMime` + `MIME_TO_EXTENSION_MAP` exist because transcription APIs infer
+ *   format from the *filename extension*, and browser-recorded audio arrives with a MIME type but
+ *   often no meaningful name — without mapping one to the other the upload is rejected.
+ * - `getValidatedLanguageCode` sanitizes the language hint before forwarding; it is user-supplied
+ *   and goes into the provider request.
+ * - Audio is sent as multipart `FormData` streamed from the buffer rather than written to disk.
+ * - Same egress guards as TTS: `applyAxiosProxyConfig`, `applySSRFSafeAgentIfDirect`,
+ *   `resolveConfigSecret`, `genAzureEndpoint`.
+ *
+ * Connections: `server/routes/files/speech/stt.js`; multipart handled by
+ * `routes/files/index.js`
+ */
 const axios = require('axios');
 const fs = require('fs').promises;
 const FormData = require('form-data');

@@ -1,3 +1,5 @@
+// Builds the `endpoint -> id -> assistant` map behind AssistantsMapContext.
+
 import { EModelEndpoint } from 'librechat-data-provider';
 import type { TAssistantsMap } from 'librechat-data-provider';
 import { useListAssistantsQuery } from '~/data-provider';

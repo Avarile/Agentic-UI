@@ -1,3 +1,10 @@
+// Error shape helpers — most importantly `isNotFoundError`.
+//
+// That predicate is why several queries can run with `retry: false` and still
+// distinguish "genuinely gone" from "temporarily failed": ChatRoute uses it to
+// decide whether to unscope a project, and the messages query uses it to decide
+// whether to keep a cache during a 404.
+
 import axios from 'axios';
 
 /**

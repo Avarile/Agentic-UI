@@ -1,3 +1,21 @@
+/**
+ * Serves the tool/plugin catalog to the client.
+ *
+ * Design:
+ * - Two filters with explicit precedence: when both `includedTools` and `filteredTools` are
+ *   configured, `includedTools` wins and `filteredTools` is ignored (an allow-list is stricter
+ *   than a deny-list, so honouring both would be ambiguous).
+ * - Agents-runtime-only tools (e.g. `ask_user_question`) are excluded from the legacy plugins
+ *   endpoint — they need a run to pause and a resume surface, which that endpoint has neither
+ *   of, so advertising them would produce tools that always fail.
+ * - `filterUniquePlugins` dedupes across manifest and MCP sources.
+ * - Results are cached via `getCachedTools`/`setCachedTools`: the catalog depends on config and
+ *   MCP server state, not per-request data, and this endpoint is hit on every page load.
+ *
+ * Connections:
+ * - manifest: `app/clients/tools/index.js`; cache: `server/services/Config/getCachedTools.js`
+ * - routes: `server/routes/agents/tools.js`, `server/routes/assistants/tools.js`
+ */
 const { logger } = require('@librechat/data-schemas');
 const { getToolkitKey, checkPluginAuth, filterUniquePlugins } = require('@librechat/api');
 const { getCachedTools, setCachedTools } = require('~/server/services/Config');

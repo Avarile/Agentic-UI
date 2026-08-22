@@ -1,4 +1,18 @@
 /**
+ * Builds the instruction prompt used to have a model describe images.
+ *
+ * Used by the vision shim for endpoints whose model cannot natively accept images (notably
+ * Assistants v1): a vision-capable model is asked to describe the image, and the description
+ * is injected into the prompt as text.
+ *
+ * Design: the prompt enumerates specific aspects to cover and branches by content type
+ * (photograph/illustration vs. chart/diagram vs. text), because a vague "describe this" yields
+ * descriptions too shallow to substitute for the image itself.
+ *
+ * Connections:
+ * - `server/services/ToolService.js` (`processVisionRequest`), via `ImageVisionTool`
+ */
+/**
  * Generates a prompt instructing the user to describe an image in detail, tailored to different types of visual content.
  * @param {boolean} pluralized - Whether to pluralize the prompt for multiple images.
  * @returns {string} - The generated vision prompt.

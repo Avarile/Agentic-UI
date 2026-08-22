@@ -1,3 +1,11 @@
+/**
+ * Azure AI Search tool — queries a customer's own Azure Search index.
+ *
+ * Design: unlike the web-search tools this queries *private* enterprise data, so index name,
+ * endpoint and key are all operator configuration and there is no public fallback. Which fields
+ * are returned is configurable, because a customer index has an arbitrary schema and dumping
+ * every field would flood the model's context.
+ */
 const { logger } = require('@librechat/data-schemas');
 const { Tool } = require('@librechat/agents/langchain/tools');
 const { SearchClient, AzureKeyCredential } = require('@azure/search-documents');

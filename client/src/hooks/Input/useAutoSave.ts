@@ -1,3 +1,9 @@
+// Persists composer drafts per conversation and restores them on return.
+//
+// Debounced, and gated on the `saveDrafts` preference. Drafts are cleared on
+// successful send from the SSE handlers rather than here, so a failed send keeps
+// the user's text.
+
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import debounce from 'lodash/debounce';
 import { SetterOrUpdater, useRecoilValue } from 'recoil';

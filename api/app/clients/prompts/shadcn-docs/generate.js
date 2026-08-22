@@ -1,3 +1,12 @@
+/**
+ * Builds the shadcn/ui section of the artifacts system prompt from the component catalog.
+ *
+ * Emits each component's import statement and usage example so the model writes React code
+ * against the components that actually exist in the artifact renderer. `useXML` switches to
+ * XML-style delimiters, which some models follow more reliably than markdown headings.
+ *
+ * Connections: `app/clients/prompts/artifacts.js`; catalog in `./components.js`
+ */
 const dedent = require('dedent');
 
 /**

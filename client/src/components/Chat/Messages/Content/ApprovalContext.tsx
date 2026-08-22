@@ -1,3 +1,6 @@
+// Shares approval state between a tool call and its inline prompt, which render at
+// different depths.
+
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { Constants } from 'librechat-data-provider';
 import { atom, useRecoilState, useRecoilValue } from 'recoil';

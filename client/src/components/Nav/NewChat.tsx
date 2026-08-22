@@ -1,3 +1,5 @@
+// The new-chat control used outside the sidebar rail.
+
 import { useRecoilValue } from 'recoil';
 import { QueryKeys } from 'librechat-data-provider';
 import { useQueryClient } from '@tanstack/react-query';

@@ -1,3 +1,20 @@
+/**
+ * Converts LibreChat messages into provider/LangChain message formats.
+ *
+ * `formatMessage` (generic), `formatVisionMessage` (image content parts),
+ * `formatLangChainMessages`/`formatFromLangChain` (to and from LangChain message classes), and
+ * `formatAgentMessages` (the agents runtime's content-part shape).
+ *
+ * Design: this is the single translation layer between LibreChat's stored message shape and
+ * every consumer's expected shape. Keeping it in one file is what allows the same stored message
+ * to be replayed to different providers — and `formatFromLangChain` exists so messages that come
+ * *back* from the runtime (including tool messages) can be normalized for persistence.
+ * `formatAgentMessages` is the largest case because it must map tool calls and tool results onto
+ * the right message roles, which providers validate strictly.
+ *
+ * Connections: `app/clients/BaseClient.js`, `server/controllers/agents/client.js`; message
+ * classes from `@librechat/agents`
+ */
 const { EModelEndpoint, ContentTypes } = require('librechat-data-provider');
 const {
   AIMessage,

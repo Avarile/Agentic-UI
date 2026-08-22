@@ -1,3 +1,6 @@
+// The memory management panel: what the assistant has remembered, and the controls
+// to edit or forget it.
+
 export { default as MemoryPanel } from './MemoryPanel';
 export { default as MemoryViewer } from './MemoryPanel'; // Backward compatibility alias
 export { default as MemoryList } from './MemoryList';

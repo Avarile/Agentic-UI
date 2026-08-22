@@ -1,3 +1,13 @@
+/**
+ * Google OAuth2 provider binding.
+ *
+ * Only supplies the profile normalizer; all account logic lives in `strategies/socialLogin.js`.
+ * `proxy: true` is set so the callback URL is derived correctly behind a reverse proxy.
+ *
+ * Exports the user strategy as the default and the admin (`existingUsersOnly`) strategy as
+ * `.googleAdminLogin`. Google is also the one provider whose `refreshToken` is passed through
+ * to the verify result, because Google-backed integrations need it for offline access.
+ */
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const socialLogin = require('./socialLogin');
 

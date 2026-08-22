@@ -1,3 +1,7 @@
+// The render body behind MessageContent: header, parts, footer, actions.
+// Memoized with a field-level comparator, since the message object identity changes
+// on every streamed write.
+
 import { useCallback, useMemo, memo } from 'react';
 import { useRecoilValue } from 'recoil';
 import type { TMessage, TMessageContentParts } from 'librechat-data-provider';

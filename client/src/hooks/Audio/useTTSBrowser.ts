@@ -1,4 +1,15 @@
-// client/src/hooks/Audio/useTTSBrowser.ts
+// Message-level text-to-speech via the browser's own SpeechSynthesis.
+//
+// One of two interchangeable engine hooks (see useTTSExternal for the server-side
+// one); the user's `engineTTS` preference chooses between them and both present the
+// same interface so callers do not branch.
+//
+// Message content arrives as content *parts*, so `parseTextParts` flattens it to
+// the speakable text first — reasoning, tool calls and artifacts are not read
+// aloud. Playback registers through `useAudioOutput` so the microphone gate knows
+// the assistant has the floor, and `usePauseGlobalAudio` stops the global player
+// first so the two cannot overlap.
+
 import { useRef, useEffect } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { parseTextParts } from 'librechat-data-provider';

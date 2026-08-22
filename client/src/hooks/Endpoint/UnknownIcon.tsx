@@ -1,3 +1,6 @@
+// Fallback icon for endpoints with no known mark — custom and self-hosted
+// providers.
+
 import { memo } from 'react';
 import { EModelEndpoint, KnownEndpoints } from 'librechat-data-provider';
 import { CustomMinimalIcon, XAIcon, MoonshotIcon } from '@librechat/client';

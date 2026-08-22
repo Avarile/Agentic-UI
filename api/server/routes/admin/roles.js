@@ -1,3 +1,14 @@
+/**
+ * Admin API for role CRUD, role permissions and role membership.
+ *
+ * Same split-capability pattern as groups: `READ_ROLES` for reads, `MANAGE_ROLES` for writes,
+ * under a router-wide `ACCESS_ADMIN`.
+ *
+ * Distinct from `server/routes/roles.js`, which is the *user-facing* per-feature permissions
+ * API. This one manages roles as entities (create, delete, assign members).
+ *
+ * Connections: handlers from `createAdminRolesHandlers` (`packages/api`)
+ */
 const express = require('express');
 const { createAdminRolesHandlers } = require('@librechat/api');
 const { SystemCapabilities } = require('@librechat/data-schemas');

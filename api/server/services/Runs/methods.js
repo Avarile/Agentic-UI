@@ -1,3 +1,13 @@
+/**
+ * Low-level `retrieveRun` — fetches a run via raw axios rather than the OpenAI SDK.
+ *
+ * Design: the SDK's retrieve call does not expose the timeout and header control this path needs
+ * (and, historically, mis-typed some run fields), so the request is made directly with axios and
+ * errors are reported through `logAxiosError` for consistent diagnostics. Kept in its own module
+ * so the SDK-vs-HTTP boundary is explicit and swappable.
+ *
+ * Connections: `./handle.js`
+ */
 const axios = require('axios');
 const { logAxiosError } = require('@librechat/api');
 const { EModelEndpoint } = require('librechat-data-provider');

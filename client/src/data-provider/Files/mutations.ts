@@ -1,3 +1,11 @@
+// Upload, usage marking, and deletion.
+//
+// `useMarkFilesUsageMutation` is what distinguishes an attached file from an
+// orphan: uploads happen before send, so a file attached and then abandoned must be
+// cleanable. Marking usage at send time is how the server knows which uploads to
+// keep — see components/Chat/Presentation.tsx, which sweeps unused temp files on
+// mount.
+
 import { useToastContext } from '@librechat/client';
 import { EToolResources } from 'librechat-data-provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

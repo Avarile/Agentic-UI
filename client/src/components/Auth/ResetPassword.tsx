@@ -1,3 +1,5 @@
+// Completing a password reset from an emailed token.
+
 import { useForm } from 'react-hook-form';
 import { useOutletContext } from 'react-router-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';

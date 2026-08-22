@@ -1,3 +1,13 @@
+/**
+ * Facebook OAuth2 provider binding.
+ *
+ * Supplies the profile normalizer only; account logic lives in `strategies/socialLogin.js`.
+ * `profileFields` must be requested explicitly — Facebook returns only id by default — and
+ * `proxy: true` makes the callback URL correct behind a reverse proxy.
+ *
+ * Exports the user strategy as the default and the admin (`existingUsersOnly`) variant as
+ * `.facebookAdminLogin`.
+ */
 const FacebookStrategy = require('passport-facebook').Strategy;
 const socialLogin = require('./socialLogin');
 

@@ -1,3 +1,14 @@
+// Login, logout, token refresh, account deletion, and the full two-factor flow.
+//
+// The 2FA surface is granular (enable, verify, confirm, disable, regenerate backup
+// codes, plus a temp-token verify for the login-time challenge) because each step
+// is a distinct server state transition and the UI has to be able to fail and
+// retry at any one of them.
+//
+// `useRefreshTokenMutation` is the seam AuthContext uses to keep a session alive;
+// it is a mutation rather than a query because it has a side effect on the session
+// and must never be deduplicated or retried automatically.
+
 import { useResetRecoilState, useSetRecoilState } from 'recoil';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MutationKeys, QueryKeys, dataService, request } from 'librechat-data-provider';

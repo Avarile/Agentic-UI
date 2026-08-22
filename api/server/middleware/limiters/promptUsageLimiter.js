@@ -1,3 +1,10 @@
+/**
+ * Per-user throttle on prompt usage-count increments (30/min).
+ *
+ * The lightest limiter in the set: it protects a pure bookkeeping endpoint, so it responds
+ * with a plain 429 and does *not* log a violation — exceeding it is far more likely to be a
+ * chatty UI than abuse.
+ */
 const rateLimit = require('express-rate-limit');
 const { limiterCache } = require('@librechat/api');
 

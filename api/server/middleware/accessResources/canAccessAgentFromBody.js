@@ -1,3 +1,16 @@
+/**
+ * ACL gate for agent access where the agent id arrives in the request *body*, not the path.
+ *
+ * Used by the chat endpoints, which POST `{ agent_id, ... }` rather than routing by agent.
+ *
+ * Design: this variant carries extra rules the path-based gate does not need.
+ * `isEphemeralAgentId` short-circuits — an ephemeral agent exists only for the request and has
+ * no ACL row to check, so resolution returns null and access is decided without a lookup. The
+ * agents-endpoint check and role/permission fallbacks handle the case where a user may run an
+ * agent without holding a direct ACL grant on it.
+ *
+ * Connections: wraps `canAccessResource.js`; used by the chat routes in `server/routes/agents/`
+ */
 const { logger } = require('@librechat/data-schemas');
 const {
   Constants,

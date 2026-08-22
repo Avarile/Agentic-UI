@@ -1,3 +1,10 @@
+/**
+ * Returns assistant *documents* — the local metadata records that pair our conversation
+ * state with upstream OpenAI assistants (ids, versions, authorship). Read-only; the
+ * authoritative assistant definition lives at OpenAI.
+ *
+ * Connections: controller `server/controllers/assistants/v1.js`
+ */
 const express = require('express');
 const controllers = require('~/server/controllers/assistants/v1');
 

@@ -1,3 +1,13 @@
+/**
+ * OpenWeather One Call API tool: current conditions, forecasts, historical and aggregated data.
+ *
+ * Design: a single tool with an `action` enum (`help`, `current_forecast`, `timestamp`,
+ * `daily_aggregation`, `overview`) rather than five separate tools — that keeps one entry in the
+ * model's tool list instead of five near-identical ones, and `help` lets the model discover the
+ * parameters for each action at call time. `mapUnitsToOpenWeather` translates friendly unit names
+ * to the API's values, and `roundTemperatures` trims float noise so the model is not fed
+ * `21.34999999` (fewer tokens, no loss of meaning).
+ */
 const fetch = require('node-fetch');
 const { Tool } = require('@librechat/agents/langchain/tools');
 const { getEnvironmentVariable } = require('@librechat/agents/langchain/utils/env');

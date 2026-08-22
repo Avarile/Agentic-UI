@@ -1,3 +1,6 @@
+// Which of those actions to *show*, resolved from endpoint capability, message
+// role, error state, and share-mode. Paired with useGenerationsByLatest.
+
 import { useCallback, useMemo, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useUpdateFeedbackMutation } from 'librechat-data-provider/react-query';
