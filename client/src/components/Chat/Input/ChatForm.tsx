@@ -30,6 +30,7 @@ import InterruptSteerButton from './InterruptSteerButton';
 import DuringRunSendButton from './DuringRunSendButton';
 import { useGetStartupConfig } from '~/data-provider';
 import { mainTextareaId, BadgeItem } from '~/common';
+import Playback from '~/components/Audio/Playback';
 import PendingSteerChips from './PendingSteerChips';
 import PendingQuoteChips from './PendingQuoteChips';
 import AttachFileChat from './Files/AttachFileChat';
@@ -42,7 +43,6 @@ import SkillsCommand from './SkillsCommand';
 import AudioRecorder from './AudioRecorder';
 import CollapseChat from './CollapseChat';
 import QuoteButton from './QuoteButton';
-import StreamAudio from './StreamAudio';
 import TokenUsage from './TokenUsage';
 import StopButton from './StopButton';
 import SendButton from './SendButton';
@@ -672,6 +672,7 @@ const ChatForm = memo(function ChatForm({
                 <TokenUsage index={index} conversation={conversation} isSubmitting={isSubmitting} />
                 {SpeechToText && (
                   <AudioRecorder
+                    index={index}
                     methods={methods}
                     ask={submitMessage}
                     disabled={disableInputs || isNotAppendable}
@@ -710,7 +711,7 @@ const ChatForm = memo(function ChatForm({
                       )}
                 </div>
               </div>
-              {TextToSpeech && automaticPlayback && <StreamAudio index={index} />}
+              {TextToSpeech && automaticPlayback && <Playback index={index} />}
             </div>
           </div>
         </div>

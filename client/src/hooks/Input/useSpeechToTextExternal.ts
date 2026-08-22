@@ -15,6 +15,8 @@ const useSpeechToTextExternal = (
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   const audioChunksRef = useRef<Blob[]>([]);
+  const discardRef = useRef(false);
+  const autoSendRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isRequestBeingMade, setIsRequestBeingMade] = useState(false);
   const [audioMimeType, setAudioMimeType] = useState<string>(() => getBestSupportedMimeType());
@@ -32,7 +34,8 @@ const useSpeechToTextExternal = (
       setIsRequestBeingMade(false);
 
       if (autoSendText > -1 && speechToText && extractedText.length > 0) {
-        setTimeout(() => {
+        autoSendRef.current = setTimeout(() => {
+          autoSendRef.current = null;
           onTranscriptionComplete(extractedText);
         }, autoSendText * 1000);
       }
@@ -92,10 +95,26 @@ const useSpeechToTextExternal = (
     }
   };
 
+  /** Chrome caps concurrent `AudioContext`s, so every silence monitor must be closed */
+  const closeSilenceMonitor = () => {
+    if (animationFrameIdRef.current !== null) {
+      window.cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
+
+    if (!audioContextRef.current) {
+      return;
+    }
+
+    const audioContext = audioContextRef.current;
+    audioContextRef.current = null;
+    audioContext.close().catch(() => undefined);
+  };
+
   const getMicrophonePermission = async () => {
     try {
       const streamData = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         video: false,
       });
       audioStream.current = streamData ?? null;
@@ -105,6 +124,13 @@ const useSpeechToTextExternal = (
   };
 
   const handleStop = () => {
+    if (discardRef.current) {
+      discardRef.current = false;
+      audioChunksRef.current = [];
+      cleanup();
+      return;
+    }
+
     if (audioChunksRef.current.length > 0) {
       const audioBlob = new Blob(audioChunksRef.current, { type: audioMimeType });
       const fileExtension = getFileExtension(audioMimeType);
@@ -126,6 +152,7 @@ const useSpeechToTextExternal = (
 
   const monitorSilence = (stream: MediaStream, stopRecording: () => void) => {
     const audioContext = new AudioContext();
+    audioContextRef.current = audioContext;
     const audioStreamSource = audioContext.createMediaStreamSource(stream);
     const analyser = audioContext.createAnalyser();
     analyser.minDecibels = minDecibels;
@@ -204,11 +231,7 @@ const useSpeechToTextExternal = (
       audioStream.current?.getTracks().forEach((track) => track.stop());
       audioStream.current = null;
 
-      if (animationFrameIdRef.current !== null) {
-        window.cancelAnimationFrame(animationFrameIdRef.current);
-        animationFrameIdRef.current = null;
-      }
-
+      closeSilenceMonitor();
       setIsListening(false);
     } else {
       showToast({ message: 'MediaRecorder is not recording', status: 'error' });
@@ -229,6 +252,26 @@ const useSpeechToTextExternal = (
     startRecording();
   };
 
+  /**
+   * Stops capturing and throws the audio away instead of transcribing it, cancelling any
+   * auto-send already armed. Used while the assistant is speaking so its own voice never
+   * reaches the speech-to-text endpoint.
+   */
+  const externalAbortRecording = () => {
+    if (autoSendRef.current) {
+      clearTimeout(autoSendRef.current);
+      autoSendRef.current = null;
+    }
+
+    if (mediaRecorderRef.current?.state !== 'recording') {
+      closeSilenceMonitor();
+      return;
+    }
+
+    discardRef.current = true;
+    stopRecording();
+  };
+
   const externalStopRecording = () => {
     if (!isListening) {
       showToast({
@@ -245,6 +288,7 @@ const useSpeechToTextExternal = (
     isListening,
     externalStopRecording,
     externalStartRecording,
+    externalAbortRecording,
     isLoading: isProcessing,
   };
 };

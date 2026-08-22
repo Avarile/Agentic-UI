@@ -8,7 +8,7 @@ import store from '~/store';
 
 type SpeechRecognitionController = Pick<
   typeof SpeechRecognitionImport,
-  'startListening' | 'stopListening'
+  'startListening' | 'stopListening' | 'abortListening'
 >;
 type SpeechRecognitionModule = Partial<SpeechRecognitionController> & {
   default?: Partial<SpeechRecognitionController>;
@@ -18,7 +18,8 @@ const hasSpeechRecognitionController = (
   controller?: Partial<SpeechRecognitionController>,
 ): controller is SpeechRecognitionController =>
   typeof controller?.startListening === 'function' &&
-  typeof controller.stopListening === 'function';
+  typeof controller.stopListening === 'function' &&
+  typeof controller.abortListening === 'function';
 
 const speechRecognitionModule = SpeechRecognitionImport as SpeechRecognitionModule;
 const SpeechRecognition = hasSpeechRecognitionController(speechRecognitionModule)
@@ -89,59 +90,71 @@ const useSpeechToTextBrowser = (
     };
   }, [setText, onTranscriptionComplete, resetTranscript, finalTranscript, autoSendText]);
 
-  const toggleListening = useCallback(() => {
-    if (!browserSupportsSpeechRecognition) {
-      showToast({
-        message: sttExternal
-          ? localize('com_ui_speech_not_supported_use_external')
-          : localize('com_ui_speech_not_supported'),
-        status: 'error',
-      });
-      return;
+  /** Reports why recognition is unusable, or `null` when it is ready to start */
+  const getUnavailableMessage = useCallback(() => {
+    if (!browserSupportsSpeechRecognition || !hasSpeechRecognitionController(SpeechRecognition)) {
+      return sttExternal
+        ? localize('com_ui_speech_not_supported_use_external')
+        : localize('com_ui_speech_not_supported');
     }
 
     if (!isMicrophoneAvailable) {
-      showToast({
-        message: localize('com_ui_microphone_unavailable'),
-        status: 'error',
-      });
-      return;
+      return localize('com_ui_microphone_unavailable');
     }
 
-    if (!hasSpeechRecognitionController(SpeechRecognition)) {
-      showToast({
-        message: sttExternal
-          ? localize('com_ui_speech_not_supported_use_external')
-          : localize('com_ui_speech_not_supported'),
-        status: 'error',
-      });
+    return null;
+  }, [browserSupportsSpeechRecognition, isMicrophoneAvailable, localize, sttExternal]);
+
+  const startRecording = useCallback(() => {
+    const unavailableMessage = getUnavailableMessage();
+    if (unavailableMessage != null) {
+      showToast({ message: unavailableMessage, status: 'error' });
       return;
     }
 
     if (isListening === true) {
-      SpeechRecognition.stopListening();
-    } else {
-      SpeechRecognition.startListening({
-        language: languageSTT,
-        continuous: autoTranscribeAudio,
-      });
+      return;
     }
-  }, [
-    autoTranscribeAudio,
-    browserSupportsSpeechRecognition,
-    isListening,
-    isMicrophoneAvailable,
-    languageSTT,
-    localize,
-    showToast,
-    sttExternal,
-  ]);
+
+    SpeechRecognition?.startListening({ language: languageSTT, continuous: autoTranscribeAudio });
+  }, [autoTranscribeAudio, getUnavailableMessage, isListening, languageSTT, showToast]);
+
+  const stopRecording = useCallback(() => {
+    if (!hasSpeechRecognitionController(SpeechRecognition)) {
+      return;
+    }
+
+    SpeechRecognition.stopListening();
+  }, []);
+
+  /**
+   * Stops listening and throws away everything captured, including any auto-send already
+   * armed by `finalTranscript`. Used when the assistant starts speaking, so its own voice
+   * is never transcribed back into the composer.
+   */
+  const abortRecording = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    lastTranscript.current = null;
+    lastInterim.current = null;
+
+    if (!hasSpeechRecognitionController(SpeechRecognition)) {
+      return;
+    }
+
+    SpeechRecognition.abortListening();
+    resetTranscript();
+  }, [resetTranscript]);
 
   return {
     isListening,
     isLoading: false,
-    startRecording: toggleListening,
-    stopRecording: toggleListening,
+    startRecording,
+    stopRecording,
+    abortRecording,
   };
 };
 

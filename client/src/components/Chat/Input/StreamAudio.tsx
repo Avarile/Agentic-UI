@@ -4,11 +4,17 @@ import { QueryKeys } from 'librechat-data-provider';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import type { TMessage } from 'librechat-data-provider';
-import { useCustomAudioRef, MediaSourceAppender, usePauseGlobalAudio } from '~/hooks/Audio';
-import { useLatestMessage } from '~/hooks/Messages/useLatestMessage';
-import { getLatestText, logger } from '~/utils';
+import type { TAutoPlayRun } from '~/common';
+import {
+  useAutoPlay,
+  useAudioOutput,
+  useCustomAudioRef,
+  MediaSourceAppender,
+  usePauseGlobalAudio,
+} from '~/hooks/Audio';
 import { useAuthContext } from '~/hooks';
 import { globalAudioId } from '~/common';
+import { logger } from '~/utils';
 import store from '~/store';
 
 function timeoutPromise(ms: number, message?: string) {
@@ -27,12 +33,12 @@ export default function StreamAudio({ index = 0 }) {
   const playbackRate = useRecoilValue(store.playbackRate);
 
   const voice = useRecoilValue(store.voice);
-  const activeRunId = useRecoilValue(store.activeRunFamily(index));
-  const automaticPlayback = useRecoilValue(store.automaticPlayback);
-  const isSubmitting = useRecoilValue(store.isSubmittingFamily(index));
-  const latestMessage = useLatestMessage(index);
-  const setIsPlaying = useSetRecoilState(store.globalAudioPlayingFamily(index));
-  const [audioRunId, setAudioRunId] = useRecoilState(store.audioRunFamily(index));
+  const setGlobalIsPlaying = useSetRecoilState(store.globalAudioPlayingFamily(index));
+  const { setIsSpeaking: setIsPlaying } = useAudioOutput({
+    index,
+    onChange: setGlobalIsPlaying,
+  });
+  const { pending, latestMessage, markPlayed } = useAutoPlay(index);
   const [isFetching, setIsFetching] = useRecoilState(store.globalAudioFetchingFamily(index));
   const [globalAudioURL, setGlobalAudioURL] = useRecoilState(store.globalAudioURLFamily(index));
 
@@ -49,27 +55,11 @@ export default function StreamAudio({ index = 0 }) {
   );
 
   useEffect(() => {
-    const latestText = getLatestText(latestMessage);
-
-    const shouldFetch = !!(
-      token != null &&
-      automaticPlayback &&
-      !isSubmitting &&
-      latestMessage &&
-      !latestMessage.isCreatedByUser &&
-      latestText &&
-      latestMessage.messageId &&
-      !latestMessage.messageId.includes('_') &&
-      !isFetching &&
-      activeRunId != null &&
-      activeRunId !== audioRunId
-    );
-
-    if (!shouldFetch) {
+    if (!pending || token == null || isFetching) {
       return;
     }
 
-    async function fetchAudio() {
+    async function fetchAudio(run: TAutoPlayRun) {
       setIsFetching(true);
 
       try {
@@ -83,7 +73,7 @@ export default function StreamAudio({ index = 0 }) {
         const cache = await caches.open('tts-responses');
         const cachedResponse = await cache.match(cacheKey);
 
-        setAudioRunId(activeRunId);
+        markPlayed(run.runId);
         if (cachedResponse) {
           logger.log('Audio found in cache');
           const audioBlob = await cachedResponse.blob();
@@ -97,7 +87,7 @@ export default function StreamAudio({ index = 0 }) {
         const response = await fetch('/api/files/speech/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ messageId: latestMessage?.messageId, runId: activeRunId, voice }),
+          body: JSON.stringify({ messageId: run.messageId, runId: run.runId, voice }),
         });
 
         if (!response.ok) {
@@ -140,9 +130,7 @@ export default function StreamAudio({ index = 0 }) {
         if (chunks.length) {
           logger.log('Adding audio to cache');
           const latestMessages = getMessages() ?? [];
-          const targetMessage = latestMessages.find(
-            (msg) => msg.messageId === latestMessage?.messageId,
-          );
+          const targetMessage = latestMessages.find((msg) => msg.messageId === run.messageId);
           cacheKey = targetMessage?.text ?? '';
           if (!cacheKey) {
             throw new Error('Cache key not found');
@@ -176,20 +164,17 @@ export default function StreamAudio({ index = 0 }) {
       }
     }
 
-    fetchAudio();
+    fetchAudio(pending);
   }, [
-    automaticPlayback,
     setGlobalAudioURL,
-    setAudioRunId,
     setIsFetching,
     latestMessage,
-    isSubmitting,
-    activeRunId,
     getMessages,
+    markPlayed,
     isFetching,
-    audioRunId,
     cacheTTS,
     audioRef,
+    pending,
     voice,
     token,
   ]);

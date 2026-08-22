@@ -1543,6 +1543,7 @@
   "com_ui_message_nav_previous": "Navigate to previous message",
   "com_ui_message_part_empty": "Message content cannot be empty.",
   "com_ui_method": "Method",
+  "com_ui_mic_paused_while_speaking": "Microphone paused while the assistant is speaking",
   "com_ui_microphone_unavailable": "Microphone is not available",
   "com_ui_min_tags": "Cannot remove more values, a minimum of {{0}} are required.",
   "com_ui_minimal": "Minimal",

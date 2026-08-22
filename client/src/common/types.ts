@@ -550,6 +550,12 @@ export type VoiceOption = {
   label: string;
 };
 
+export type TAutoPlayRun = {
+  runId: string;
+  messageId: string;
+  text: string;
+};
+
 export type TMessageAudio = {
   isLast?: boolean;
   index: number;

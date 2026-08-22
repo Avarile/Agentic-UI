@@ -1,10 +1,11 @@
 // client/src/hooks/Audio/useTTSBrowser.ts
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { parseTextParts } from 'librechat-data-provider';
 import type { TMessageContentParts } from 'librechat-data-provider';
 import useTextToSpeechBrowser from '~/hooks/Input/useTextToSpeechBrowser';
 import usePauseGlobalAudio from '~/hooks/Audio/usePauseGlobalAudio';
+import useAudioOutput from '~/hooks/Audio/useAudioOutput';
 import useAudioRef from '~/hooks/Audio/useAudioRef';
 import { logger } from '~/utils';
 import store from '~/store';
@@ -21,7 +22,7 @@ const useTTSBrowser = (props?: TUseTextToSpeech) => {
 
   const isMouseDownRef = useRef(false);
   const timerRef = useRef<number | undefined>(undefined);
-  const [isSpeakingState, setIsSpeaking] = useState(false);
+  const { isSpeaking: isSpeakingState, setIsSpeaking } = useAudioOutput({ index });
   const { audioRef } = useAudioRef({ setIsPlaying: setIsSpeaking });
 
   const { pauseGlobalAudio } = usePauseGlobalAudio(index);

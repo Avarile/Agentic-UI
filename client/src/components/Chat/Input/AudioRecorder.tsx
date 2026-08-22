@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef } from 'react';
 import { MicOff } from 'lucide-react';
 import { useRecoilValue } from 'recoil';
 import {
+  cn,
   IconButton,
   useToastContext,
   TooltipAnchor,
@@ -11,6 +12,7 @@ import {
 import { useLocalize, useSpeechToText, useGetAudioSettings } from '~/hooks';
 import { globalAudioId, type TAskFunction } from '~/common';
 import { useChatFormContext } from '~/Providers';
+import { useMicGate } from '~/hooks/Audio';
 import store from '~/store';
 
 const isExternalSTT = (speechToTextEndpoint: string) => speechToTextEndpoint === 'external';
@@ -19,11 +21,13 @@ export default memo(function AudioRecorder({
   ask,
   methods,
   isSubmitting,
+  index = 0,
 }: {
   disabled: boolean;
   ask: TAskFunction;
   methods: ReturnType<typeof useChatFormContext>;
   isSubmitting: boolean;
+  index?: number;
 }) {
   const { setValue, reset, getValues } = methods;
   const localize = useLocalize();
@@ -84,15 +88,26 @@ export default memo(function AudioRecorder({
     [setValue, speechToTextEndpoint],
   );
 
-  const { isListening, isLoading, startRecording, stopRecording } = useSpeechToText(
+  const { isListening, isLoading, startRecording, stopRecording, abortRecording } = useSpeechToText(
     setText,
     onTranscriptionComplete,
   );
 
+  const { isSuspended, interrupt } = useMicGate({
+    index,
+    isListening: isListening === true,
+    startRecording,
+    abortRecording,
+  });
+
+  /** While the assistant is speaking, taking the microphone means taking the floor */
   const handleStartRecording = useCallback(() => {
+    if (isSuspended) {
+      interrupt();
+    }
     existingTextRef.current = getValues('text') || '';
     startRecording();
-  }, [getValues, startRecording]);
+  }, [getValues, interrupt, isSuspended, startRecording]);
 
   const handleStopRecording = useCallback(() => {
     stopRecording();
@@ -131,9 +146,13 @@ export default memo(function AudioRecorder({
     return <ListeningIcon className="stroke-text-secondary" />;
   };
 
+  const label = isSuspended
+    ? localize('com_ui_mic_paused_while_speaking')
+    : localize('com_ui_use_micrphone');
+
   return (
     <TooltipAnchor
-      description={localize('com_ui_use_micrphone')}
+      description={label}
       render={
         <IconButton
           id="audio-recorder"
@@ -141,10 +160,10 @@ export default memo(function AudioRecorder({
           variant="ghost"
           size="theme"
           shape="theme"
-          label={localize('com_ui_use_micrphone')}
+          label={label}
           onClick={isListening === true ? handleStopRecording : handleStartRecording}
           disabled={recorderDisabled}
-          className="p-1 hover:bg-surface-composer-hover"
+          className={cn('p-1 hover:bg-surface-composer-hover', isSuspended && 'opacity-50')}
           aria-pressed={isListening}
         >
           {renderIcon()}

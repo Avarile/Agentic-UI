@@ -556,6 +556,24 @@ const globalAudioPlayingFamily = atomFamily<boolean, string | number | null>({
   default: false,
 });
 
+const audioOutputSourcesFamily = atomFamily<ReadonlySet<string>, string | number | null>({
+  key: 'audioOutputSourcesByIndex',
+  default: new Set<string>(),
+});
+
+/**
+ * True while any registered source is producing audible assistant speech, across both
+ * TTS engines and both auto-playback and per-message playback. Drives the microphone
+ * gate so speech-to-text never records the assistant's own voice.
+ */
+const isSpeakingFamily = selectorFamily<boolean, string | number | null>({
+  key: 'isSpeakingByIndex',
+  get:
+    (index) =>
+    ({ get }) =>
+      get(audioOutputSourcesFamily(index)).size > 0,
+});
+
 const activeRunFamily = atomFamily<string | null, string | number | null>({
   key: 'activeRunByIndex',
   default: null,
@@ -705,6 +723,8 @@ export default {
   audioRunFamily,
   globalAudioPlayingFamily,
   globalAudioFetchingFamily,
+  audioOutputSourcesFamily,
+  isSpeakingFamily,
   showPlusPopoverFamily,
   activePromptByIndex,
   useClearSubmissionState,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
+import useAudioOutput from '~/hooks/Audio/useAudioOutput';
 import AudioRecorder from '../AudioRecorder';
 import store from '~/store';
 
@@ -11,8 +12,10 @@ let mockSetText: ((text: string) => void) | undefined;
 
 const mockStartSpeechRecordingBrowser = jest.fn();
 const mockStopSpeechRecordingBrowser = jest.fn();
+const mockAbortSpeechRecordingBrowser = jest.fn();
 const mockStartSpeechRecordingExternal = jest.fn();
 const mockStopSpeechRecordingExternal = jest.fn();
+const mockAbortSpeechRecordingExternal = jest.fn();
 const mockSetValue = jest.fn();
 const mockReset = jest.fn();
 const mockGetValues = jest.fn(() => 'existing draft');
@@ -26,6 +29,7 @@ type MockButtonProps = React.ComponentProps<'button'> & {
 };
 
 jest.mock('@librechat/client', () => ({
+  cn: (...values: unknown[]) => values.filter(Boolean).join(' '),
   IconButton: ({
     children,
     label,
@@ -53,6 +57,7 @@ jest.mock('~/hooks/Input/useSpeechToTextBrowser', () => ({
       isLoading: false,
       startRecording: mockStartSpeechRecordingBrowser,
       stopRecording: mockStopSpeechRecordingBrowser,
+      abortRecording: mockAbortSpeechRecordingBrowser,
     };
   },
 }));
@@ -66,6 +71,7 @@ jest.mock('~/hooks/Input/useSpeechToTextExternal', () => ({
       isLoading: false,
       externalStartRecording: mockStartSpeechRecordingExternal,
       externalStopRecording: mockStopSpeechRecordingExternal,
+      externalAbortRecording: mockAbortSpeechRecordingExternal,
     };
   },
 }));
@@ -99,6 +105,18 @@ const dispatchSpeechShortcut = () => {
   return event;
 };
 
+const speakLabel = 'speak';
+
+/** Raises the real speaking signal the microphone gate listens to */
+function Speaker() {
+  const { setIsSpeaking } = useAudioOutput({ index: 0 });
+  return (
+    <button type="button" onClick={() => setIsSpeaking(true)}>
+      {speakLabel}
+    </button>
+  );
+}
+
 const renderRecorder = ({ disabled = false, initialized = true } = {}) =>
   render(
     <RecoilRoot initializeState={({ set }) => set(store.speechSettingsInitialized, initialized)}>
@@ -114,6 +132,7 @@ const renderRecorder = ({ disabled = false, initialized = true } = {}) =>
         }
         isSubmitting={false}
       />
+      <Speaker />
     </RecoilRoot>,
   );
 
@@ -177,5 +196,66 @@ describe('AudioRecorder speech shortcut', () => {
     dispatchSpeechShortcut();
 
     expect(mockStopSpeechRecordingExternal).not.toHaveBeenCalled();
+  });
+});
+
+describe('AudioRecorder microphone gate', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSpeechToTextEndpoint = 'browser';
+    mockBrowserIsListening = true;
+    mockExternalIsListening = false;
+    Object.defineProperty(window, 'speechSynthesis', {
+      configurable: true,
+      value: { cancel: jest.fn(), speaking: false, pending: false },
+    });
+  });
+
+  afterEach(() => {
+    mockBrowserIsListening = false;
+  });
+
+  it('discards the microphone when the assistant starts speaking', () => {
+    renderRecorder();
+
+    expect(mockAbortSpeechRecordingBrowser).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText(speakLabel));
+
+    expect(mockAbortSpeechRecordingBrowser).toHaveBeenCalledTimes(1);
+    expect(mockStopSpeechRecordingBrowser).not.toHaveBeenCalled();
+  });
+
+  it('relabels the control while the assistant is speaking', () => {
+    renderRecorder();
+
+    expect(screen.getByLabelText('com_ui_use_micrphone')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(speakLabel));
+
+    expect(screen.getByLabelText('com_ui_mic_paused_while_speaking')).toBeInTheDocument();
+  });
+
+  it('routes the abort to the external engine when it is selected', () => {
+    mockSpeechToTextEndpoint = 'external';
+    mockBrowserIsListening = false;
+    mockExternalIsListening = true;
+
+    renderRecorder();
+    fireEvent.click(screen.getByText(speakLabel));
+
+    expect(mockAbortSpeechRecordingExternal).toHaveBeenCalledTimes(1);
+    expect(mockAbortSpeechRecordingBrowser).not.toHaveBeenCalled();
+  });
+
+  it('takes the floor for the user when the shortcut fires during playback', () => {
+    mockBrowserIsListening = false;
+    renderRecorder();
+
+    fireEvent.click(screen.getByText(speakLabel));
+    dispatchSpeechShortcut();
+
+    expect(window.speechSynthesis.cancel).toHaveBeenCalledTimes(1);
+    expect(mockStartSpeechRecordingBrowser).toHaveBeenCalledTimes(1);
   });
 });

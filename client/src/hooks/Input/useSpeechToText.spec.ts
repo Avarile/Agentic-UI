@@ -7,8 +7,10 @@ let mockExternalIsListening = false;
 
 const mockStartSpeechRecordingBrowser = jest.fn();
 const mockStopSpeechRecordingBrowser = jest.fn();
+const mockAbortSpeechRecordingBrowser = jest.fn();
 const mockStartSpeechRecordingExternal = jest.fn();
 const mockStopSpeechRecordingExternal = jest.fn();
+const mockAbortSpeechRecordingExternal = jest.fn();
 
 jest.mock('./useGetAudioSettings', () => ({
   __esModule: true,
@@ -22,6 +24,7 @@ jest.mock('./useSpeechToTextBrowser', () => ({
     isLoading: false,
     startRecording: mockStartSpeechRecordingBrowser,
     stopRecording: mockStopSpeechRecordingBrowser,
+    abortRecording: mockAbortSpeechRecordingBrowser,
   }),
 }));
 
@@ -32,6 +35,7 @@ jest.mock('./useSpeechToTextExternal', () => ({
     isLoading: false,
     externalStartRecording: mockStartSpeechRecordingExternal,
     externalStopRecording: mockStopSpeechRecordingExternal,
+    externalAbortRecording: mockAbortSpeechRecordingExternal,
   }),
 }));
 
@@ -75,5 +79,27 @@ describe('useSpeechToText', () => {
     expect(mockStopSpeechRecordingExternal).toHaveBeenCalledTimes(1);
     expect(mockStartSpeechRecordingExternal).not.toHaveBeenCalled();
     expect(mockStopSpeechRecordingBrowser).not.toHaveBeenCalled();
+  });
+
+  it('selects the active engine abort handler', () => {
+    mockExternalIsListening = true;
+    const { result } = renderHook(() => useSpeechToText(jest.fn(), jest.fn()));
+
+    act(() => result.current.abortRecording());
+
+    expect(mockAbortSpeechRecordingExternal).toHaveBeenCalledTimes(1);
+    expect(mockStopSpeechRecordingExternal).not.toHaveBeenCalled();
+    expect(mockAbortSpeechRecordingBrowser).not.toHaveBeenCalled();
+  });
+
+  it('aborts through the browser engine when it is active', () => {
+    mockSpeechToTextEndpoint = 'browser';
+    mockBrowserIsListening = true;
+    const { result } = renderHook(() => useSpeechToText(jest.fn(), jest.fn()));
+
+    act(() => result.current.abortRecording());
+
+    expect(mockAbortSpeechRecordingBrowser).toHaveBeenCalledTimes(1);
+    expect(mockAbortSpeechRecordingExternal).not.toHaveBeenCalled();
   });
 });
