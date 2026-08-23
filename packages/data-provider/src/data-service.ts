@@ -1442,3 +1442,12 @@ export interface ActiveJobsResponse {
 export const getActiveJobs = (): Promise<ActiveJobsResponse> => {
   return request.get(endpoints.activeJobs());
 };
+
+/* System Core */
+export const getSystemCoreSnapshot = (): Promise<q.SystemCoreSnapshotResponse> => {
+  return request.get(endpoints.adminSystemCoreSnapshot());
+};
+
+export const getSystemCoreAvailability = (): Promise<q.SystemCoreAvailabilityResponse> => {
+  return request.get(endpoints.adminSystemCoreAvailability());
+};

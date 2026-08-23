@@ -15,22 +15,26 @@ import { useMediaQuery } from '@librechat/client';
 import * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { MutableRefObject } from 'react';
+import type { Reading } from './live/bind';
 import type { Module } from './data/schema';
 import type { Runtime } from './scene/resolve';
 import Orbit from './objects/Orbit';
 import Strip from './objects/Strip';
 import Scanner from './objects/Scanner';
 import Mainframe from './objects/Mainframe';
-import Hum from './objects/Hum';
 import { LabelFactory, preloadLabelFont } from './scene/labels';
 import { MaterialRegistry } from './scene/materials';
 import { createToneBus } from './scene/audio';
-import { colorOf, gainOf, stripSpec } from './scene/resolve';
+import { stripSpec, appearanceOf } from './scene/resolve';
+import logger from '~/utils/logger';
 import { LIGHTS, STAGE_BACKGROUND } from './scene/palette';
 import { SCANNER, FRAME_FOV, FRAME_DISTANCE, FRAME_DIRECTION } from './scene/config';
 
 export interface SceneProps {
   modules: Module[];
+  /** Live samples by module id. Empty when the feature is off or unconfigured,
+   *  which is what makes the fixture-only scene the same code path. */
+  readings: ReadonlyMap<string, Reading>;
   runtimeFor: (m: Module) => Runtime;
   parkPhase: (id: string, phase: number) => void;
   selected: string | null;
@@ -97,6 +101,7 @@ function Pulse({ mats, active }: { mats: MaterialRegistry; active: boolean }) {
 
 function Core({
   modules,
+  readings,
   runtimeFor,
   parkPhase,
   selected,
@@ -168,19 +173,46 @@ function Core({
     return () => mats.setDimmed(false);
   }, [mats, selected]);
 
+  // Where the three sources meet: the authored module, its live sample, and the
+  // per-frame runtime. Rebuilt on every data change, which at a 20s poll is
+  // rare; the strips are keyed by module id below, so a rebuild re-renders them
+  // without remounting and without disturbing their rotation.
   const strips = useMemo(
     () =>
       modules.map((m) => {
         const rt = runtimeFor(m);
-        const spec = stripSpec(m, rt);
+        const live = readings.get(m.id) ?? null;
+        const spec = stripSpec(m, rt, live);
+        const look = appearanceOf(m, live);
         return {
           spec: fontReady ? spec : { ...spec, label: null },
           initialPhase: rt.phase,
-          mats: mats.forModule(colorOf(m), m.appearance.opacity, gainOf(m)),
+          mats: mats.forModule(look.color, look.opacity, look.gain),
         };
       }),
-    [modules, runtimeFor, mats, fontReady],
+    [modules, readings, runtimeFor, mats, fontReady],
   );
+
+  // Release materials the build above stopped asking for, and open the next
+  // generation. After the commit rather than inside the memo: a material still
+  // referenced by a mesh that has just rendered would draw black if disposed.
+  useEffect(() => {
+    mats.sweep();
+  }, [strips, mats]);
+
+  // What the caches are holding. Free unless VITE_ENABLE_LOGGER is on. All four
+  // numbers should be flat across ticks in the steady state — a climbing count
+  // means something with an unbounded codomain reached a cache (see live/bind.ts).
+  const gl = useThree((state) => state.gl);
+  useEffect(() => {
+    logger.log('system_core', {
+      modules: strips.length,
+      materials: mats.size,
+      geometries: gl.info.memory.geometries,
+      textures: gl.info.memory.textures,
+      programs: gl.info.programs?.length,
+    });
+  }, [strips, mats, gl]);
 
   return (
     <>
@@ -207,7 +239,6 @@ function Core({
               and `stack` are both untransformed, so this sits in exactly the same
               place, and Mainframe stays propless with its claim to no per-frame
               work intact. Mirrors the gate Strip uses for its own voice. */}
-          {bus && <Hum bus={bus} />}
           {strips.map((strip) => (
             <Strip
               key={strip.spec.id}

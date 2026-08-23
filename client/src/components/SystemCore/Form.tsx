@@ -6,10 +6,13 @@
 // to keep in step and no second copy of the validation rules.
 
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import type { TranslationKeys } from '~/hooks/useLocalize';
 import type { FieldSpec, Module } from './data/schema';
+import type { Reading } from './live/bind';
 import type { Reader } from './Fields';
 import { SPEC, GROUPS, isGroup, groupFields } from './data/schema';
 import { Field, ReaderRegistry } from './Fields';
+import { BINDINGS } from './live/bind';
 import { useLocalize } from '~/hooks';
 
 /** Everything editable, as [path, spec], in schema order. */
@@ -54,6 +57,14 @@ function writePath(m: Module, path: string, v: unknown): void {
 
 interface FormProps {
   module: Module;
+  /**
+   * The module's live sample, or null when the poll is off.
+   *
+   * Null is what makes the feature-off path free of special cases: with no
+   * reading nothing is bound, so every field is editable and the form behaves
+   * exactly as it did before there was a feed at all.
+   */
+  live: Reading | null;
   /** Bumped by the parent to refill every control from `module` — the revert
    *  path, and the confirmation after a successful edit. */
   refillKey: number;
@@ -62,7 +73,7 @@ interface FormProps {
   onPin: () => void;
 }
 
-export default function Form({ module, refillKey, onCommit, onPin }: FormProps) {
+export default function Form({ module, live, refillKey, onCommit, onPin }: FormProps) {
   const localize = useLocalize();
   const readers = useRef<Map<string, Reader>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
@@ -113,6 +124,12 @@ export default function Form({ module, refillKey, onCommit, onPin }: FormProps) 
   const locked = module.layout.locked === true;
   const disabledFor = (path: string) => locked && path !== 'layout.locked';
 
+  // The same per-path shape as `disabledFor`, which is the whole reason locking
+  // a live field cost almost nothing: `BINDINGS` is keyed by the dotted paths
+  // this form already enumerates, so the mechanism was here waiting.
+  const boundAt = (path: string): TranslationKeys | undefined =>
+    live == null ? undefined : BINDINGS[path]?.name;
+
   const groups = useMemo(
     () => GROUPS.map((g) => ({ g, spec: SPEC[g], fields: Object.entries(groupFields(g)) })),
     [],
@@ -138,6 +155,7 @@ export default function Form({ module, refillKey, onCommit, onPin }: FormProps) 
                 spec={spec}
                 value={readPath(module, path)}
                 disabled={disabledFor(path)}
+                bound={boundAt(path)}
               />
             ))}
           </div>
@@ -167,6 +185,7 @@ export default function Form({ module, refillKey, onCommit, onPin }: FormProps) 
                       spec={fs}
                       value={readPath(module, path)}
                       disabled={disabledFor(path)}
+                      bound={boundAt(path)}
                       onPin={onPin}
                     />
                   );

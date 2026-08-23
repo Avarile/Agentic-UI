@@ -1,0 +1,2172 @@
+{
+  "up": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-1.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-2.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-3.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "meilisearch.infra.svc.cluster.local:7700",
+            "job": "meilisearch"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-4.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-5.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "beta_kubernetes_io_arch": "amd64",
+            "beta_kubernetes_io_instance_type": "k3s",
+            "beta_kubernetes_io_os": "linux",
+            "instance": "k8s-micro-server",
+            "job": "kubernetes-nodes",
+            "kubernetes_io_arch": "amd64",
+            "kubernetes_io_hostname": "k8s-micro-server",
+            "kubernetes_io_os": "linux",
+            "node_kubernetes_io_instance_type": "k3s",
+            "node_role_kubernetes_io_control_plane": "true"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "10.0.0.10:6443",
+            "job": "kubernetes-apiserver"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "qdrant.infra.svc.cluster.local:6333",
+            "job": "qdrant"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-6.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "minio.infra.svc.cluster.local:9000",
+            "job": "minio"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-7.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-8.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-9.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "kube-state-metrics.infra.svc.cluster.local:8080",
+            "job": "kube-state-metrics"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "node-exporter.infra.svc.cluster.local:9100",
+            "job": "node-exporter"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "localhost:9090",
+            "job": "prometheus"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "https://endpoint-10.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "beta_kubernetes_io_arch": "amd64",
+            "beta_kubernetes_io_instance_type": "k3s",
+            "beta_kubernetes_io_os": "linux",
+            "instance": "k8s-micro-server",
+            "job": "kubernetes-cadvisor",
+            "kubernetes_io_arch": "amd64",
+            "kubernetes_io_hostname": "k8s-micro-server",
+            "kubernetes_io_os": "linux",
+            "node_kubernetes_io_instance_type": "k3s",
+            "node_role_kubernetes_io_control_plane": "true"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "10.0.0.11:3000",
+            "job": "kubernetes-pods",
+            "namespace": "gitea",
+            "pod": "gitea-8b56757d6-jf7xp"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "10.0.0.12:9104",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "mysql-77bdc49d46-tkwb4"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "10.0.0.13:9121",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "redis-7d98f65954-kfcwt"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "10.0.0.14:9187",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "pgvector-844999678c-8j5vs"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "10.0.0.15:15692",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "rabbitmq-6946d6b479-74mvc"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "10.0.0.16:9216",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "mongo-7d8bc5866f-lt9fq"
+          },
+          "value": [
+            1787470779.312,
+            "1"
+          ]
+        }
+      ]
+    }
+  },
+  "scrapeAge": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "instance": "https://endpoint-1.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "16.516000032424927"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-2.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "23.003000020980835"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-3.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "6.726000070571899"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "meilisearch.infra.svc.cluster.local:7700",
+            "job": "meilisearch"
+          },
+          "value": [
+            1787470779.345,
+            "7.620000123977661"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-4.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "0.6830000877380371"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-5.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "2.2720000743865967"
+          ]
+        },
+        {
+          "metric": {
+            "beta_kubernetes_io_arch": "amd64",
+            "beta_kubernetes_io_instance_type": "k3s",
+            "beta_kubernetes_io_os": "linux",
+            "instance": "k8s-micro-server",
+            "job": "kubernetes-nodes",
+            "kubernetes_io_arch": "amd64",
+            "kubernetes_io_hostname": "k8s-micro-server",
+            "kubernetes_io_os": "linux",
+            "node_kubernetes_io_instance_type": "k3s",
+            "node_role_kubernetes_io_control_plane": "true"
+          },
+          "value": [
+            1787470779.345,
+            "11.712000131607056"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "10.0.0.10:6443",
+            "job": "kubernetes-apiserver"
+          },
+          "value": [
+            1787470779.345,
+            "15.699000120162964"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "qdrant.infra.svc.cluster.local:6333",
+            "job": "qdrant"
+          },
+          "value": [
+            1787470779.345,
+            "4.361000061035156"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-6.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "24.532000064849854"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "minio.infra.svc.cluster.local:9000",
+            "job": "minio"
+          },
+          "value": [
+            1787470779.345,
+            "2.7820000648498535"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-7.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "10.066999912261963"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-8.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "26.9760000705719"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-9.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "12.088000059127808"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "kube-state-metrics.infra.svc.cluster.local:8080",
+            "job": "kube-state-metrics"
+          },
+          "value": [
+            1787470779.345,
+            "10.802000045776367"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "node-exporter.infra.svc.cluster.local:9100",
+            "job": "node-exporter"
+          },
+          "value": [
+            1787470779.345,
+            "19.825000047683716"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "localhost:9090",
+            "job": "prometheus"
+          },
+          "value": [
+            1787470779.345,
+            "25.74399995803833"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-10.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.345,
+            "11.772000074386597"
+          ]
+        },
+        {
+          "metric": {
+            "beta_kubernetes_io_arch": "amd64",
+            "beta_kubernetes_io_instance_type": "k3s",
+            "beta_kubernetes_io_os": "linux",
+            "instance": "k8s-micro-server",
+            "job": "kubernetes-cadvisor",
+            "kubernetes_io_arch": "amd64",
+            "kubernetes_io_hostname": "k8s-micro-server",
+            "kubernetes_io_os": "linux",
+            "node_kubernetes_io_instance_type": "k3s",
+            "node_role_kubernetes_io_control_plane": "true"
+          },
+          "value": [
+            1787470779.345,
+            "14.23200011253357"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "10.0.0.11:3000",
+            "job": "kubernetes-pods",
+            "namespace": "gitea",
+            "pod": "gitea-8b56757d6-jf7xp"
+          },
+          "value": [
+            1787470779.345,
+            "3.6519999504089355"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "10.0.0.12:9104",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "mysql-77bdc49d46-tkwb4"
+          },
+          "value": [
+            1787470779.345,
+            "3.7160000801086426"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "10.0.0.13:9121",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "redis-7d98f65954-kfcwt"
+          },
+          "value": [
+            1787470779.345,
+            "22.93400001525879"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "10.0.0.14:9187",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "pgvector-844999678c-8j5vs"
+          },
+          "value": [
+            1787470779.345,
+            "16.430000066757202"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "10.0.0.15:15692",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "rabbitmq-6946d6b479-74mvc"
+          },
+          "value": [
+            1787470779.345,
+            "14.414000034332275"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "10.0.0.16:9216",
+            "job": "kubernetes-pods",
+            "namespace": "infra",
+            "pod": "mongo-7d8bc5866f-lt9fq"
+          },
+          "value": [
+            1787470779.345,
+            "13.7739999294281"
+          ]
+        }
+      ]
+    }
+  },
+  "podCpu": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "blackbox-exporter-bdccf85c9-x8tgj"
+          },
+          "value": [
+            1787470779.353,
+            "0.004803817309134428"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system",
+            "pod": "coredns-584c644679-54sdr"
+          },
+          "value": [
+            1787470779.353,
+            "0.004152514104592964"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "kube-state-metrics-77c8b9885-vb5zg"
+          },
+          "value": [
+            1787470779.353,
+            "0.0008442332984796831"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system",
+            "pod": "local-path-provisioner-66d78fc8c4-r7jr6"
+          },
+          "value": [
+            1787470779.353,
+            "0.00007007910515824725"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system",
+            "pod": "metrics-server-d895fd9ff-x429s"
+          },
+          "value": [
+            1787470779.353,
+            "0.004469238447446789"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "node-exporter-57d584856d-cvxll"
+          },
+          "value": [
+            1787470779.353,
+            "0.0033420846563887068"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "proxy-65b4ff9f44-4rb25"
+          },
+          "value": [
+            1787470779.353,
+            "0.0001301631132563492"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "api-65b8448fd-b4hcn"
+          },
+          "value": [
+            1787470779.353,
+            "0.005839172204839956"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "outbox-poller-5f7b8bf884-ccxsc"
+          },
+          "value": [
+            1787470779.353,
+            "0.0008860537205295666"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "admin-86865666b5-n9nsf"
+          },
+          "value": [
+            1787470779.353,
+            "0.000024512444576711262"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "drawio",
+            "pod": "drawio-5d45649f69-vjd8m"
+          },
+          "value": [
+            1787470779.353,
+            "0.0012641254201665032"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "ghost",
+            "pod": "ghost-6d99ddf6db-2gxws"
+          },
+          "value": [
+            1787470779.353,
+            "0.004163608387193948"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "gitea",
+            "pod": "gitea-8b56757d6-jf7xp"
+          },
+          "value": [
+            1787470779.353,
+            "0.001787356300070075"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "iframely-7657f6c5bc-l2t8v"
+          },
+          "value": [
+            1787470779.353,
+            "0.002129704932472094"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "live-6cf8d6bc4c-knb5q"
+          },
+          "value": [
+            1787470779.353,
+            "0.0004693458787713641"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "main-website",
+            "pod": "main-website-78cb968bd-55kg4"
+          },
+          "value": [
+            1787470779.353,
+            "0.0006931925159982155"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "monitor-67bd68d47f-lvglc"
+          },
+          "value": [
+            1787470779.353,
+            "0.0018272316311024963"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "space-5ccb54796d-lsw9q"
+          },
+          "value": [
+            1787470779.353,
+            "0.00006044640188977267"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "vaultwarden",
+            "pod": "vaultwarden-c9fb997d-zzd7s"
+          },
+          "value": [
+            1787470779.353,
+            "0.0001699227057391359"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "web-f7d8b8b69-pnhvl"
+          },
+          "value": [
+            1787470779.353,
+            "0.00004035899292803151"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "beat-worker-668bbd995b-k5jbp"
+          },
+          "value": [
+            1787470779.353,
+            "0.005661407286453925"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "librechat",
+            "pod": "librechat-7976db5c66-jg7tn"
+          },
+          "value": [
+            1787470779.353,
+            "0.0013363296606566004"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "worker-7569745948-r5gh9"
+          },
+          "value": [
+            1787470779.353,
+            "0.0016869076881935129"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "automation-consumer-6b5dbfbb64-m6k6x"
+          },
+          "value": [
+            1787470779.353,
+            "0.0002286773100750532"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "meilisearch-6bd7f4466-jc48l"
+          },
+          "value": [
+            1787470779.353,
+            "0.0003507284592492268"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "minio-fb964988f-tp2tb"
+          },
+          "value": [
+            1787470779.353,
+            "0.0013608469283301781"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "mongo-7d8bc5866f-lt9fq"
+          },
+          "value": [
+            1787470779.353,
+            "0.017427436996022935"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "mysql-77bdc49d46-tkwb4"
+          },
+          "value": [
+            1787470779.353,
+            "0.01144335564408646"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "pgvector-844999678c-8j5vs"
+          },
+          "value": [
+            1787470779.353,
+            "0.022720586709764037"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "qdrant-5868475495-jc4gr"
+          },
+          "value": [
+            1787470779.353,
+            "0.0003380549244750095"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "rabbitmq-6946d6b479-74mvc"
+          },
+          "value": [
+            1787470779.353,
+            "0.12206145625812476"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "redis-7d98f65954-kfcwt"
+          },
+          "value": [
+            1787470779.353,
+            "0.016149681365205542"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "twenty",
+            "pod": "twenty-server-bdb9cbd48-lbhcz"
+          },
+          "value": [
+            1787470779.353,
+            "0.00042898769782056964"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "silo-778bb66d5f-fxjbm"
+          },
+          "value": [
+            1787470779.353,
+            "0.010846893674844064"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "twenty",
+            "pod": "twenty-worker-f44dbf59-7gxht"
+          },
+          "value": [
+            1787470779.353,
+            "0.0017379639177716952"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "prometheus-84b7655ccf-gm8xw"
+          },
+          "value": [
+            1787470779.353,
+            "0.008318891104066103"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "cybernetics",
+            "pod": "cybernetics-6978c8cd8d-6tm4n"
+          },
+          "value": [
+            1787470779.353,
+            "0.013833456499087292"
+          ]
+        }
+      ]
+    }
+  },
+  "podMem": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "blackbox-exporter-bdccf85c9-x8tgj"
+          },
+          "value": [
+            1787470779.361,
+            "24113152"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system",
+            "pod": "coredns-584c644679-54sdr"
+          },
+          "value": [
+            1787470779.361,
+            "24383488"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "kube-state-metrics-77c8b9885-vb5zg"
+          },
+          "value": [
+            1787470779.361,
+            "21614592"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system",
+            "pod": "local-path-provisioner-66d78fc8c4-r7jr6"
+          },
+          "value": [
+            1787470779.361,
+            "18771968"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system",
+            "pod": "metrics-server-d895fd9ff-x429s"
+          },
+          "value": [
+            1787470779.361,
+            "39661568"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "node-exporter-57d584856d-cvxll"
+          },
+          "value": [
+            1787470779.361,
+            "15171584"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "proxy-65b4ff9f44-4rb25"
+          },
+          "value": [
+            1787470779.361,
+            "22605824"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "api-65b8448fd-b4hcn"
+          },
+          "value": [
+            1787470779.361,
+            "464879616"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "outbox-poller-5f7b8bf884-ccxsc"
+          },
+          "value": [
+            1787470779.361,
+            "226619392"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "admin-86865666b5-n9nsf"
+          },
+          "value": [
+            1787470779.361,
+            "4886528"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "drawio",
+            "pod": "drawio-5d45649f69-vjd8m"
+          },
+          "value": [
+            1787470779.361,
+            "117698560"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "ghost",
+            "pod": "ghost-6d99ddf6db-2gxws"
+          },
+          "value": [
+            1787470779.361,
+            "141193216"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "gitea",
+            "pod": "gitea-8b56757d6-jf7xp"
+          },
+          "value": [
+            1787470779.361,
+            "130457600"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "iframely-7657f6c5bc-l2t8v"
+          },
+          "value": [
+            1787470779.361,
+            "537747456"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "live-6cf8d6bc4c-knb5q"
+          },
+          "value": [
+            1787470779.361,
+            "264232960"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "main-website",
+            "pod": "main-website-78cb968bd-55kg4"
+          },
+          "value": [
+            1787470779.361,
+            "134758400"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "monitor-67bd68d47f-lvglc"
+          },
+          "value": [
+            1787470779.361,
+            "20414464"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "space-5ccb54796d-lsw9q"
+          },
+          "value": [
+            1787470779.361,
+            "149549056"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "vaultwarden",
+            "pod": "vaultwarden-c9fb997d-zzd7s"
+          },
+          "value": [
+            1787470779.361,
+            "45981696"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "web-f7d8b8b69-pnhvl"
+          },
+          "value": [
+            1787470779.361,
+            "5890048"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "beat-worker-668bbd995b-k5jbp"
+          },
+          "value": [
+            1787470779.361,
+            "253816832"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "librechat",
+            "pod": "librechat-7976db5c66-jg7tn"
+          },
+          "value": [
+            1787470779.361,
+            "425250816"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "worker-7569745948-r5gh9"
+          },
+          "value": [
+            1787470779.361,
+            "1595658240"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "automation-consumer-6b5dbfbb64-m6k6x"
+          },
+          "value": [
+            1787470779.361,
+            "233615360"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "meilisearch-6bd7f4466-jc48l"
+          },
+          "value": [
+            1787470779.361,
+            "27287552"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "minio-fb964988f-tp2tb"
+          },
+          "value": [
+            1787470779.361,
+            "285954048"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "mongo-7d8bc5866f-lt9fq"
+          },
+          "value": [
+            1787470779.361,
+            "201629696"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "mysql-77bdc49d46-tkwb4"
+          },
+          "value": [
+            1787470779.361,
+            "581292032"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "pgvector-844999678c-8j5vs"
+          },
+          "value": [
+            1787470779.361,
+            "123191296"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "qdrant-5868475495-jc4gr"
+          },
+          "value": [
+            1787470779.361,
+            "60108800"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "rabbitmq-6946d6b479-74mvc"
+          },
+          "value": [
+            1787470779.361,
+            "147177472"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "redis-7d98f65954-kfcwt"
+          },
+          "value": [
+            1787470779.361,
+            "31170560"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "twenty",
+            "pod": "twenty-server-bdb9cbd48-lbhcz"
+          },
+          "value": [
+            1787470779.361,
+            "510504960"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane",
+            "pod": "silo-778bb66d5f-fxjbm"
+          },
+          "value": [
+            1787470779.361,
+            "261689344"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "twenty",
+            "pod": "twenty-worker-f44dbf59-7gxht"
+          },
+          "value": [
+            1787470779.361,
+            "624123904"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "infra",
+            "pod": "prometheus-84b7655ccf-gm8xw"
+          },
+          "value": [
+            1787470779.361,
+            "367099904"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "cybernetics",
+            "pod": "cybernetics-6978c8cd8d-6tm4n"
+          },
+          "value": [
+            1787470779.361,
+            "979607552"
+          ]
+        }
+      ]
+    }
+  },
+  "podsRunning": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "namespace": "infra"
+          },
+          "value": [
+            1787470779.369,
+            "12"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system"
+          },
+          "value": [
+            1787470779.369,
+            "3"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane"
+          },
+          "value": [
+            1787470779.369,
+            "13"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "gitea"
+          },
+          "value": [
+            1787470779.369,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "ghost"
+          },
+          "value": [
+            1787470779.369,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "drawio"
+          },
+          "value": [
+            1787470779.369,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "twenty"
+          },
+          "value": [
+            1787470779.369,
+            "2"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "vaultwarden"
+          },
+          "value": [
+            1787470779.369,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "main-website"
+          },
+          "value": [
+            1787470779.369,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "librechat"
+          },
+          "value": [
+            1787470779.369,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "cybernetics"
+          },
+          "value": [
+            1787470779.369,
+            "1"
+          ]
+        }
+      ]
+    }
+  },
+  "podsReady": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "namespace": "infra"
+          },
+          "value": [
+            1787470779.381,
+            "12"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "kube-system"
+          },
+          "value": [
+            1787470779.381,
+            "3"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "plane"
+          },
+          "value": [
+            1787470779.381,
+            "13"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "gitea"
+          },
+          "value": [
+            1787470779.381,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "ghost"
+          },
+          "value": [
+            1787470779.381,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "drawio"
+          },
+          "value": [
+            1787470779.381,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "twenty"
+          },
+          "value": [
+            1787470779.381,
+            "2"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "vaultwarden"
+          },
+          "value": [
+            1787470779.381,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "main-website"
+          },
+          "value": [
+            1787470779.381,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "librechat"
+          },
+          "value": [
+            1787470779.381,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "namespace": "cybernetics"
+          },
+          "value": [
+            1787470779.381,
+            "1"
+          ]
+        }
+      ]
+    }
+  },
+  "probeSuccess": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-1.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-2.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-3.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-4.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-5.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-6.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-7.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-8.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-9.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_success",
+            "instance": "https://endpoint-10.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.389,
+            "0"
+          ]
+        }
+      ]
+    }
+  },
+  "probeDuration": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-1.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.082037335"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-2.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.820713739"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-3.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.305640077"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-4.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.61589319"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-5.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.077051647"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-6.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.077745513"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-7.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.119387197"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-8.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.090716428"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-9.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.104492215"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "probe_duration_seconds",
+            "instance": "https://endpoint-10.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.395,
+            "0.083562863"
+          ]
+        }
+      ]
+    }
+  },
+  "probeCertDays": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "instance": "https://endpoint-1.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-2.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-3.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-4.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-5.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-6.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-7.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-8.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-9.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        },
+        {
+          "metric": {
+            "instance": "https://endpoint-10.example.test",
+            "job": "blackbox-http"
+          },
+          "value": [
+            1787470779.403,
+            "55.87394209490606"
+          ]
+        }
+      ]
+    }
+  },
+  "nodeBundle": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "sc": "cpu"
+          },
+          "value": [
+            1787470779.409,
+            "0.03965740740733259"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "mem"
+          },
+          "value": [
+            1787470779.409,
+            "0.6808611082062237"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "load1"
+          },
+          "value": [
+            1787470779.409,
+            "0.19"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "fsroot"
+          },
+          "value": [
+            1787470779.409,
+            "0.287132966147707"
+          ]
+        }
+      ]
+    }
+  },
+  "clusterBundle": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "sc": "apiserverRate"
+          },
+          "value": [
+            1787470779.416,
+            "3.162962962962963"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "apiserverErrors"
+          },
+          "value": [
+            1787470779.416,
+            "0"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "restarts"
+          },
+          "value": [
+            1787470779.416,
+            "12"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "unavailable"
+          },
+          "value": [
+            1787470779.416,
+            "0"
+          ]
+        }
+      ]
+    }
+  },
+  "sqlBundle": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "sc": "mongoOps"
+          },
+          "value": [
+            1787470779.424,
+            "4.885185185185185"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "mongoConns"
+          },
+          "value": [
+            1787470779.424,
+            "9"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "mysqlQps"
+          },
+          "value": [
+            1787470779.424,
+            "3.177777777777778"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "mysqlThreads"
+          },
+          "value": [
+            1787470779.424,
+            "7"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "pgCommits"
+          },
+          "value": [
+            1787470779.424,
+            "6.374074074074074"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "pgBackends"
+          },
+          "value": [
+            1787470779.424,
+            "20"
+          ]
+        }
+      ]
+    },
+    "infos": [
+      "PromQL info: metric might not be a counter, name does not end in _total/_sum/_count/_bucket: \"mongodb_ss_opcounters\" (1:24)",
+      "PromQL info: metric might not be a counter, name does not end in _total/_sum/_count/_bucket: \"mysql_global_status_queries\" (1:200)",
+      "PromQL info: metric might not be a counter, name does not end in _total/_sum/_count/_bucket: \"pg_stat_database_xact_commit\" (1:378)"
+    ]
+  },
+  "kvBundle": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "sc": "redisOps"
+          },
+          "value": [
+            1787470779.43,
+            "53.42962962962963"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "redisMem"
+          },
+          "value": [
+            1787470779.43,
+            "9903576"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "rabbitQueues"
+          },
+          "value": [
+            1787470779.43,
+            "9"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "rabbitReady"
+          },
+          "value": [
+            1787470779.43,
+            "0"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "meiliIndexing"
+          },
+          "value": [
+            1787470779.43,
+            "0"
+          ]
+        }
+      ]
+    }
+  },
+  "blobBundle": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "sc": "minioDrives"
+          },
+          "value": [
+            1787470779.436,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "minioUsage"
+          },
+          "value": [
+            1787470779.436,
+            "3369216"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "minioHealth"
+          },
+          "value": [
+            1787470779.436,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "sc": "giteaUsers"
+          },
+          "value": [
+            1787470779.436,
+            "2"
+          ]
+        }
+      ]
+    }
+  },
+  "appBundle": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": []
+    }
+  }
+}

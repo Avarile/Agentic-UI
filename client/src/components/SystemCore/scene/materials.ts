@@ -16,6 +16,7 @@
 // by the pulse and the dimming pass, which must never go through a re-render.
 
 import * as THREE from 'three';
+import logger from '~/utils/logger';
 
 export type MatKind = 'band' | 'glow' | 'halo' | 'hot' | 'mark';
 
@@ -92,8 +93,30 @@ const DIMMABLE = new Set<MatKind>(['band', 'glow', 'halo']);
 /** How far the always-on materials drop while something is picked. */
 const DIM = 0.55;
 
+/**
+ * When the registry is bigger than this, something is feeding it a continuous
+ * value.
+ *
+ * The registry is keyed by appearance, so its size is bounded by the number of
+ * *distinct* appearances the scene can ask for — five statuses plus per-module
+ * overrides, times five kinds. A few hundred is generous for a hand-authored
+ * arrangement. A number that keeps climbing past it means a channel with an
+ * unbounded codomain reached get(), which is the one thing the binding layer
+ * promises never to do (see live/bind.ts). Warned rather than thrown: a noisy
+ * scene is better than a blank one.
+ */
+export const MAX_MATERIALS = 192;
+
 export class MaterialRegistry {
   private readonly reg = new Map<string, THREE.MeshStandardMaterial>();
+
+  /** The build currently being resolved. Bumped by sweep(). */
+  private gen = 0;
+
+  /** How many materials are held. For the leak test, and for the size warning. */
+  get size(): number {
+    return this.reg.size;
+  }
 
   /** One material of one kind, made once and shared from then on. */
   get(
@@ -105,6 +128,9 @@ export class MaterialRegistry {
     const key = kind + '|' + colorHex + '|' + (opacity == null ? 'auto' : opacity) + '|' + gain;
     const found = this.reg.get(key);
     if (found) {
+      // Stamped on the hit, not just on the miss: a material still in use has
+      // to look used, or the next sweep would dispose it out from under a mesh.
+      found.userData.gen = this.gen;
       return found;
     }
     const mat = new THREE.MeshStandardMaterial(MAT_KINDS[kind](colorHex, opacity, gain));
@@ -115,6 +141,7 @@ export class MaterialRegistry {
     mat.userData.baseEmissive = mat.emissiveIntensity;
     mat.userData.baseOpacity = mat.transparent ? mat.opacity : null;
     mat.userData.dimmable = DIMMABLE.has(kind);
+    mat.userData.gen = this.gen;
     this.reg.set(key, mat);
     return mat;
   }
@@ -158,6 +185,41 @@ export class MaterialRegistry {
       } else if (mat.userData.kind === 'mark') {
         mat.emissiveIntensity = 1.7 + 1.7 * p;
       }
+    }
+  }
+
+  /**
+   * Releases materials nothing has asked for lately, and opens a new generation.
+   *
+   * Must be called *after* a build has been committed, never during render and
+   * never per frame — a disposed material still referenced by a live mesh
+   * renders black, so the disposal has to trail the render that stopped using
+   * it.
+   *
+   * Two generations of grace rather than one: a value that vanishes for a single
+   * build and comes back must not pay to be rebuilt, and with a poll driving the
+   * scene that happens whenever a sample is briefly missing.
+   *
+   * With a hand-authored arrangement this frees nothing, which is correct — the
+   * whole point is that the steady state is already bounded. It exists so that a
+   * future binding with a wider codomain degrades into churn instead of a leak.
+   */
+  sweep(): void {
+    const floor = this.gen - 1;
+    for (const [key, mat] of this.reg) {
+      if ((mat.userData.gen as number) >= floor) {
+        continue;
+      }
+      mat.dispose();
+      this.reg.delete(key);
+    }
+    this.gen += 1;
+    if (this.reg.size > MAX_MATERIALS) {
+      logger.warn(
+        'system_core',
+        `material registry holds ${this.reg.size} entries (cap ${MAX_MATERIALS}); ` +
+          'a channel with an unbounded codomain is probably bound to a material',
+      );
     }
   }
 

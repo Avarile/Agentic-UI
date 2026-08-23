@@ -30,6 +30,10 @@ import { useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import Tone from './Tone';
+// Kept for the deliberately-dormant <Contact> block at the bottom of this file.
+// Deleting it would turn restoring that block from "uncomment three lines" into a
+// small archaeology exercise.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Contact from './Contact';
 import { SPIN } from '../scene/palette';
 import { SOFT, LABEL_H, LABEL_FILL, LABEL_LEAD, MAX_DELTA } from '../scene/config';
@@ -90,6 +94,11 @@ export default function Strip({
   labels,
   bus,
   picked,
+  // Unused while <Contact> stays commented. The scanner *deck* has its own
+  // `visible` binding in Scene.tsx, so the toggle still does something; this is
+  // only the per-strip contact marker. Kept so Strip's contract does not change
+  // when the block comes back.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   scannerVisible,
   animate,
   initialPhase,
@@ -251,7 +260,16 @@ export default function Strip({
         />
       )}
 
-      {/* <Contact
+      {/* Deliberately dormant, not a TODO. Contacts stay off by choice, so the
+          scanner deck shows its grid and no markers.
+
+          Two knock-on effects are expected rather than bugs: `spec.lane` drives
+          nothing visible, and the overflow ring that useModules assigns to a
+          discovered module is computed and tested but never drawn. Both are
+          correct and inert; restoring them is uncommenting this block, then
+          checking Contact.tsx's distance formula against SCANNER.rings.
+
+      <Contact
         spec={{ id, radius, y: spec.y, lane: spec.lane }}
         mats={mats}
         visible={scannerVisible}

@@ -70,18 +70,30 @@ export function ReaderRegistry({
   return <RegistryContext.Provider value={value}>{children}</RegistryContext.Provider>;
 }
 
-function useField(path: string, read: Reader) {
+/**
+ * Registers a control's reader, unless the poll owns the field.
+ *
+ * A bound control deliberately registers *nothing*. If it registered, then the
+ * next commit of any *other* field would gather this control's stale DOM value
+ * and write it over the live one — the form reads every control at once, so one
+ * edit anywhere would pin every bound field to whatever it happened to be
+ * showing. By staying out of the registry, `Form.commit`'s existing `if (read)`
+ * guard skips the path and its `structuredClone` preserves what the module
+ * already holds. That is why binding needed no change to `commit` at all.
+ */
+function useField(path: string, read: Reader, bound?: TranslationKeys) {
   const ctx = useContext(RegistryContext);
   const latest = useRef(read);
   latest.current = read;
   const register = ctx?.register;
+  const owned = bound != null;
 
   useEffect(() => {
-    if (!register) {
+    if (!register || owned) {
       return;
     }
     return register(path, () => latest.current());
-  }, [path, register]);
+  }, [path, register, owned]);
 
   return ctx?.commit ?? (() => undefined);
 }
@@ -98,72 +110,96 @@ export interface ControlProps {
    *  buttons rather than inputs, so an explicit htmlFor/id pair is the only
    *  association that works across all eight controls. */
   id: string;
+  /**
+   * Set when the poll owns this field: the name of the channel driving it.
+   *
+   * Read-only rather than disabled wherever the element supports the
+   * distinction. `disabled` greys a control past legibility, and the entire point
+   * of a live field is that you can read the number on it; `readOnly` also emits
+   * no `change`, so the form's one delegated listener stays untouched.
+   */
+  bound?: TranslationKeys;
   /** Only the phase control uses this. */
   onPin?: () => void;
 }
 
 const FIELD = 'h-8 rounded-lg px-2 py-1 text-xs bg-surface-primary';
 
+/** A live field reads as a readout rather than as an input you have not noticed. */
+const BOUND_FIELD = 'cursor-default text-text-secondary';
+
 /** Status keys are schema values; these are their display names. Mapped
  *  explicitly rather than built from the key so the translation keys stay
  *  statically checkable. */
 const STATUS_LABELS: Record<string, TranslationKeys> = {
   running: 'com_ui_system_core_status_running',
+  degraded: 'com_ui_system_core_status_degraded',
   fault: 'com_ui_system_core_status_fault',
   init: 'com_ui_system_core_status_init',
   loading: 'com_ui_system_core_status_loading',
 };
 
-function TextControl({ path, spec, value, disabled, id }: ControlProps) {
+function TextControl({ path, spec, value, disabled, id, bound }: ControlProps) {
   const ref = useRef<HTMLInputElement>(null);
-  useField(path, () => {
-    const v = ref.current?.value.trim() ?? '';
-    return v === '' ? emptyValue(spec) : v;
-  });
+  useField(
+    path,
+    () => {
+      const v = ref.current?.value.trim() ?? '';
+      return v === '' ? emptyValue(spec) : v;
+    },
+    bound,
+  );
   return (
     <Input
       ref={ref}
       id={id}
       type="text"
-      className={FIELD}
+      className={cn(FIELD, bound != null && BOUND_FIELD)}
       defaultValue={value == null ? '' : String(value)}
+      readOnly={bound != null}
       disabled={disabled}
     />
   );
 }
 
-function NumberControl({ path, spec, value, disabled, id }: ControlProps) {
+function NumberControl({ path, spec, value, disabled, id, bound }: ControlProps) {
   const localize = useLocalize();
   const ref = useRef<HTMLInputElement>(null);
-  useField(path, () => {
-    const raw = ref.current?.value.trim() ?? '';
-    return raw === '' ? null : Number(raw);
-  });
+  useField(
+    path,
+    () => {
+      const raw = ref.current?.value.trim() ?? '';
+      return raw === '' ? null : Number(raw);
+    },
+    bound,
+  );
   return (
     <Input
       ref={ref}
       id={id}
       type="number"
-      className={FIELD}
+      className={cn(FIELD, bound != null && BOUND_FIELD)}
       step={spec.ui.step}
       min={spec.min}
       max={spec.max}
       placeholder={isNullable(spec) ? localize('com_ui_system_core_auto') : undefined}
       defaultValue={value == null ? '' : String(value)}
+      readOnly={bound != null}
       disabled={disabled}
     />
   );
 }
 
-function ToggleControl({ path, value, disabled, id }: ControlProps) {
+function ToggleControl({ path, value, disabled, id, bound }: ControlProps) {
   const [checked, setChecked] = useState(value === true);
-  const commit = useField(path, () => checked);
+  const commit = useField(path, () => checked, bound);
   return (
     <Checkbox
       id={id}
       aria-labelledby={`${id}-label`}
       checked={checked}
-      disabled={disabled}
+      // Radix renders a button, which has no readOnly to fall back on.
+      disabled={disabled || bound != null}
       onCheckedChange={(next) => {
         setChecked(next === true);
         // Deferred so read() sees the new value: the state write above has not
@@ -174,14 +210,15 @@ function ToggleControl({ path, value, disabled, id }: ControlProps) {
   );
 }
 
-function StatusControl({ path, value, disabled, id }: ControlProps) {
+function StatusControl({ path, value, disabled, id, bound }: ControlProps) {
   const localize = useLocalize();
   const [current, setCurrent] = useState(String(value ?? ''));
-  const commit = useField(path, () => current);
+  const commit = useField(path, () => current, bound);
   return (
     <Select
       value={current}
-      disabled={disabled}
+      // Radix renders a button, which has no readOnly to fall back on.
+      disabled={disabled || bound != null}
       onValueChange={(next) => {
         setCurrent(next);
         queueMicrotask(commit);
@@ -203,17 +240,21 @@ function StatusControl({ path, value, disabled, id }: ControlProps) {
 
 /** A colour input has no way to say "no override", so an explicit auto box
  *  carries the null and greys the swatch out while it is ticked. */
-function ColorControl({ path, value, disabled, id }: ControlProps) {
+function ColorControl({ path, value, disabled, id, bound }: ControlProps) {
   const localize = useLocalize();
   const [auto, setAuto] = useState(value == null);
   const valRef = useRef<HTMLInputElement>(null);
-  const commit = useField(path, () => (auto ? null : (valRef.current?.value ?? '').toUpperCase()));
+  const commit = useField(
+    path,
+    () => (auto ? null : (valRef.current?.value ?? '').toUpperCase()),
+    bound,
+  );
   return (
     <span className="flex items-center gap-2">
       <Checkbox
         aria-label={localize('com_ui_system_core_auto_colour')}
         checked={auto}
-        disabled={disabled}
+        disabled={disabled || bound != null}
         onCheckedChange={(next) => {
           setAuto(next === true);
           queueMicrotask(commit);
@@ -228,53 +269,62 @@ function ColorControl({ path, value, disabled, id }: ControlProps) {
         className="h-8 w-10 cursor-pointer rounded-lg border border-border-light bg-surface-primary p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
         defaultValue={value == null ? '#888888' : String(value)}
         disabled={disabled || auto}
+        readOnly={bound != null}
       />
     </span>
   );
 }
 
-function ListControl({ path, value, disabled, id }: ControlProps) {
+function ListControl({ path, value, disabled, id, bound }: ControlProps) {
   const localize = useLocalize();
   const ref = useRef<HTMLInputElement>(null);
-  useField(path, () =>
-    (ref.current?.value ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
+  useField(
+    path,
+    () =>
+      (ref.current?.value ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    bound,
   );
   return (
     <Input
       ref={ref}
       id={id}
       type="text"
-      className={FIELD}
+      className={cn(FIELD, bound != null && BOUND_FIELD)}
       placeholder={localize('com_ui_system_core_comma_separated')}
       defaultValue={((value as string[]) || []).join(', ')}
+      readOnly={bound != null}
       disabled={disabled}
     />
   );
 }
 
-function PairsControl({ path, value, disabled, id }: ControlProps) {
+function PairsControl({ path, value, disabled, id, bound }: ControlProps) {
   const localize = useLocalize();
   const ref = useRef<HTMLTextAreaElement>(null);
-  useField(path, () => {
-    const out: Record<string, number> = {};
-    for (const line of (ref.current?.value ?? '').split('\n')) {
-      const t = line.trim();
-      if (!t) {
-        continue;
+  useField(
+    path,
+    () => {
+      const out: Record<string, number> = {};
+      for (const line of (ref.current?.value ?? '').split('\n')) {
+        const t = line.trim();
+        if (!t) {
+          continue;
+        }
+        const eq = t.indexOf('=');
+        // A line with no "=" is left as NaN on purpose: the schema reports it.
+        if (eq < 0) {
+          out[t] = NaN;
+        } else {
+          out[t.slice(0, eq).trim()] = Number(t.slice(eq + 1).trim());
+        }
       }
-      const eq = t.indexOf('=');
-      // A line with no "=" is left as NaN on purpose: the schema reports it.
-      if (eq < 0) {
-        out[t] = NaN;
-      } else {
-        out[t.slice(0, eq).trim()] = Number(t.slice(eq + 1).trim());
-      }
-    }
-    return out;
-  });
+      return out;
+    },
+    bound,
+  );
   const initial = Object.entries((value as Record<string, number>) || {})
     .map(([k, n]) => k + ' = ' + n)
     .join('\n');
@@ -283,9 +333,10 @@ function PairsControl({ path, value, disabled, id }: ControlProps) {
       ref={ref}
       id={id}
       rows={2}
-      className="min-h-16 rounded-lg px-2 py-1 text-xs"
+      className={cn('min-h-16 rounded-lg px-2 py-1 text-xs', bound != null && BOUND_FIELD)}
       placeholder={localize('com_ui_system_core_pairs_hint')}
       defaultValue={initial}
+      readOnly={bound != null}
       disabled={disabled}
     />
   );
@@ -293,13 +344,17 @@ function PairsControl({ path, value, disabled, id }: ControlProps) {
 
 /** A number, plus a way to capture where the strip has actually got to —
  *  typing a radian angle by hand is nobody's idea of a good time. */
-function PhaseControl({ path, spec, value, disabled, id, onPin }: ControlProps) {
+function PhaseControl({ path, spec, value, disabled, id, bound, onPin }: ControlProps) {
   const localize = useLocalize();
   const ref = useRef<HTMLInputElement>(null);
-  useField(path, () => {
-    const raw = ref.current?.value.trim() ?? '';
-    return raw === '' ? null : Number(raw);
-  });
+  useField(
+    path,
+    () => {
+      const raw = ref.current?.value.trim() ?? '';
+      return raw === '' ? null : Number(raw);
+    },
+    bound,
+  );
   return (
     <span className="flex items-center gap-1">
       <Input
@@ -310,12 +365,13 @@ function PhaseControl({ path, spec, value, disabled, id, onPin }: ControlProps) 
         step={spec.ui.step}
         placeholder={localize('com_ui_system_core_auto')}
         defaultValue={value == null ? '' : String(value)}
+        readOnly={bound != null}
         disabled={disabled}
       />
       <button
         type="button"
         title={localize('com_ui_system_core_pin_hint')}
-        disabled={disabled}
+        disabled={disabled || bound != null}
         onClick={onPin}
         className="shrink-0 rounded-lg border border-border-light px-2 py-1 text-xs text-text-secondary hover:bg-surface-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -338,7 +394,8 @@ const CONTROLS: Record<string, (p: ControlProps) => ReactNode> = {
 
 /** One labelled field: caption plus whichever control the schema asked for. */
 export function Field(props: Omit<ControlProps, 'id'>) {
-  const { spec } = props;
+  const localize = useLocalize();
+  const { spec, bound } = props;
   const Control = CONTROLS[spec.ui.control];
   if (!Control) {
     return null;
@@ -369,6 +426,21 @@ export function Field(props: Omit<ControlProps, 'id'>) {
         )}
       >
         {spec.ui.label}
+        {/* Says which channel owns the field, so a read-only control reads as
+            deliberate rather than as one you have failed to click into.
+            aria-hidden: it sits inside the <Label>, so without it the field's
+            accessible name becomes "Status health" rather than "Status". What a
+            screen reader needs from this state is that the control is read-only,
+            and the control itself already announces that. */}
+        {bound != null && (
+          <span
+            aria-hidden="true"
+            title={localize('com_ui_system_core_live_field')}
+            className="ml-1 rounded bg-surface-tertiary px-1 text-[10px] uppercase tracking-wide text-text-tertiary"
+          >
+            {localize(bound)}
+          </span>
+        )}
       </Label>
       <Control {...props} id={id} />
     </div>

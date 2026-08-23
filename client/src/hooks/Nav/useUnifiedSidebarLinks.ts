@@ -13,6 +13,7 @@ import type { TEndpointsConfig } from 'librechat-data-provider';
 import type { NavLink } from '~/common';
 import ConversationsSection from '~/components/UnifiedSidebar/ConversationsSection';
 import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
+import useSystemCoreAvailable from '~/hooks/SystemCore/useAvailable';
 import useSideNavLinks from '~/hooks/Nav/useSideNavLinks';
 import store from '~/store';
 
@@ -25,6 +26,7 @@ export default function useUnifiedSidebarLinks() {
   const { data: startupConfig } = useGetStartupConfig();
   const { data: endpointsConfig = {} as TEndpointsConfig } = useGetEndpointsQuery();
   const setShowSystemCore = useSetRecoilState(store.showSystemCore);
+  const systemCoreAvailable = useSystemCoreAvailable();
 
   const interfaceConfig = useMemo(
     () => startupConfig?.interface ?? defaultInterface,
@@ -77,8 +79,13 @@ export default function useUnifiedSidebarLinks() {
       onClick: () => setShowSystemCore(true),
     };
 
+    // Omitted rather than disabled: `resolveActivePanel` falls back safely when a
+    // stored panel id is no longer in this list, so dropping it is the whole job.
+    if (!systemCoreAvailable) {
+      return [conversationLink, ...sideNavLinks];
+    }
     return [conversationLink, ...sideNavLinks, systemCoreLink];
-  }, [sideNavLinks, setShowSystemCore]);
+  }, [sideNavLinks, setShowSystemCore, systemCoreAvailable]);
 
   return links;
 }

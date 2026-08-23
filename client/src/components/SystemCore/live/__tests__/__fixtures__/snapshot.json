@@ -1,0 +1,1939 @@
+{
+  "configured": true,
+  "collectedAt": "2026-08-23T12:00:00.000Z",
+  "cacheAgeMs": 0,
+  "nextPollMs": 25000,
+  "scrapeIntervalSeconds": 30,
+  "catalogRevision": "controller:0:3.62:50:-0.1:3|kube-apiserver:10:0.72:210:0.1:3|kube-nodes:20:0.86:130:-0.07:2|node-exporter:30:0.89:95:0.13:2|kube-state-metrics:40:0.92:260:-0.05:3|mongo:50:0.84:200:-0.06:5|mysql:60:0.91:145:0.08:5|pgvector:70:0.94:175:-0.09:5|redis:80:0.86:230:-0.15:3|rabbitmq:90:0.9:190:-0.11:3|qdrant:100:0.98:160:0.07:3|minio:110:0.87:180:-0.08:4|meilisearch:120:0.96:140:-0.1:2|librechat:130:0.81:120:0.04:6|gitea:140:0.99:165:0.06:4|prometheus:150:0.82:190:0.06:3|blackbox-exporter:160:0.88:250:0.09:2|vaultwarden:170:0.91:100:-0.05:3|probe:200:1.15:60:0.09:3",
+  "modules": [
+    {
+      "id": "controller",
+      "label": "cluster - control plane",
+      "status": "controller",
+      "origin": "catalog",
+      "health": null,
+      "load": 0.03965740740733259,
+      "rate": null,
+      "placement": {
+        "radius": 3.62,
+        "y": 0.6,
+        "arc": 50,
+        "band": 0.02,
+        "speed": -0.167,
+        "hz": 86,
+        "level": 0.7,
+        "lane": null,
+        "order": 0
+      },
+      "channels": [
+        {
+          "id": "load",
+          "label": "CPU busy",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.03965740740733259,
+          "raw": 0.03965740740733259,
+          "unit": "ratio",
+          "source": "nodeBundle"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory used",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.6808611082062237,
+          "raw": 0.6808611082062237,
+          "unit": "ratio",
+          "source": "nodeBundle"
+        },
+        {
+          "id": "connections",
+          "label": "Pods running",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.30833333333333335,
+          "raw": 37,
+          "unit": "count",
+          "source": "podsRunning"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "The node this cluster runs on.",
+      "group": "core",
+      "tags": [
+        "node",
+        "cluster"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "kube-apiserver",
+      "label": "kube-apiserver",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": null,
+      "rate": 3.162962962962963,
+      "placement": {
+        "radius": 0.72,
+        "y": 1.33,
+        "arc": 210,
+        "band": 0.05,
+        "speed": 0.25,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 10
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "throughput",
+          "label": "Requests",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.26893175032948236,
+          "raw": 3.162962962962963,
+          "unit": "per_second",
+          "source": "clusterBundle"
+        },
+        {
+          "id": "errors",
+          "label": "Server errors",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0,
+          "unit": "per_second",
+          "source": "clusterBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 15.699000120162964,
+        "stale": false
+      },
+      "description": "The cluster API server.",
+      "group": "core",
+      "tags": [
+        "kubernetes"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "kubernetes-apiserver",
+        "instance": "10.0.0.10:6443",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "kube-nodes",
+      "label": "kubelet",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.02375,
+      "rate": null,
+      "placement": {
+        "radius": 0.86,
+        "y": 1.221,
+        "arc": 130,
+        "band": 0.05,
+        "speed": -0.175,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 20
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "load",
+          "label": "Load average",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.02375,
+          "raw": 0.19,
+          "unit": "count",
+          "source": "nodeBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 11.712000131607056,
+        "stale": false
+      },
+      "description": "Node-level kubelet metrics.",
+      "group": "core",
+      "tags": [
+        "kubernetes"
+      ],
+      "dependsOn": [
+        "kube-apiserver"
+      ],
+      "target": {
+        "job": "kubernetes-nodes",
+        "instance": "k8s-micro-server",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "node-exporter",
+      "label": "node-exporter",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 0.89,
+        "y": 1.111,
+        "arc": 95,
+        "band": 0.05,
+        "speed": 0.325,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 30
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "capacity",
+          "label": "Root filesystem free",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0.287132966147707,
+          "unit": "ratio",
+          "source": "nodeBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 19.825000047683716,
+        "stale": false
+      },
+      "description": "Host CPU, memory and filesystem.",
+      "group": "observability",
+      "tags": [
+        "host"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "node-exporter",
+        "instance": "node-exporter.infra.svc.cluster.local:9100",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "kube-state-metrics",
+      "label": "kube-state-metrics",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 0.92,
+        "y": 1.001,
+        "arc": 260,
+        "band": 0.05,
+        "speed": -0.125,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 40
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "errors",
+          "label": "Container restarts",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.5557708294077383,
+          "raw": 12,
+          "unit": "count",
+          "source": "clusterBundle"
+        },
+        {
+          "id": "capacity",
+          "label": "Replicas available",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0,
+          "unit": "count",
+          "source": "clusterBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 10.802000045776367,
+        "stale": false
+      },
+      "description": "Cluster object state.",
+      "group": "observability",
+      "tags": [
+        "kubernetes"
+      ],
+      "dependsOn": [
+        "kube-apiserver"
+      ],
+      "target": {
+        "job": "kube-state-metrics",
+        "instance": "kube-state-metrics.infra.svc.cluster.local:8080",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "mongo",
+      "label": "mongo",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.015726495123134294,
+      "rate": 4.885185185185185,
+      "placement": {
+        "radius": 0.84,
+        "y": 0.892,
+        "arc": 200,
+        "band": 0.05,
+        "speed": -0.15,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 50
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "throughput",
+          "label": "Operations",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.28511348133011544,
+          "raw": 4.885185185185185,
+          "unit": "per_second",
+          "source": "sqlBundle"
+        },
+        {
+          "id": "connections",
+          "label": "Connections",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.045,
+          "raw": 9,
+          "unit": "count",
+          "source": "sqlBundle"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.015726495123134294,
+          "raw": 0.017427436996022935,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.100814848,
+          "raw": 201629696,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 13.7739999294281,
+        "stale": false
+      },
+      "description": "MongoDB — LibreChat’s primary store.",
+      "group": "storage",
+      "tags": [
+        "database"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "kubernetes-pods",
+        "instance": "10.0.0.16:9216",
+        "namespace": "infra",
+        "pod": "mongo-7d8bc5866f-lt9fq",
+        "up": true
+      }
+    },
+    {
+      "id": "mysql",
+      "label": "mysql",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.010357043902642157,
+      "rate": 3.177777777777778,
+      "placement": {
+        "radius": 0.91,
+        "y": 0.782,
+        "arc": 145,
+        "band": 0.05,
+        "speed": 0.2,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 60
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "throughput",
+          "label": "Queries",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.2299935768505773,
+          "raw": 3.177777777777778,
+          "unit": "per_second",
+          "source": "sqlBundle"
+        },
+        {
+          "id": "connections",
+          "label": "Threads connected",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.04666666666666667,
+          "raw": 7,
+          "unit": "count",
+          "source": "sqlBundle"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.010357043902642157,
+          "raw": 0.01144335564408646,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.290646016,
+          "raw": 581292032,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 3.7160000801086426,
+        "stale": false
+      },
+      "description": "MySQL.",
+      "group": "storage",
+      "tags": [
+        "database"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "kubernetes-pods",
+        "instance": "10.0.0.12:9104",
+        "namespace": "infra",
+        "pod": "mysql-77bdc49d46-tkwb4",
+        "up": true
+      }
+    },
+    {
+      "id": "pgvector",
+      "label": "pgvector",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.02044972427769255,
+      "rate": 6.374074074074074,
+      "placement": {
+        "radius": 0.94,
+        "y": 0.673,
+        "arc": 175,
+        "band": 0.05,
+        "speed": -0.225,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 70
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "throughput",
+          "label": "Transactions",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.32139246279688755,
+          "raw": 6.374074074074074,
+          "unit": "per_second",
+          "source": "sqlBundle"
+        },
+        {
+          "id": "connections",
+          "label": "Backends",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.2,
+          "raw": 20,
+          "unit": "count",
+          "source": "sqlBundle"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.02044972427769255,
+          "raw": 0.022720586709764037,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.061595648,
+          "raw": 123191296,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 16.430000066757202,
+        "stale": false
+      },
+      "description": "PostgreSQL with pgvector, backing RAG.",
+      "group": "storage",
+      "tags": [
+        "database",
+        "vector"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "kubernetes-pods",
+        "instance": "10.0.0.14:9187",
+        "namespace": "infra",
+        "pod": "pgvector-844999678c-8j5vs",
+        "up": true
+      }
+    },
+    {
+      "id": "redis",
+      "label": "redis",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": null,
+      "rate": 53.42962962962963,
+      "placement": {
+        "radius": 0.86,
+        "y": 0.563,
+        "arc": 230,
+        "band": 0.05,
+        "speed": -0.375,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 80
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "throughput",
+          "label": "Commands",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.46926431449808786,
+          "raw": 53.42962962962963,
+          "unit": "per_second",
+          "source": "kvBundle"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory used",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.018339955555555554,
+          "raw": 9903576,
+          "unit": "bytes",
+          "source": "kvBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 22.93400001525879,
+        "stale": false
+      },
+      "description": "Redis — cache and stream store.",
+      "group": "core",
+      "tags": [
+        "cache"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "kubernetes-pods",
+        "instance": "10.0.0.13:9121",
+        "namespace": "infra",
+        "pod": "redis-7d98f65954-kfcwt",
+        "up": true
+      }
+    },
+    {
+      "id": "rabbitmq",
+      "label": "rabbitmq",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": null,
+      "rate": 0,
+      "placement": {
+        "radius": 0.9,
+        "y": 0.453,
+        "arc": 190,
+        "band": 0.05,
+        "speed": -0.275,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 90
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "connections",
+          "label": "Queues",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.18,
+          "raw": 9,
+          "unit": "count",
+          "source": "kvBundle"
+        },
+        {
+          "id": "throughput",
+          "label": "Messages ready",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0,
+          "raw": 0,
+          "unit": "count",
+          "source": "kvBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 14.414000034332275,
+        "stale": false
+      },
+      "description": "RabbitMQ message broker.",
+      "group": "network",
+      "tags": [
+        "queue"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "kubernetes-pods",
+        "instance": "10.0.0.15:15692",
+        "namespace": "infra",
+        "pod": "rabbitmq-6946d6b479-74mvc",
+        "up": true
+      }
+    },
+    {
+      "id": "qdrant",
+      "label": "qdrant",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.0003076588531458162,
+      "rate": null,
+      "placement": {
+        "radius": 0.98,
+        "y": 0.344,
+        "arc": 160,
+        "band": 0.05,
+        "speed": 0.175,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 100
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.0003076588531458162,
+          "raw": 0.0003380549244750095,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.0300544,
+          "raw": 60108800,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 4.361000061035156,
+        "stale": false
+      },
+      "description": "Qdrant vector database.",
+      "group": "storage",
+      "tags": [
+        "vector"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "qdrant",
+        "instance": "qdrant.infra.svc.cluster.local:6333",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "minio",
+      "label": "minio",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 0.87,
+        "y": 0.234,
+        "arc": 180,
+        "band": 0.05,
+        "speed": -0.2,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 110
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "capacity",
+          "label": "Cluster health",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "blobBundle"
+        },
+        {
+          "id": "saturation",
+          "label": "Bytes stored",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.543960748611413,
+          "raw": 3369216,
+          "unit": "bytes",
+          "source": "blobBundle"
+        },
+        {
+          "id": "connections",
+          "label": "Drives online",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.25,
+          "raw": 1,
+          "unit": "count",
+          "source": "blobBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 2.7820000648498535,
+        "stale": false
+      },
+      "description": "MinIO object storage.",
+      "group": "storage",
+      "tags": [
+        "storage"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "minio",
+        "instance": "minio.infra.svc.cluster.local:9000",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "meilisearch",
+      "label": "meilisearch",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": null,
+      "rate": 0,
+      "placement": {
+        "radius": 0.96,
+        "y": 0.124,
+        "arc": 140,
+        "band": 0.05,
+        "speed": -0.25,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 120
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "throughput",
+          "label": "Indexing",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0,
+          "raw": 0,
+          "unit": "boolean",
+          "source": "kvBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 7.620000123977661,
+        "stale": false
+      },
+      "description": "Meilisearch full-text index.",
+      "group": "storage",
+      "tags": [
+        "search"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "meilisearch",
+        "instance": "meilisearch.infra.svc.cluster.local:7700",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "librechat",
+      "label": "librechat",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.0012155676580502025,
+      "rate": null,
+      "placement": {
+        "radius": 0.81,
+        "y": 0.015,
+        "arc": 120,
+        "band": 0.05,
+        "speed": 0.1,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 130
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Pods ready",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "count",
+          "source": "podsReady"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.0012155676580502025,
+          "raw": 0.0013363296606566004,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.212625408,
+          "raw": 425250816,
+          "unit": "bytes",
+          "source": "podMem"
+        },
+        {
+          "id": "throughput",
+          "label": "HTTP requests",
+          "state": "missing",
+          "polarity": "activity",
+          "value": null,
+          "raw": null,
+          "unit": "per_second",
+          "source": "appBundle"
+        },
+        {
+          "id": "errors",
+          "label": "HTTP 5xx",
+          "state": "missing",
+          "polarity": "health",
+          "value": null,
+          "raw": null,
+          "unit": "per_second",
+          "source": "appBundle"
+        },
+        {
+          "id": "connections",
+          "label": "Open streams",
+          "state": "missing",
+          "polarity": "activity",
+          "value": null,
+          "raw": null,
+          "unit": "count",
+          "source": "appBundle"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "This application.",
+      "group": "network",
+      "tags": [
+        "app"
+      ],
+      "dependsOn": [
+        "mongo",
+        "redis",
+        "meilisearch"
+      ],
+      "target": null
+    },
+    {
+      "id": "gitea",
+      "label": "gitea",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.0025763083651721454,
+      "rate": null,
+      "placement": {
+        "radius": 0.99,
+        "y": -0.095,
+        "arc": 165,
+        "band": 0.05,
+        "speed": 0.15,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 140
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "connections",
+          "label": "Users",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.04,
+          "raw": 2,
+          "unit": "count",
+          "source": "blobBundle"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.0025763083651721454,
+          "raw": 0.001787356300070075,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.1304576,
+          "raw": 130457600,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 3.6519999504089355,
+        "stale": false
+      },
+      "description": "Gitea source hosting.",
+      "group": "network",
+      "tags": [
+        "app"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "kubernetes-pods",
+        "instance": "10.0.0.11:3000",
+        "namespace": "gitea",
+        "pod": "gitea-8b56757d6-jf7xp",
+        "up": true
+      }
+    },
+    {
+      "id": "prometheus",
+      "label": "prometheus",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.007540858522677571,
+      "rate": null,
+      "placement": {
+        "radius": 0.82,
+        "y": -0.204,
+        "arc": 190,
+        "band": 0.05,
+        "speed": 0.15,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 150
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Availability",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "up"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.007540858522677571,
+          "raw": 0.008318891104066103,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.091774976,
+          "raw": 367099904,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": 25.74399995803833,
+        "stale": false
+      },
+      "description": "The Prometheus this scene is drawn from.",
+      "group": "observability",
+      "tags": [
+        "observability"
+      ],
+      "dependsOn": [],
+      "target": {
+        "job": "prometheus",
+        "instance": "localhost:9090",
+        "namespace": null,
+        "pod": null,
+        "up": true
+      }
+    },
+    {
+      "id": "blackbox-exporter",
+      "label": "blackbox-exporter",
+      "status": "running",
+      "origin": "catalog",
+      "health": null,
+      "load": 0.006913850236382086,
+      "rate": null,
+      "placement": {
+        "radius": 0.88,
+        "y": -0.314,
+        "arc": 250,
+        "band": 0.05,
+        "speed": 0.225,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 160
+      },
+      "channels": [
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.006913850236382086,
+          "raw": 0.004803817309134428,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.024113152,
+          "raw": 24113152,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "Probes the public endpoints.",
+      "group": "observability",
+      "tags": [
+        "observability"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "vaultwarden",
+      "label": "vaultwarden",
+      "status": "running",
+      "origin": "catalog",
+      "health": 1,
+      "load": 0.0002451258192728151,
+      "rate": null,
+      "placement": {
+        "radius": 0.91,
+        "y": -0.424,
+        "arc": 100,
+        "band": 0.05,
+        "speed": -0.125,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 170
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Pods ready",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "count",
+          "source": "podsReady"
+        },
+        {
+          "id": "load",
+          "label": "CPU",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.0002451258192728151,
+          "raw": 0.0001699227057391359,
+          "unit": "cores",
+          "source": "podCpu"
+        },
+        {
+          "id": "saturation",
+          "label": "Memory",
+          "state": "ok",
+          "polarity": "activity",
+          "value": 0.045981696,
+          "raw": 45981696,
+          "unit": "bytes",
+          "source": "podMem"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "Credential vault.",
+      "group": "security",
+      "tags": [
+        "app"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-1.example.test",
+      "label": "https://endpoint-1.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.9740499502824281,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -0.533,
+        "arc": 60,
+        "band": 0.05,
+        "speed": 0.157,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0.082037335,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-10.example.test",
+      "label": "https://endpoint-10.example.test",
+      "status": "fault",
+      "origin": "catalog",
+      "health": 0.6407166169490948,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -0.643,
+        "arc": 60,
+        "band": 0.05,
+        "speed": 0.141,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0,
+          "raw": 0,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0.083562863,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-2.example.test",
+      "label": "https://endpoint-2.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.7071189358379836,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -0.753,
+        "arc": 60,
+        "band": 0.05,
+        "speed": -0.145,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.19920695666666666,
+          "raw": 0.820713739,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-3.example.test",
+      "label": "https://endpoint-3.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.8978869588009465,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -0.862,
+        "arc": 60,
+        "band": 0.05,
+        "speed": 0.175,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.7715110255555555,
+          "raw": 0.305640077,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-4.example.test",
+      "label": "https://endpoint-4.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.7829783984305762,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -0.972,
+        "arc": 60,
+        "band": 0.05,
+        "speed": -0.206,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.42678534444444444,
+          "raw": 0.61589319,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-5.example.test",
+      "label": "https://endpoint-5.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.9740499502824281,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -1.081,
+        "arc": 60,
+        "band": 0.05,
+        "speed": -0.173,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0.077051647,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-6.example.test",
+      "label": "https://endpoint-6.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.9740499502824281,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -1.191,
+        "arc": 60,
+        "band": 0.05,
+        "speed": -0.127,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0.077745513,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-7.example.test",
+      "label": "https://endpoint-7.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.9668695069490947,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -1.301,
+        "arc": 60,
+        "band": 0.05,
+        "speed": 0.302,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.97845867,
+          "raw": 0.119387197,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-8.example.test",
+      "label": "https://endpoint-8.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.9740499502824281,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -1.41,
+        "arc": 60,
+        "band": 0.05,
+        "speed": 0.202,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 0.090716428,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    },
+    {
+      "id": "probe.https-endpoint-9.example.test",
+      "label": "https://endpoint-9.example.test",
+      "status": "running",
+      "origin": "catalog",
+      "health": 0.9723861669490947,
+      "load": null,
+      "rate": null,
+      "placement": {
+        "radius": 1.15,
+        "y": -1.52,
+        "arc": 60,
+        "band": 0.05,
+        "speed": 0.152,
+        "hz": null,
+        "level": 0.5,
+        "lane": null,
+        "order": 200
+      },
+      "channels": [
+        {
+          "id": "availability",
+          "label": "Reachable",
+          "state": "ok",
+          "polarity": "health",
+          "value": 1,
+          "raw": 1,
+          "unit": "boolean",
+          "source": "probeSuccess"
+        },
+        {
+          "id": "latency",
+          "label": "Response time",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9950086499999999,
+          "raw": 0.104492215,
+          "unit": "seconds",
+          "source": "probeDuration"
+        },
+        {
+          "id": "capacity",
+          "label": "Certificate lifetime",
+          "state": "ok",
+          "polarity": "health",
+          "value": 0.9221498508472842,
+          "raw": 55.87394209490606,
+          "unit": "days",
+          "source": "probeCertDays"
+        }
+      ],
+      "staleness": {
+        "scrapeAgeSeconds": null,
+        "stale": false
+      },
+      "description": "A probed public endpoint.",
+      "group": "network",
+      "tags": [
+        "probe"
+      ],
+      "dependsOn": [],
+      "target": null
+    }
+  ],
+  "errors": []
+}

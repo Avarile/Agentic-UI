@@ -11,17 +11,44 @@
 // The runtime map is keyed by id rather than by list index so that deleting a
 // module cannot shift everyone else's phase and lane onto their neighbours'.
 //
-// Edits are in-memory only; the data source is out of scope for now.
+// RECONCILE ADDS AND REMOVES. IT NEVER REWRITES.
+// ---------------------------------------------
+// A catalogue arriving from the server changes *which* modules exist, never what
+// an existing one looks like. Placement hints are consumed exactly once, when a
+// module is first added, and after that the arrangement belongs to whoever is
+// editing it. That is what makes "hand edits never fight the poll" free rather
+// than a per-field merge: there is no field-level conflict to resolve, because
+// the poll never writes a field.
+//
+// It is keyed on `catalogRevision` for the same reason — the server changes that
+// string only when the module set does, so a tick that merely carries new numbers
+// does not reconcile at all.
+//
+// Edits are in-memory. Nothing here is persisted, and `reset` is the only way
+// back to a pristine arrangement.
 
-import { useRef, useMemo, useState, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import type { Module } from '~/components/SystemCore/data/schema';
 import type { Runtime } from '~/components/SystemCore/scene/resolve';
 import { STATUS_KEYS } from '~/components/SystemCore/data/status';
 import { loadFixture } from '~/components/SystemCore/data/fixture';
 import { newRuntime } from '~/components/SystemCore/scene/resolve';
+import { isOverflow } from '~/components/SystemCore/live/adapt';
 import { uniqueId, normalize, blankModule } from '~/components/SystemCore/data/schema';
 
 const NORMALIZE_OPTS = { statuses: STATUS_KEYS };
+
+export interface UseModulesParams {
+  /**
+   * The server's module list, or null when there is no feed.
+   *
+   * Null keeps the bundled fixture, which is what makes an unconfigured
+   * deployment a working scene rather than an empty one.
+   */
+  catalog?: Module[] | null;
+  /** Changes only when the module *set* changes. Reconcile is keyed on it. */
+  catalogRevision?: string | null;
+}
 
 export interface UseModulesReturn {
   modules: Module[];
@@ -42,21 +69,88 @@ export interface UseModulesReturn {
   reset: () => void;
 }
 
-export default function useModules(): UseModulesReturn {
+export default function useModules(params: UseModulesParams = {}): UseModulesReturn {
+  const { catalog = null, catalogRevision = null } = params;
+
   const initial = useMemo(() => loadFixture(), []);
   const [modules, setModules] = useState<Module[]>(initial.modules);
   const [selected, setSelected] = useState<string | null>(null);
 
   const runtime = useRef(new Map<string, Runtime>());
   const laneSeq = useRef(0);
+  /** Ids the user removed. A catalogue tick must not resurrect them. */
+  const dismissed = useRef(new Set<string>());
+  /** The revision already applied, so a re-render does not reconcile again. */
+  const applied = useRef<string | null>(null);
+  /** Whether the scene is still showing the bundled fixture. */
+  const fromFixture = useRef(true);
+
+  /** Ids that came from a catalogue, so a hand-added module survives a reconcile. */
+  const fromCatalog = useRef(new Set<string>());
+
+  // Reconcile. Runs when the revision changes, which is when the module *set*
+  // changed — not when the numbers did.
+  useEffect(() => {
+    if (catalog == null || catalogRevision == null || catalogRevision === applied.current) {
+      return;
+    }
+    applied.current = catalogRevision;
+    const arriving = catalog.filter((m) => !dismissed.current.has(m.id));
+    const arrivingIds = new Set(arriving.map((m) => m.id));
+
+    setModules((current) => {
+      // The first catalogue replaces the fixture rather than joining it: the
+      // bundled arrangement is a stand-in for real modules, not a set of extra
+      // ones, and adding to it would draw the cluster twice.
+      if (fromFixture.current) {
+        fromFixture.current = false;
+        fromCatalog.current = arrivingIds;
+        for (const id of runtime.current.keys()) {
+          if (!arrivingIds.has(id)) {
+            runtime.current.delete(id);
+          }
+        }
+        laneSeq.current = 0;
+        return arriving;
+      }
+
+      const kept = current.filter((m) => !fromCatalog.current.has(m.id) || arrivingIds.has(m.id));
+      const present = new Set(kept.map((m) => m.id));
+      const added = arriving.filter((m) => !present.has(m.id));
+
+      // Idempotent, so React invoking this updater twice under StrictMode cannot
+      // do damage. It has to happen here rather than during render because
+      // `runtimeFor` writes `laneSeq` while rendering, and a render-phase prune
+      // would race its lazy create.
+      for (const m of current) {
+        if (!present.has(m.id) && !arrivingIds.has(m.id)) {
+          runtime.current.delete(m.id);
+        }
+      }
+
+      if (added.length === 0 && kept.length === current.length) {
+        // Nothing changed. Returning `current` keeps the array identity, so the
+        // scene's build memo does not run.
+        return current;
+      }
+      for (const id of arrivingIds) {
+        fromCatalog.current.add(id);
+      }
+      return [...kept, ...added];
+    });
+  }, [catalog, catalogRevision]);
 
   const runtimeFor = useCallback((m: Module): Runtime => {
     const found = runtime.current.get(m.id);
     if (found) {
       return found;
     }
-    const created = newRuntime(m, laneSeq.current);
-    if (m.motion.lane == null) {
+    const overflow = isOverflow(m);
+    const created = newRuntime(m, laneSeq.current, overflow);
+    // Only a curated module draws from the lane sequence. An overflow module goes
+    // on the reserved outer ring, so counting it would punch a gap in the
+    // rotation of everything after it.
+    if (m.motion.lane == null && !overflow) {
       laneSeq.current += 1;
     }
     runtime.current.set(m.id, created);
@@ -125,6 +219,10 @@ export default function useModules(): UseModulesReturn {
   }, [modules]);
 
   const remove = useCallback((id: string) => {
+    // Recorded, so the next catalogue tick does not put it back. Dismissing a
+    // module the server still reports has to mean something, or the button looks
+    // broken twenty seconds later.
+    dismissed.current.add(id);
     setModules((current) => current.filter((m) => m.id !== id));
     runtime.current.delete(id);
     setSelected((current) => (current === id ? null : current));
@@ -133,9 +231,23 @@ export default function useModules(): UseModulesReturn {
   const reset = useCallback(() => {
     runtime.current.clear();
     laneSeq.current = 0;
-    setModules(loadFixture().modules);
+    dismissed.current.clear();
     setSelected(null);
-  }, []);
+    // Back to the catalogue when there is one, and to the fixture when there is
+    // not — in both cases to the pristine arrangement rather than to an empty
+    // scene.
+    if (catalog != null) {
+      fromCatalog.current = new Set(catalog.map((m) => m.id));
+      fromFixture.current = false;
+      applied.current = catalogRevision;
+      setModules(catalog);
+      return;
+    }
+    fromCatalog.current.clear();
+    fromFixture.current = true;
+    applied.current = null;
+    setModules(loadFixture().modules);
+  }, [catalog, catalogRevision]);
 
   return {
     modules,

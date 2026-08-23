@@ -3,7 +3,15 @@
 # Logs
 data-node
 meili_data*
-data/
+# Anchored to the repo root on purpose. A bare `data/` matches a directory named
+# `data` at any depth, which silently hid the whole of
+# client/src/components/SystemCore/data/ — six source files and a test suite — from
+# git for as long as they existed.
+/data/
+# The violation log the rate limiter writes at runtime. Named individually rather
+# than as `packages/api/data/` so a future source directory there is not hidden
+# the same way.
+packages/api/data/violations.json
 logs
 *.log
 
@@ -189,3 +197,11 @@ CLAUDE.md
 .gsd
 codedb.snapshot
 scripts/activity-labels/results/
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/

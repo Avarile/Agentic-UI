@@ -8,7 +8,9 @@
 
 import { Fragment, useMemo } from 'react';
 import { Lock } from 'lucide-react';
+import type { Reading } from './live/bind';
 import type { Module } from './data/schema';
+import { effectiveStatus } from './live/bind';
 import { displayName } from './data/schema';
 import { STATUS } from './data/status';
 import { useLocalize } from '~/hooks';
@@ -16,6 +18,9 @@ import { cn } from '~/utils';
 
 interface ListProps {
   modules: Module[];
+  /** Live samples by module id; empty when the poll is off. The swatch has to
+   *  read through these or the legend contradicts the bands it stands for. */
+  readings: ReadonlyMap<string, Reading>;
   selected: string | null;
   onSelect: (id: string) => void;
 }
@@ -23,7 +28,7 @@ interface ListProps {
 /** Ungrouped modules sort last, whatever they are called. */
 const LAST = '￿';
 
-export default function List({ modules, selected, onSelect }: ListProps) {
+export default function List({ modules, readings, selected, onSelect }: ListProps) {
   const localize = useLocalize();
 
   // Grouped by meta.group, then ordered by layout.order where it is set and by
@@ -94,7 +99,11 @@ export default function List({ modules, selected, onSelect }: ListProps) {
               <i
                 aria-hidden="true"
                 className="size-2 shrink-0 rounded-full"
-                style={{ background: m.appearance.color || STATUS[m.status]?.hex }}
+                style={{
+                  background:
+                    m.appearance.color ||
+                    STATUS[effectiveStatus(m, readings.get(m.id) ?? null)]?.hex,
+                }}
               />
               {/* Plain text, not markup: a label is free text. */}
               <span className="truncate">{displayName(m)}</span>

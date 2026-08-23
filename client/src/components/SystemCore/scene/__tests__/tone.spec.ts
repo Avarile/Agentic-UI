@@ -21,6 +21,7 @@ import {
   reach,
   roarLevel,
   roarCutoff,
+  roarCeiling,
   emitterOffset,
   saturationCurve,
 } from '../tone';
@@ -410,5 +411,32 @@ describe('the hum stack', () => {
     // is a ~6 s arrival. Slower than the roar's on purpose: it is the first thing
     // anyone hears, and it should not announce itself.
     expect(HUM.fadeIn).toBeGreaterThan(ROAR.fadeIn);
+  });
+});
+
+describe('roarCeiling', () => {
+  it('gives a module its own share of the one global ceiling', () => {
+    expect(roarCeiling(1)).toBe(ROAR.ceiling);
+    expect(roarCeiling(0.5)).toBeCloseTo(ROAR.ceiling / 2, 10);
+    expect(roarCeiling(0)).toBe(0);
+  });
+
+  it('never exceeds the ceiling, whatever it is handed', () => {
+    // The one decision about how loud this can ever get is made once, in ROAR.
+    // A bound level arriving out of range must not be able to reopen it.
+    for (const level of [1.5, 42, Infinity]) {
+      expect(roarCeiling(level)).toBe(ROAR.ceiling);
+    }
+    for (const level of [-0.5, -Infinity]) {
+      expect(roarCeiling(level)).toBe(0);
+    }
+  });
+
+  it('is the same arithmetic a fresh voice and a retuned one both use', () => {
+    // ToneBus.roar and ToneBus.setLevel both call this. If they computed it
+    // separately, a retuned voice would land at a different loudness from a
+    // freshly built one at the same level — audible on any poll that changed it.
+    expect(roarCeiling(0.7)).toBe(roarCeiling(0.7));
+    expect(roarCeiling(0.7)).toBeGreaterThan(roarCeiling(0.69));
   });
 });

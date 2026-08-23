@@ -9,6 +9,7 @@
 import { useSetRecoilState } from 'recoil';
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from 'test/layout-test-utils';
+import { loadFixture } from '../data/fixture';
 import SystemCoreDialog from '../Dialog';
 import store from '~/store';
 
@@ -55,8 +56,9 @@ describe('SystemCoreDialog', () => {
     await userEvent.click(screen.getByTestId('opener'));
 
     expect(await screen.findByText('Modules')).toBeInTheDocument();
-    // The fixture ships 25 modules; the header prints the count.
-    expect(screen.getByText('(25)')).toBeInTheDocument();
+    // The header prints the fixture's module count; read it off the fixture so a
+    // change to the arrangement does not strand a literal here.
+    expect(screen.getByText(`(${loadFixture().modules.length})`)).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /kernel-scheduler/ })).toBeInTheDocument();
   });
 

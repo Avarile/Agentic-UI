@@ -441,6 +441,12 @@ export const skillTree = ({ skillId, path = '' }: { skillId: string; path?: stri
 export const skillStates = () => `${BASE_URL}/api/user/settings/skills/active`;
 
 /* Langfuse connection (admin) */
+/* System Core live telemetry (admin) */
+const adminSystemCore = `${BASE_URL}/api/admin/system-core`;
+
+export const adminSystemCoreSnapshot = () => `${adminSystemCore}/snapshot`;
+export const adminSystemCoreAvailability = () => `${adminSystemCore}/availability`;
+
 export const adminLangfuseConnection = () => `${BASE_URL}/api/admin/langfuse/connection`;
 export const adminLangfuseConnectionTest = () => `${adminLangfuseConnection()}/test`;
 export const adminLangfuseSessionLink = (conversationId: string) =>

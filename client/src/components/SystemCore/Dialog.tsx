@@ -31,6 +31,7 @@ import {
   OGDialogDescription,
 } from '@librechat/client';
 import useModules from '~/hooks/SystemCore/useModules';
+import useLive from '~/hooks/SystemCore/useLive';
 import Boundary from './Boundary';
 import Panel from './Panel';
 import { useLocalize } from '~/hooks';
@@ -79,6 +80,11 @@ export default function SystemCoreDialog() {
   const [scannerVisible, setScannerVisible] = useState(true);
   const [panelOpen, setPanelOpen] = useState(true);
   const [resetToken, setResetToken] = useState(0);
+
+  // Called above the `open &&` gate below on purpose: the query's `enabled` is
+  // what stops the network, not the mount, and keeping the hook mounted is what
+  // preserves the cache across an open/close cycle.
+  const live = useLive(open);
   const {
     modules,
     selected,
@@ -90,7 +96,7 @@ export default function SystemCoreDialog() {
     add,
     remove,
     reset,
-  } = useModules();
+  } = useModules({ catalog: live.catalog, catalogRevision: live.catalogRevision });
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -134,6 +140,7 @@ export default function SystemCoreDialog() {
               <Suspense fallback={<SceneLoading />}>
                 <Scene
                   modules={modules}
+                  readings={live.readings}
                   runtimeFor={runtimeFor}
                   parkPhase={parkPhase}
                   selected={selected}
@@ -220,6 +227,7 @@ export default function SystemCoreDialog() {
           <div className="hidden w-[320px] shrink-0 md:block">
             <Panel
               modules={modules}
+              readings={live.readings}
               selected={selected}
               onSelect={selectFromList}
               onAdd={add}
@@ -227,6 +235,9 @@ export default function SystemCoreDialog() {
               onReplace={replace}
               onReset={reset}
               livePhase={livePhase}
+              liveState={live.state}
+              cacheAgeMs={live.cacheAgeMs}
+              onRetry={live.retry}
             />
           </div>
         )}
