@@ -1,1111 +1,549 @@
-# Presenting Prometheus data through the SystemCore 3D module
+# Does a change of state reach the 3D, and what else could?
 
-Design document. Covers Goal steps 1–3. Every factual claim here was verified
-against the repository or against the live cluster over `ssh K3s-server`;
-claims I could not verify are marked as assumptions with the measurement that
-would settle them.
+Audit document. Covers the two questions in `scripts/development/Goal`. It
+replaces the implementation design that stood here previously — that document
+was the plan for building the feed, and the feed is built.
+
+Every factual claim below was verified either against the working tree or
+against the live Prometheus over `ssh K3s-server` (NodePort 30990) on
+2026-08-23. Claims I could not verify are marked as assumptions, with the
+measurement that would settle them. Line references are to the tree as it stands
+on `feat-tagging-the-codes`.
 
 ---
 
 # Part 0 — Summary
 
-`client/src/components/SystemCore/` already contains a well-built 3D renderer
-whose data→visual mapping is isolated in one file. It is not, however, driven by
-any real data: it renders 26 hand-authored modules from a bundled fixture.
+**Goal step 1 — yes, with two qualifications.** A metric change repaints the 3D
+scene without a remount and without dropping any strip's rotation. Three visual
+channels are live: status colour, rotation rate, and the stale ghost. But the
+module *set* is frozen after the first poll (Part 2.1), and every numeric readout
+in the panel that carries a "Driven by live data" badge is showing a first-poll
+value (Part 2.2). Both are client-side; neither is a rendering problem.
 
-A real Prometheus runs on the k3s cluster with 25 healthy scrape targets whose
-services map almost one-to-one onto the fixture's fictional module names.
+**Goal step 2 — the feed is over-supplied, not under-supplied.** 91 channels
+arrive per snapshot. The client keeps 7 scalars per module and discards
+`channels[]` wholesale at `live/adapt.ts:45`. Of the 7, three drive something you
+can see, one drives audio, and three drive nothing at all. Twenty-one activity
+channels have no representation anywhere in the UI, and not one raw value with
+its unit is displayed on any surface.
 
-The design adds three things and changes almost nothing:
-
-1. A **backend snapshot service** in `packages/api` that runs a fixed catalogue
-   of PromQL queries and returns a normalized, admin-gated JSON snapshot.
-2. A **binding layer** on the client that turns that snapshot into visual
-   channel values, with a hard invariant that keeps GPU resource use bounded.
-3. A **poll** that composes authored state, live state, and per-frame runtime
-   state at the memo that already exists in `Scene.tsx`.
-
-`Strip.tsx` — the file holding the animation invariants — is not modified.
-
----
-
-# Part 1 — Audit of the current 3D presentation (Goal step 1)
-
-## 1.1 Ownership and render chain
-
-```
-routes/Root.tsx:129            mounts <SystemCoreDialog /> once, app-wide
-  store/misc.ts:79             Recoil atom `showSystemCore` opens it
-  Chat/SystemCoreButton.tsx    raises the atom (currently ungated)
-  hooks/Nav/useUnifiedSidebarLinks.ts:77   also raises it
-
-SystemCore/Dialog.tsx          owns open/scannerVisible/panelOpen/resetToken
-  hooks/SystemCore/useModules.ts   owns modules[] + the runtime Map
-  Boundary + Suspense + lazy(Scene)   render-gated on `open`
-  Panel.tsx                    fully controlled: props in, callbacks out
-```
-
-Two properties worth preserving explicitly:
-
-- **The `three` chunk is not fetched until the modal opens.** `Scene.tsx` is the
-  lazy boundary's payload; `resolve.ts:8-13` documents that it must stay free of
-  `three` imports precisely so the dialog shell does not drag the library into
-  the eager bundle.
-- **`Panel.tsx` is fully controlled.** All mutation goes through callbacks from
-  `useModules`. This is what makes the editor changes in Part 5 small.
-
-## 1.2 The data→visual seam exists and is good
-
-`scene/resolve.ts` (86 lines) is the single place a `Module` becomes numbers:
-
-| Function | Produces |
-|---|---|
-| `colorOf(m)` | `appearance.color` override, else `STATUS[m.status].color` |
-| `gainOf(m)` | `STATUS[m.status].gain ?? 1` |
-| `stripSpec(m, rt)` | flat `StripSpec` — geometry, motion, appearance, audio, lane |
-| `newRuntime(m, laneSeq)` | starting phase and lane |
-
-It has exactly **two** consumers, which is why extending it is safe:
-
-- `Scene.tsx:28` imports them; `:175` calls `stripSpec`; `:179` calls
-  `mats.forModule(colorOf(m), m.appearance.opacity, gainOf(m))`
-- `useModules.ts:21,58` calls `newRuntime`
-
-## 1.3 Periodic updates are already structurally safe
-
-This is the most important audit finding, because it means no rearchitecting is
-required to support a poll.
-
-`Strip.tsx:11-22` documents three rules and all three hold:
-
-1. `rotation.y` is never passed as a prop, so no re-render can reset the live
-   angle. It is set once in a callback ref and thereafter only by `useFrame`.
-2. `Scene.tsx:213` keys strips by `strip.spec.id`, so new props re-render a
-   strip without remounting it and without touching its siblings.
-3. The live angle is parked every frame into a `Map` held in a ref
-   (`useModules.ts:66-71`), so even a genuine remount resumes rather than
-   snapping back.
-
-`Scene.tsx:171` memoizes `strips` on `[modules, runtimeFor, mats, fontReady]`.
-**Replacing the `modules` array therefore re-renders without remounting and
-without dropping rotation.** A poll is already supported by construction.
-
-## 1.4 What is *not* data-driven — the actual gap
-
-1. **No live source.** `data/fixture.ts` loads 26 modules from
-   `data/modules.json`. Three comments say the real source is out of scope:
-   `fixture.ts:4`, `useModules.ts:15`, `Dialog.tsx:19`.
-
-2. **`telemetry` is a declared-but-dead field.** `data/schema.ts:121` declares
-   `telemetry: { progress: number|null; health: number|null; metrics: Record<string, number> }`,
-   with full form controls (`schema.ts:352-376`) and serialization
-   (`serialize.ts:42-46`). Nothing in `scene/` or `objects/` reads it, and every
-   module in `modules.json` omits it.
-
-3. **Only `Strip` is data-driven.** `Mainframe`, `Scanner`, `Orbit` and `Hum`
-   take no data at all — only `animate`, `bus`, `controlsRef`. `Contact` and
-   `Tone` are driven, but via `Strip`.
-
-4. **`Contact` is not rendered.** `Strip.tsx:253-258` has the `<Contact>` block
-   commented out. So `StripSpec.lane` currently drives nothing visible, the
-   scanner deck shows its grid but no contacts, and any lane or overflow-lane
-   work is invisible until that block is restored.
-
-## 1.5 Three unbounded caches that live data would leak through
-
-These are the concrete reasons a naive "bind a metric to a colour" would fail.
-
-### `MaterialRegistry` — up to 130 GPU materials per tick
-
-`scene/materials.ts:96` holds `private readonly reg = new Map<string, THREE.MeshStandardMaterial>()`,
-keyed at `:105` on `kind|colorHex|opacity|gain`. There is no eviction and no
-`dispose()` outside the whole-registry teardown at `:164`.
-
-`forModule()` (`:124-132`) requests **five** materials — band, glow, halo, hot,
-mark. `Scene.tsx:179` calls it once per module inside the `strips` memo. At 26
-modules that is **130 `get()` calls per data change**.
-
-With the authored fixture every call hits the cache: ~5 statuses produce ~25
-distinct materials, allocated once. If a *continuous* signal drove colour or
-opacity, each tick could miss on all 130 and allocate 130 new
-`MeshStandardMaterial` — GPU resources never released. At a 20 s poll that is
-~390/minute, ~23k/hour for a dialog left open.
-
-### `LabelFactory` — worse, because it holds textures
-
-`scene/labels.ts:73` holds `private readonly cache = new Map<string, THREE.MeshBasicMaterial>()`,
-one entry per distinct string, each backed by a `CanvasTexture`, plus a
-synchronous `measureText` loop on every miss. **Never bind band text to a
-number.** Same rule as materials, with a larger constant.
-
-### `Tone` — audible pumping, not just cost
-
-`objects/Tone.tsx:38`: `useMemo(() => bus.roar(hz, level), [bus, hz, level])`,
-with `bus.release(audio)` on cleanup at `:42`.
-
-`ToneBus.roar()` (`scene/audio.ts:133`) builds a full graph per voice: a lowpass
-biquad, a `WaveShaper` with a computed curve at `4x` oversample, a churn gain, a
-highpass biquad, a looping white-noise `BufferSource`, plus modulators.
-`release()` (`:319`) cancels scheduled values, ramps gain to zero over
-`ROAR.fadeOut` (0.25 s), and only then stops the sources — and `audio.ts:102`
-notes that overlapping voices sum to **double amplitude**.
-
-Binding `audio.hz`/`audio.level` would tear down and rebuild ~10 nodes per
-module per tick with fades overlapping the new voices: 26 rebuilds every tick,
-pumping the scene's level audibly.
-
-## 1.6 Pre-existing breakage, and its cause
-
-`npx jest src/components/SystemCore` in `client/` → **3 suites failed, 6 tests
-failed, 76 passed.**
-
-```
-data/__tests__/schema.spec.ts   expects 25 modules, fixture has 26   (x2)
-__tests__/Dialog.spec.tsx:59    expects text "(25)"
-__tests__/Panel.spec.tsx:38     expects text "(25)"
-__tests__/Panel.spec.tsx:50     expects Radius 0.62, fixture has 0.72
-__tests__/Panel.spec.tsx:101    expects "(26)" after an add
-```
-
-The untracked `modules.json` grew to 26 modules and `kernel-scheduler`'s radius
-changed to `0.72`; the tracked specs were never updated, and nothing caught it.
-
-**Root cause:** `.gitignore:6` is a bare `data/`, which ignores the whole of
-`client/src/components/SystemCore/data/`. Six real source files — `schema.ts`
-(701 lines), `status.ts`, `fixture.ts`, `serialize.ts`, `modules.json`, and
-`data/__tests__/schema.spec.ts` — are untracked. 25 of 31 SystemCore files are
-tracked; these six are not.
-
-The rule sits under `### node etc ###` beside `data-node` and `meili_data*`, and
-**no `data/` directory exists at the repo root**, so it was plainly meant to be
-root-anchored. Recommended fix: change it to `/data/` and
-`git add client/src/components/SystemCore/data/`. Blast radius is exactly those
-six files plus `.claude-flow/data/` (already ignored separately at `.gitignore:197`)
-and `coverage/` build artifacts.
-
-**Consequences for this design:** no new code goes under any `data/` directory,
-and `data/status.ts` cannot gain a new status value until this is fixed.
+So the answer to "can more data be presented" is yes, easily — but the binding
+constraint is display surface, not Prometheus. The cluster holds 6412 metric
+names and the catalogue uses about 25; adding more PromQL before adding somewhere
+to put it just widens a payload nothing reads. Part 5 ranks the candidates
+anyway, because several are cheap and two of them fix channels that are currently
+wired to the wrong thing.
 
 ---
 
-# Part 2 — The Prometheus data and its interface (Goal step 2)
+# Part 1 — Does a change of state update the UI live? (Goal step 1)
 
-## 2.1 What is actually there (verified live)
+## 1.1 The path, end to end
 
-| Property | Value |
-|---|---|
-| Version | Prometheus **3.14.0** |
-| Location | pod in ns `infra`, service `prometheus`, NodePort **9090:30990** |
-| In-cluster URL | `http://prometheus.infra.svc.cluster.local:9090` |
-| From the dev box | `http://192.168.0.103:30990` — LAN, ~17 ms, no tunnel needed |
-| Auth | **none on the HTTP API**; `web.external-url` empty |
-| Retention | 30 d / 8 GiB |
-| **Scrape interval** | **30 s** (global, cm `prometheus-config` in ns `infra`) |
-| Metric names | 6408 |
-| Active series | 92,195 |
-| History | ~14 h (1669 `node_load1` samples in 24 h) |
-| `query_range` | works — 31 points over 30 min at 60 s step |
-| Targets | **25 active, all `up`**, 85 dropped by relabeling |
+```
+data-provider/SystemCore/queries.ts:40    POLL_MS = 20_000, refetchInterval
+  hooks/SystemCore/useLive.ts:111         readings = useMemo(readingsOf(snapshot), [snapshot])
+    live/adapt.ts:66                      readingsOf  -> Map<id, Reading>
+      live/adapt.ts:45                    readingOf   -> one Reading
+  Dialog.tsx:143                          readings passed to <Scene>
+    Scene.tsx:189                         strips = useMemo(..., [modules, readings, ...])
+      scene/resolve.ts:91                 stripSpec(m, rt, live)
+      scene/resolve.ts:82                 appearanceOf(m, live)
+        live/bind.ts                      the policy layer
+      scene/materials.ts:218              mats.forModule(color, opacity, gain)
+    Strip.tsx:175                         re-renders, keyed by module id
+```
 
-Scrape jobs: `blackbox-http` (10 HTTPS probes), `kubernetes-pods` (6
-exporters), `prometheus`, `kubernetes-apiserver`, `kubernetes-nodes`,
-`kubernetes-cadvisor`, `node-exporter`, `kube-state-metrics`, `minio`, `qdrant`,
-`meilisearch`.
+Every link holds. The snapshot object identity changes on every response —
+`cacheAgeMs` is recomputed per hit at `snapshot.ts:169` and `collectedAt` per
+refresh — so React Query's structural sharing cannot short-circuit the `readings`
+memo, and `readingsOf` builds fresh `Reading` objects regardless. The `strips`
+memo lists `readings` in its dependency array, so it recomputes; `Strip` is keyed
+by `spec.id`, so it re-renders rather than remounts.
 
-Services in ns `infra`: blackbox-exporter, kube-state-metrics, meilisearch,
-minio, mongo(+exporter), mysql(+exporter), node-exporter, pgvector(+exporter),
-prometheus, qdrant, rabbitmq, redis(+exporter). Other namespaces: `librechat`,
-cybernetics, drawio, ghost, gitea, main-website, plane, twenty, vaultwarden,
-kube-system. 37–38 running pods across 11 namespaces.
+The three animation invariants documented at `Strip.tsx:4-27` all still hold, so
+nothing about a poll disturbs a strip's spin phase:
 
-**LibreChat's own `/metrics` is not scraped.** There is no `librechat` job, and
-`packages/api/src/app/metrics.ts` does not even construct its registry unless
-`METRICS_SECRET` is set. Its 24 custom metric families are therefore
-unavailable; cAdvisor still yields the pod's CPU and memory.
+1. `rotation.y` is never a prop — set once in the callback ref at `Strip.tsx:116`,
+   thereafter only by `useFrame`.
+2. Strips are keyed by module id at `Scene.tsx:253`, so new props do not remount
+   and never touch a sibling.
+3. The live angle is parked into a ref-held `Map` every frame
+   (`useModules.ts:160`), so even a genuine remount resumes rather than snapping.
 
-## 2.2 The validated signal catalogue — 46/46 resolved
+## 1.2 What actually moves
 
-Every row below returned a real value. The whole sweep runs concurrently in
-well under a second.
+`Reading` (`live/bind.ts:60`) carries seven fields. Here is what each one reaches:
 
-| Module | Channel | PromQL | Live value |
+| Field | Binding | Reaches | Live? |
 |---|---|---|---|
-| node | health | `up{job="node-exporter"}` | 1 |
-| node | cpu | `1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))` | 0.040 |
-| node | mem | `1 - (node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes)` | 0.671 |
-| node | load | `node_load1` | 0.70 |
-| node | disk | `1 - (node_filesystem_avail_bytes{mountpoint="/"}/node_filesystem_size_bytes{mountpoint="/"})` | 0.278 |
-| apiserver | health | `up{job="kubernetes-apiserver"}` | 1 |
-| apiserver | rate | `sum(rate(apiserver_request_total[5m]))` | 3.20 |
-| apiserver | errors | `sum(rate(apiserver_request_total{code=~"5.."}[5m])) or vector(0)` | 0 |
-| mongo | health | `mongodb_up` | 1 |
-| mongo | ops | `sum(rate(mongodb_ss_opcounters[5m]))` | 4.89 |
-| mongo | conns | `mongodb_ss_connections{conn_type="current"}` | 11 |
-| mysql | health | `mysql_up` | 1 |
-| mysql | ops | `rate(mysql_global_status_queries[5m])` | 3.12 |
-| mysql | conns | `mysql_global_status_threads_connected` | 6 |
-| pgvector | health | `pg_up` | 1 |
-| pgvector | ops | `sum(rate(pg_stat_database_xact_commit[5m]))` | 6.14 |
-| pgvector | conns | `sum(pg_stat_database_numbackends)` | 22 |
-| redis | health | `redis_up` | 1 |
-| redis | ops | `rate(redis_commands_processed_total[5m])` | 52.90 |
-| redis | mem | `redis_memory_used_bytes` | 9.7 MB |
-| rabbitmq | queues | `rabbitmq_queues` | 9 |
-| rabbitmq | backlog | `sum(rabbitmq_queue_messages_ready)` | 0 |
-| qdrant | health | `up{job="qdrant"}` | 1 |
-| minio | drives | `minio_cluster_drive_online_total` | 1 |
-| minio | usage | `minio_cluster_usage_total_bytes` | 3.4 MB |
-| minio | health | `minio_cluster_health_status` | 1 |
-| minio | free | `minio_cluster_capacity_usable_free_bytes` | 350 GB |
-| meilisearch | indexing | `meilisearch_is_indexing` | 0 |
-| gitea | users | `sum(gitea_users)` | 2 |
-| prometheus | series | `prometheus_tsdb_head_series` | 92195 |
-| prometheus | ingest | `sum(rate(prometheus_tsdb_head_samples_appended_total[5m]))` | 3073/s |
-| cluster | pods | `sum(kube_pod_status_phase{phase="Running"})` | 37 |
-| cluster | restarts | `sum(kube_pod_container_status_restarts_total)` | 8 |
-| cluster | unavail | `sum(kube_deployment_status_replicas_unavailable) or vector(0)` | 0 |
-| cluster | targets down | `count(up == 0) or vector(0)` | 0 |
-| librechat | health | `sum(kube_pod_status_ready{namespace="librechat",condition="true"})` | 1 |
-| librechat | cpu | `sum(rate(container_cpu_usage_seconds_total{namespace="librechat",container!=""}[5m]))` | 0.0011 |
-| librechat | mem | `sum(container_memory_working_set_bytes{namespace="librechat",container!=""})` | 484 MB |
-| probes | up / total | `sum(probe_success)` / `count(probe_success)` | **9** / 10 |
-| probes | slowest | `max(probe_duration_seconds)` | 0.381 s |
-| probes | TLS days | `min((probe_ssl_earliest_cert_expiry - time())/86400)` | 56.1 |
-| scrape age | staleness | `time() - timestamp(up)` | 25 series, 1.2–29.9 s (median 15.0) |
-| per-pod cpu | load | `sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!=""}[5m]))` | 37 series |
-| per-pod mem | saturation | `sum by (namespace, pod) (container_memory_working_set_bytes{container!=""})` | 37 series |
+| `status` | `effectiveStatus` → `statusColor` / `statusGain` | material colour, band emissive gain | **yes, visual** |
+| `rate` | `boundSpeed` (`bind.ts:233`) | strip rotation rate | **yes, visual** |
+| `stale` | `boundOpacity` (`bind.ts:271`) | opacity → 0.3 ghost | **yes, visual** |
+| `health` | `boundLevel` (`bind.ts:300`) | drone level via `ToneBus` | yes, audio only |
+| `load` | `effectiveProgress` → `readoutOf` | `resolve.ts:122` — **no caller** | no |
+| `up` | — | documented "for display"; never read | no |
+| `overflow` | lane, at reconcile time | `<Contact>` is commented out (`Strip.tsx:267-281`) | no |
 
-### Four correctness traps found while validating
+`readoutOf`, `effectiveHealth` and `effectiveProgress` are referenced only from
+`live/__tests__/bind.spec.ts`. `resolve.ts:112-127` says "the panel is the only
+reader" — the panel does not read them either. They are correct, tested, and
+dead.
 
-1. **Aggregation is mandatory, not stylistic.** `gitea_users` splits by `state`
-   (active/inactive) and `prometheus_tsdb_head_samples_appended_total` by `type`
-   (float/histogram). Un-aggregated, they return multiple series with no single
-   value to bind. **A catalogue channel must resolve to exactly one scalar, and
-   the assembler must treat a multi-series result as an error rather than
-   silently taking `[0]`.**
+**Status colour is the channel that actually reads as live**, because it is a
+discrete jump between five saturated palette entries. The other two are weaker
+than they look:
 
-2. **An absent metric is HTTP 200 with an empty result, not an error.** So "no
-   data" is a third state beside success and failure. Coercing it to `0` makes a
-   missing gauge indistinguishable from an idle one — the scene would render
-   "quiet" where it should render "unknown".
+- **Rotation** is deliberately a narrow band: `RATE_QUIET = 0.85` to
+  `RATE_BUSY = 1.55` against `RATE_FULL = 200` events/s (`bind.ts:144-147`). On
+  this cluster the five real throughput channels sit at 3.2–53.4 events/s, which
+  maps to just 1.04×–1.38× of the authored speed; the two reading zero sit at the
+  0.85× floor. Redis going from its current 53/s to a
+  saturating 200/s would move its strip from 0.517 to 0.581 rev/s — a 12% change,
+  spread over a 20-second tick. It is a background level, not a visible event.
+  That is the design working as documented (`bind.ts:131-143` argues explicitly
+  against one strip visibly turning while twenty-seven appear stopped), but it is
+  worth stating plainly: nobody will *see* the spin change.
+- **Only 7 of 28 modules have a live rate at all.** The other 21 have no
+  `throughput` channel, so `rate` is null and they turn at their authored speed
+  forever. Of those 7, two are bound to something that is not a rate (Part 5.1),
+  leaving **5 strips out of 28 whose rotation responds to real throughput**.
 
-3. **`up` is not health for blackbox probes.**
-   `up{job="blackbox-http", instance="https://rag.avarile.com"}` is `1` while
-   `probe_success` for the same instance is `0`. `up` means "the exporter was
-   scraped"; `probe_success` means "the probed target answered". A catalogue
-   using `up` uniformly would show all ten probes green while one returns 502.
-   Pair with `probe_http_status_code` so the panel can distinguish a missing
-   backend from an erroring one.
+## 1.3 What a tick costs
 
-4. **`instance` labels are not legal module ids.** `schema.ts`'s
-   `ID_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/` rejects the `:` in
-   `10.42.0.31:9100` and the `//` in `https://foo.example.com`. Overflow ids
-   must be slugified, with collision suffixes as `uniqueId()` does.
+Nothing, in the steady state, which is the point of the codomain invariant at
+`live/bind.ts:1-33`. Verified by reading the caches rather than by measurement:
 
-### Prometheus error semantics (verified)
+- `MaterialRegistry` is keyed by `kind|color|opacity|gain` (`materials.ts:195`).
+  Colour comes from `status`, whose codomain is the six keys of `data/status.ts`;
+  opacity is the authored value or the single `STALE_OPACITY` constant. So a tick
+  that changes no status returns the same material objects and R3F writes nothing.
+- `boundSpeed` and `boundLevel` round to three decimals (`PRECISION`,
+  `bind.ts:156`), so an unchanged sample produces a bit-identical number and R3F's
+  prop diff skips it.
+- Geometry `args` arrays are rebuilt per render but compared element-wise, so
+  equal values reconstruct nothing.
 
-| Situation | Response |
-|---|---|
-| Invalid PromQL | 400, `{"status":"error","errorType":"bad_data", …}` |
-| Valid query, metric absent | 200, `{"status":"success", … "result":[]}` |
-| Prometheus unreachable | connection refused, no HTTP response |
-| `timeout=1ms` param | ignored for cheap queries — use a client-side abort |
+`Scene.tsx:216-224` logs `materials`, `geometries`, `textures` and `programs`
+behind `VITE_ENABLE_LOGGER`; all four flat across ticks is the passing condition.
 
-### A standing config-drift finding
+## 1.4 Reduced motion still updates
 
-`probe_success` is 9 of 10: `https://rag.avarile.com` returns **502**, and has
-for the entire 12 h window (145/145 sample points, never up). There is **no
-`rag` pod in any namespace and no matching ingress** — the blackbox job probes a
-hostname whose backend was never deployed or has been removed. This is config
-drift rather than an incident, and it usefully provides a genuine `fault`-status
-module for testing the red path.
+Under `prefers-reduced-motion` the canvas runs `frameloop="demand"`
+(`Scene.tsx:286`), so nothing repaints unless something asks. A poll does ask:
+R3F's `applyProps` calls `invalidateInstance` after writing a changed prop, and
+`invalidateInstance` calls `state.invalidate()` whenever `frames === 0` — verified
+in `node_modules/@react-three/fiber/dist/events-d0566a2e.cjs.dev.js:787` and
+`:805` at @react-three/fiber 8.18.0. So a material swap forces a frame.
 
-## 2.3 Measured cost
+What is lost under reduced motion is the rotation channel (no `useFrame`) and the
+audio channel (`bus` is null at `Scene.tsx:141`). Colour and opacity still track.
 
-15 representative catalogue queries from the dev box:
+## 1.5 Hand edits and the poll do not fight
 
-- **Serial: 100 ms total** — 39 ms for the first (connection setup), then 3–8 ms
-  each.
-- **Parallel: 33 ms wall clock.**
-
-So no exotic batching is needed for latency. The reason to batch and cache is to
-protect Prometheus from N pollers and to align to the scrape cadence.
-
-For contrast, the mongodb exporter alone contributes 3388 metric names, so a
-client-supplied expression like `{__name__=~"mongodb.*"}` would be enormous
-against 3–8 ms curated queries. The cost gap between a catalogue query and an
-arbitrary one is several orders of magnitude — which is why arbitrary PromQL
-must be made *structurally impossible* rather than merely validated.
-
-## 2.4 Query packing — verified
-
-Many scalar aggregates ride in one `/api/v1/query` by tagging each operand with
-a distinct label and unioning with `or`:
-
-```promql
-   label_replace(<expr A>, "sc", "cpu",  "", "")
-or label_replace(<expr B>, "sc", "mem",  "", "")
-or …
-```
-
-The distinct `sc` value is what makes `or` safe — `or` drops right-hand samples
-whose label set already exists on the left, so identically-labelled (empty)
-operands would silently swallow everything after the first.
-
-Verified on Prometheus 3.14.0, all six bundles:
-
-| Bundle | Signals | Result |
-|---|---|---|
-| `nodeBundle` | cpu, mem, load1, fsroot | 4/4 tagged distinctly |
-| `clusterBundle` | apiserverRate, restarts, unavailable | 3/3 |
-| `sqlBundle` | mongoOps, mongoConns, mysqlQps, mysqlThreads, pgCommits, pgBackends | 6/6 |
-| `kvBundle` | redisOps, redisMem, rabbitQueues, rabbitReady, meiliIndexing | 5/5 |
-| `blobBundle` | minioDrives, minioUsage, minioHealth, minioFree, giteaUsers | 5/5 |
-| `appBundle` | requests, errors, sse | **0/3 — success with empty result** |
-
-**26 signals in 6 HTTP calls.** Every raw scalar is wrapped in
-`sum()`/`avg()`/`max()` so each operand yields exactly one sample with an empty
-label set before `label_replace` tags it; that also makes the shape invariant to
-cluster growth (a second replica would otherwise reintroduce `instance` labels
-and defeat the `sc` keying).
-
-`appBundle` is the "design for, don't enable" carrier, and its behaviour is now
-**proven rather than assumed**: with no `librechat` scrape job, each selector
-matches nothing, `or` unions three empty vectors, and the query returns success
-with an empty result. Those channels therefore land as `missing`, not `error`,
-and light up automatically the day a scrape job is added — with no cluster
-change and no code change.
-
-Together with 8 labelled queries (`up`, scrape age, per-pod cpu/mem, pods
-running, and the three probe series), a snapshot is **14 upstream calls — a
-compile-time constant**, independent of module count, admin count, or anything
-in the request.
-
-## 2.5 The catalogue and the wire contract
-
-### Catalogue (server-side only)
-
-A catalogue entry declares a stable id, a display label, a group, authored
-placement, the target it *is*, any exporter targets it *claims*, an optional
-expansion rule, and its channel bindings. A channel binding names a query, a
-label matcher, a reduction, a scaling rule, and a polarity.
-
-Three mechanisms each earn their keep:
-
-- **`claims`** — the datastore exporters (`mongodb-exporter`, `mysql-exporter`,
-  `pgvector-exporter`, `redis-exporter`) are their own `up` targets under
-  `job="kubernetes-pods"`. Without `claims` each would spawn a redundant
-  overflow module beside the datastore it describes.
-- **`expand`** — one entry becomes the ten blackbox probe modules, ids
-  `probe.<slug(instance)>`, placement stepping by a fixed increment. Ten
-  near-identical hand-written entries would rot the first time a probe is added.
-- **`reduce`** — lets one binding aggregate a labelled result in TypeScript
-  rather than needing another PromQL query.
-
-On today's cluster every one of the 25 `up` targets is a catalogue `target`, a
-`claims` entry, or expanded — so **the overflow lane is empty in steady state**,
-which is the correct resting condition. Overflow is bounded (64 max, with a
-`truncated` error entry beyond) so a misconfigured Prometheus cannot produce a
-50,000-module response.
-
-Scaling rules: `ratio` (already 0..1, clamp), `linear{max}`, `log{max}` (for
-rates spanning decades), `bool{invert?}`, `band{good,bad}` (works in either
-direction, for "56 days of TLS left" and "28 % disk used" alike).
-
-### Wire contract (`packages/data-provider/src/types/queries.ts`)
-
-Per module: `id`, `label`, `status`, `origin` (`catalog` | `discovered`),
-`health`, `placement`, `channels[]`, `staleness`, `description`, `group`,
-`tags`, `dependsOn`, `target`.
-
-Per channel: `id`, `label`, `state` (`ok` | `missing` | `error`), `polarity`
-(`activity` | `health`), normalized `value`, `raw` + `unit` for the panel
-readout, and `source` — the PromQL, for the locked field's caption.
-
-Top level: `configured`, `collectedAt`, `cacheAgeMs`, `refreshAfterMs`,
-`scrapeIntervalSeconds`, `modules[]`, `errors[]`, plus two fields the client
-specifically needs:
-
-- **`catalogRevision`** — changes only when the *catalogue* changes, not when
-  samples do, so the client's catalogue memo does not churn every tick.
-- **`nextPollMs`** — the server's actual scrape interval, so the client stops
-  guessing.
-
-Constraints: readings pre-clamped to 0..1 with `null` — never `0`, never `NaN` —
-for absent. `SystemCoreStatus` mirrors the keys of `data/status.ts`; because
-`data-provider` cannot import from `client`, add a one-line type assertion on
-the client so a divergence is a compile error rather than a module the scene
-silently rejects. No `any`, no `unknown`, no `Record<string, unknown>`.
-
-`SystemCoreQueryError` carries a query **id** and a short message — never an
-expression and never the Prometheus URL, so the endpoint cannot be used to map
-internal topology.
-
-### The status vocabulary already fits
-
-`data/status.ts` defines exactly five statuses, and they map onto scrape state
-without inventing anything:
-
-| Status | Colour | Live meaning |
-|---|---|---|
-| `running` | `#F89945` (gain 0.62) | `up == 1`, within thresholds |
-| `fault` | `#E0342B` | `up == 0`, or a critical threshold breached |
-| `loading` | `#3E8CF0` | scrape stale — no sample within ~3× the interval |
-| `init` | `#2FCB6A` | catalogue entry that has never resolved a sample |
-| `controller` | `#ffffff` | the centre module — the node/cluster itself |
-
-`modules.json` already uses all five and already names its centre module
-`controller`. The palette has no amber "degraded" colour; adding one requires
-editing `data/status.ts`, which is blocked on the `.gitignore` fix. Until then
-`loading` doubles as the degraded band.
+Worth recording because it is the property that makes the panel safe. The poll
+never writes an authored field: `useModules.ts:14-21` reconciles adds and removes
+only, and placement hints are consumed exactly once when a module is first added.
+Live values modulate at read time in `bind.ts` rather than being merged into the
+module. There is therefore no field-level conflict to resolve, and `BINDINGS`
+(`bind.ts:117`) locks only the four paths the poll owns.
 
 ---
 
-# Part 3 — Layering and state management
+# Part 2 — Two defects found while tracing the path
 
-Three layers, meeting at exactly one place.
+Neither is a rendering bug. Both are places where the UI asserts liveness it does
+not have.
 
-| Layer | Shape | Owner | Written by |
-|---|---|---|---|
-| **Authored** | `Module[]` | `useModules` (`useState`) | the Panel only |
-| **Live** | `ReadonlyMap<string, Reading>` | React Query cache + one `useMemo` | the poll |
-| **Runtime** | `Map<string, Runtime>` in a ref | `useModules` | `useFrame`, 60×/s |
+## 2.1 Defect A — the module set is frozen after the first poll
 
-They compose at `Scene.tsx:171` — the memo that already exists:
+`catalogShape()` (`catalog.ts:960`) is a pure function of the module-level
+`CATALOG` constant:
 
 ```ts
-const strips = useMemo(
-  () => modules.map((m) => {
-    const rt = runtimeFor(m);
-    const live = readings.get(m.id) ?? null;
-    const spec = stripSpec(m, rt, live);
-    return {
-      spec: fontReady ? spec : { ...spec, label: null },
-      initialPhase: rt.phase,
-      mats: mats.forModule(colorOf(m, live), opacityOf(m, live), gainOf(m, live)),
-    };
-  }),
-  [modules, readings, runtimeFor, mats, fontReady],
-);
+export function catalogShape(): string {
+  const parts: string[] = [];
+  for (const e of CATALOG) {
+    parts.push(`${e.id}:${e.order}:${e.radius}:${e.arc}:${e.speed}:${e.channels.length}`);
+  }
+  return parts.join('|');
+}
 ```
 
-`resolve.ts` gains a **non-optional** third parameter on `colorOf`, `gainOf` and
-`stripSpec`, plus a new `opacityOf` replacing the inline `m.appearance.opacity`
-at `Scene.tsx:179` — non-optional so every call site is forced to decide. It
-stays `three`-free because the new `live/bind.ts` is `three`-free too.
+It takes no arguments and reads no query results, so `catalogRevision` is a
+**compile-time constant** for the lifetime of the process.
 
-**`Strip.tsx` is not modified.** That is the test of the design: the file
-holding the three spin invariants is untouched, because nothing bound in v1
-reaches geometry args, labels, or audio.
+The module list it is supposed to fingerprint is not constant. `assembleSnapshot`
+returns `[...modules, ...overflow]` (`assemble.ts:446`), where:
 
-## 3.1 Why authored and live must not merge
+- `expandCatalog` (`assemble.ts:272`) turns the single `probe` entry into one
+  module per distinct `instance` in `probeSuccess` — ten today, one per blackbox
+  target.
+- `buildOverflow` (`assemble.ts:343`) appends a module for every `up` row with no
+  catalogue home, capped at `MAX_OVERFLOW = 64`.
 
-Merging live values into the `Module` objects would break four things:
+On the client, `useLive.ts:119-126` memoises `catalogOf(snapshot)` on `[revision]`
+with `snapshot` deliberately excluded from the dependency array, and
+`useModules.ts:94` early-returns when `catalogRevision === applied.current`. So
+`catalogOf` runs **exactly once per page load**, against the first snapshot that
+arrives.
 
-1. **Copy-JSON would lie.** `Panel.tsx:88` calls `serialize(modules)`.
-   `serialize.ts` omits schema defaults and writes unknown keys verbatim, and
-   `normalize()` refills defaults on read — lossless both ways. A merged module
-   would export a momentary telemetry snapshot *as authored arrangement data*,
-   and pasting it back would pin those values permanently.
-2. **Pin-phase would freeze live values.** `Panel.tsx:79` does
-   `structuredClone(current)` and round-trips the whole module through
-   `replace()`. With live values inside, pinning an angle would silently commit
-   the live instant.
-3. **The Panel could not know a field is bound.** `Form.tsx:114`'s
-   `disabledFor(path)` needs a *path-level* answer; a merged module has no
-   memory of which fields came from where.
-4. **Decision 3 would need a per-field diff every tick**, 26 times over, inside
-   a structure whose whole invariant is authored truth.
+Consequences, in order of how likely they are to be noticed:
 
-Keeping them separate makes "hand edits never fight the poll" free: **there is
-no field-level conflict to resolve, because the poll never writes a field.**
+- A blackbox probe added to the cluster never appears as a strip.
+- A scrape target that disappears never leaves the scene; its strip falls back to
+  the authored status baked in at first poll and sits there.
+- A newly discovered exporter never reaches the overflow ring.
+- If `probeSuccess` fails on the *first* snapshot, `expandCatalog` skips the entry
+  entirely at `assemble.ts:289-291` and all ten probe modules are absent for the
+  rest of the session.
+- `reset()` (`useModules.ts:231`) restores the same frozen list, so the obvious
+  recovery gesture does not recover.
 
-## 3.2 `telemetry` finally earns its keep
+Only a page reload fixes any of it.
 
-Not as the live carrier — it is a schema group, so it is normalized, defaulted,
-serialized and form-rendered, and would inherit every problem above.
+**Fix.** Derive the revision from the module set actually assembled — the sorted
+ids of `[...modules, ...overflow]` — rather than from `CATALOG`. The client
+machinery is already correct and needs no change; it is being handed a constant
+where it was promised a fingerprint.
 
-Instead it becomes the **authored floor beneath the live layer**: `bind.ts`
-reads `health ?? m.telemetry.health`. That gives three things:
+Note that `catalog.spec.ts:380` currently asserts the revision is "built only from
+things a sample cannot change". That test encodes the wrong invariant. A module
+*appearing or disappearing* is not a sample changing, and it is exactly what the
+revision is supposed to signal. The invariant worth keeping is narrower: no
+*measurement* may move the revision. Ids may.
 
-- Feature off or unconfigured → the fixture can still express health per module,
-  editable in the Panel, so the scene looks alive with no special-casing.
-- A catalogue module missing from a snapshot → falls back to its authored value
-  rather than a hard-coded default.
-- `telemetry.metrics` (the `nummap`) becomes the authored escape hatch for
-  one-off values, still fully editable.
+## 2.2 Defect B — the panel's "live" fields are not live
 
-## 3.3 `useModules` changes
-
-New signature `useModules({ catalog })`. Everything it exports today stays. It
-does **not** learn about readings — that keeps its single job intact.
-
-- `loadFixture()` remains the initial value: the unconfigured fallback and the
-  pre-catalogue state, so the scene is never empty.
-- **`reconcile` only adds and removes.** It never rewrites an existing module's
-  authored fields. Placement hints are consumed exactly once, when a module is
-  first added. Keyed on `catalogRevision`, not on payload identity.
-- **Runtime pruning** happens inside the reconcile `setState`, never during
-  render — `runtimeFor` already mutates `laneSeq.current` during render at
-  `useModules.ts:59-61`, so a render-phase prune could race its lazy create.
-- **Dismissal**: `remove()` records the id so the next catalogue tick does not
-  resurrect it. `reset()` clears dismissals and re-seeds from the catalogue when
-  one exists, else the fixture.
-
-## 3.4 Why the live layer lives in the React Query cache
-
-Not Jotai, not Recoil, not a ref.
-
-Jotai's role in this repo (`store/index.ts:9-12`) is very-high-frequency writes
-where one write should re-render exactly one subscriber. A 20-second tick is the
-opposite, and the whole scene consumes the whole map — there is no fine-grained
-subscription to buy. Recoil is the conversation model and atom families; neither
-applies. An atom would need a `useEffect` syncing query→atom: a second source of
-truth with a frame of skew, for no benefit.
-
-The precedent is explicit: `useActiveJobs` (`SSE/queries.ts:230-244`) holds no
-client state at all, and `client/src/data-provider/index.ts:6-9` states that this
-directory owns "polling and backoff". **The cache is the state.**
-
-`readings` is a `Map`, not an array or object — `strips` does 26 point lookups
-per tick.
-
----
-
-# Part 4 — Periodic updates (Goal step 3)
-
-## 4.1 Backend snapshot pipeline — `packages/api/src/systemCore/`
-
-`config.ts`, `queries.ts`, `catalog.ts`, `scale.ts`, `assemble.ts`,
-`snapshot.ts`, `handler.ts`, `index.ts`, each with a spec.
-
-Depth is deliberate:
-
-| Module | Interface | Hides |
-|---|---|---|
-| `snapshot.ts` | `getSystemCoreSnapshot(): Promise<Response>` — **zero parameters** | config, 14 HTTP calls, concurrency, timeouts, TTL cache, coalescing, serve-stale, partial failure, catalogue matching, normalization |
-| `config.ts` | `getSystemCoreConfig(env?)` | env names, URL validation, clamping |
-| `assemble.ts` | pure `assembleSnapshot(results, config, now)` | matching, expansion, overflow, truncation |
-| `scale.ts` | pure `normalize`, `deriveStatus`, `deriveHealth` | clamping, NaN/Inf handling, polarity |
-| `handler.ts` | thin | HTTP status and headers only |
-
-**The zero-parameter signature is the load-bearing security decision.** There is
-no parameter through which a request field could reach PromQL, so "never accept
-client-supplied PromQL" is a property of the type system, not a validation rule
-someone can forget to call. `handler.ts` never imports `queries.ts`.
-
-Reinforced three ways: the route takes no query string, path params or body;
-every `expr` is a string literal, asserted by a spec that fails the build on any
-backtick or `${`; and dropping the `namespace=` filters from the cAdvisor queries
-(they cost nothing at 37 series and serve the exporter-less namespaces for free)
-removes the last expression that would have wanted a config value interpolated
-into PromQL.
-
-**Execution.** POST `application/x-www-form-urlencoded` to `/api/v1/query` — the
-bundle expressions run to ~600 chars, so POST avoids URL-length and proxy-log
-concerns. Per-request `AbortSignal.timeout()` *and* Prometheus's own `timeout`
-param slightly below it, so the server abandons an evaluation we have stopped
-listening to. Concurrency 6 → three waves → ~50 ms wall clock.
-
-**Partial failure.** `Promise.allSettled` over all 14. A failed query marks
-exactly the channels bound to it as `error` plus one `errors[]` entry; everything
-else resolves normally. Note the asymmetry that makes this work: an *exporter*
-being down is not a failure at all — the query succeeds with an empty result, so
-the channel is `missing`. Failures come only from Prometheus itself.
-
-**Cache and coalescing.** Module-level, in-process: a TTL cache plus a
-single-flight promise. Ten admins polling in the same window produce one set of
-14 upstream queries. Default TTL 25 s — below the 30 s scrape interval so a poll
-cannot systematically skip a scrape, and high enough that upstream load is
-**0.56 q/s regardless of admin count**. In-process rather than the shared Keyv
-cache because this is ephemeral derived data whose payload would need
-serializing on every hit, and per-replica caching only multiplies upstream load
-by the replica count (still negligible at 2–3 replicas).
-
-**Serve-stale.** If a refresh fails entirely and the last good snapshot is
-younger than `staleMaxMs`, return it with its true `cacheAgeMs` and every module
-flagged stale. A 3D scene going dark for one dropped packet is worse than one
-showing 40-second-old data labelled as such.
-
-**Always HTTP 200 when configured.** This is a deliberate divergence from
-`admin/langfuse.ts:97-103`, which 404s when unavailable, and the file header
-should say so. Rationale: React Query treats non-2xx as an error and would
-discard the good half of a partial snapshot, forcing the client to reconstruct
-partial-failure semantics out of an error object. A 200 whose body says "off" or
-"half-broken" keeps the whole state machine in one typed payload.
-
-| Situation | Response |
-|---|---|
-| Env unset | 200, `configured:false, reason:'unset'`, no upstream traffic |
-| Env malformed | 200, `configured:false, reason:'invalid_url'` |
-| Unreachable, no prior snapshot | 200, all modules present with authored placement, all channels `error`, status `loading` |
-| Unreachable, recent snapshot | 200, last good snapshot, `stale:true`, errors appended |
-| One bundle 400s | 200, only that bundle's channels `error` |
-
-**Config.** One switch, `SYSTEM_CORE_PROMETHEUS_URL` — unset means off, so the
-enable and the destination cannot disagree. Optional
-`SYSTEM_CORE_{TIMEOUT_MS,CACHE_TTL_MS,SCRAPE_INTERVAL_SECONDS,STALE_MAX_MS}`,
-all clamped. URL validation follows `packages/api/src/rum/proxy.ts:33-56`: parse
-via `new URL`, reject credentials, query and fragment, require http/https.
-
-**On not using `isSSRFTarget`.** That validator
-(`packages/api/src/auth/domain.ts:95-170`) exists to stop *user-supplied* URLs
-from reaching internal infrastructure. Here the URL is operator-supplied server
-config at the same trust level as `MONGO_URI`, and reaching internal
-infrastructure is the entire point. Routing through it would break the feature
-three ways over: the in-cluster hostname is literally `prometheus`, denylisted at
-`domain.ts:148`; `.svc.cluster.local` is caught by the `.local` TLD rule; and the
-resolved address is cluster-private. `rum/proxy.ts` already does exactly this for
-the OTLP collector — verified, it does not import `isSSRFTarget` — so this is an
-established pattern, not a new exemption.
-
-No Helm change needed: `helm/librechat/templates/configmap-env.yaml` already
-renders `configEnv` verbatim.
-
-## 4.2 The client poll — `client/src/data-provider/SystemCore/queries.ts`
-
-Modelled on `useActiveJobs` (`SSE/queries.ts:227-244`) with the module-level
-error-budget breaker from `Files/queries.ts:187-231`.
+`Form.tsx:130` marks a control as bound when the module has a reading:
 
 ```ts
-const POLL_MS = 20_000;        // one tick short of the scrape interval
-const POLL_FLOOR_MS = 10_000;  // a hostile nextPollMs must not hammer
-export const SNAPSHOT_MAX_CONSECUTIVE_ERRORS = 4;
+const boundAt = (path: string): TranslationKeys | undefined =>
+  live == null ? undefined : BINDINGS[path]?.name;
 ```
 
-Options and their justifications:
+A bound control is rendered read-only (`Fields.tsx:159`) and captioned with
+`com_ui_system_core_live_field` — *"Driven by live data"* — plus the channel name
+(`Fields.tsx:435-441`).
 
-- **20 s, not 30 s.** Polling *at* the scrape interval beats against scrape
-  phase and drops one sample per drift cycle. 20 s guarantees at most one poll
-  per sample. Duplicate ticks are nearly free — after quantization every derived
-  channel is identical, so `forModule` returns the same object identities and
-  R3F writes nothing to the GPU.
-- **`staleTime` = interval**, which is what makes the three `refetchOn*: true`
-  settings safe: a reopen or a window focus inside one interval reuses the cache
-  instead of firing an extra request.
-- **`retry: false`** — a retried poll is a duplicate sample, the next tick *is*
-  the retry, and retries would corrupt the consecutive-error count.
-- **`refetchOnWindowFocus`/`OnReconnect: true`** — background tabs get their
-  timers throttled, so returning to a stale tab is exactly when a refetch earns
-  its keep.
-- **`enabled: (config?.enabled ?? true) === true && queriesEnabled`** — required,
-  or the poll fires on the login screen and trips `request.ts`'s 401 →
-  `redirectToLoginOnce()`.
-- **Server-driven `nextPollMs`** with a client floor, via the function form of
-  `refetchInterval` that both existing precedents use.
-- **The breaker is counted manually** because React Query v4 resets
-  `fetchFailureCount` on every fetch dispatch and so cannot count across polls —
-  the same reason `Files/queries.ts:187-190` keeps its own counter. It latches
-  after 4 consecutive failures (~80 s) and is reopened by a Panel retry button
-  and by the false→true transition of `open`, since reopening the modal is the
-  natural retry gesture. Unlike a file preview this poll has no terminal state,
-  so a latch with no way out would be a dead scene.
+But the value it displays comes from `value={readPath(module, path)}`
+(`Form.tsx:156` and `:186`), and `module` is the **authored** module: seeded from
+the first snapshot by `catalogOf` → `draftOf` (`adapt.ts:88`), and never rewritten
+afterwards by design (`useModules.ts:14-21`).
 
-**Polling only while the dialog is open.** `useLive({ enabled: available && open })`
-is called from `Dialog.tsx`, *above* the `open &&` render gate — which is fine,
-because the query's `enabled` gates the network, not the mount. The hook must
-**not** move into `Scene`, which is the lazy `three`-only chunk; data has no
-business there. The default 5-minute `cacheTime` means reopening within five
-minutes paints the last snapshot instantly and refetches in the background,
-matching the intent already stated at `Dialog.tsx:17-19`.
+So the four bound paths — `status`, `motion.speed`, `telemetry.health`,
+`telemetry.progress` — display first-poll values under a live badge, permanently.
+A module can go from `running` to `fault`, recolour in the scene, recolour its
+swatch in the list, and still read `running` in the form.
 
-## 4.3 How a tick reaches the GPU without a remount
+For contrast, the two panel elements that *are* live, and are the reason this is
+easy to miss:
 
-1. `query.data` gets a new identity → the `readings` memo recomputes (26 `Map`
-   inserts).
-2. The `catalog` memo does **not** recompute — keyed on `catalogRevision` — so
-   `reconcile` does not fire and `modules` keeps its identity.
-3. `strips` recomputes: per module one runtime lookup, ~20 flops in `bind`, one
-   `StripSpec` literal, five `MaterialRegistry` lookups.
-4. `Strip` re-renders but does **not remount**, because `key={strip.spec.id}` is
-   unchanged.
-5. `rotation.y` is not a prop, so React writes nothing to it. The `attach`
-   callback has `[]` deps. `initialPhase` changing is harmless — it is read only
-   at mount.
-6. `rate` is recomputed from the new `spec.speed`; `useFrame` re-registers its
-   callback each render anyway, so the new rate is live next frame with no
-   re-subscribe.
-7. The label memo's deps are all authored and unchanged → no rasterisation.
-8. Material props are the *same object identities* whenever the status/opacity/
-   gain bucket is unchanged, so R3F's `applyProps` writes nothing.
-9. Post-commit, `mats.sweep()` runs once.
+- the list swatch, which reads through the reading at `List.tsx:105`;
+- the header chip and its "Updated Ns ago" title, at `Panel.tsx:170` and `:166`.
 
-**Cost at 26 modules:** ~130 `Map` lookups, ~52 small object literals, a few
-hundred prop comparisons, and in the steady state **zero GPU uploads** — well
-under a millisecond, once per 20 s, against a 60 fps loop.
-
-**The one unverified assumption:** step 3 creates fresh `args` arrays for
-`cylinderGeometry`, and this design assumes R3F compares them element-wise and
-does not rebuild the geometry. It is already true today (editing one module
-re-renders its strip without visible churn), but it is measured rather than
-argued — see Part 7.
-
-## 4.4 The bound set in v1, and why it is tiny
-
-| Path | Channel | Codomain | Allocations/tick |
-|---|---|---|---|
-| `status` | `up` / `health` | **5 keys from `STATUS`** | 0 |
-| `motion.speed` | `rate` | a number, rounded to 3 dp | 0 |
-| `telemetry.health` | `health` | readout only | 0 |
-| `telemetry.progress` | `load` | readout only | 0 |
-
-Everything else — geometry, lane, labels, audio, colour override, opacity,
-glow/halo/trail, visibility — stays authored and fully editable.
-
-**This is the whole answer to the material leak.** Colour and gain flow
-`status → STATUS[key] → colorOf/gainOf`. If the only live input to colour is a
-*status key*, the colour channel's codomain is the five-entry authored palette,
-and the registry can hold no more than it holds today. The leak is closed **by
-construction, not by cleanup.** State it as an invariant in `bind.ts`:
-
-> Every channel that reaches `MaterialRegistry.get()` must have a finite,
-> enumerable codomain declared as a constant in this file.
-
-`motion.speed` allocates nothing: it lands at `Strip.tsx:102` and is read by the
-already-running `useFrame` closure. No material, no geometry, no audio node.
-
-### Curves and clamping
-
-```
-health  → clamp01, null-safe, NaN → null
-speed   → sign(authored) * clamp(BASE + K * log1p(rate / SCALE), MIN, MAX)
-```
-
-Two things matter, and both are testable:
-
-1. **The clamp bounds are the schema's bounds.** `motion.speed` is
-   `min: -10, max: 10` (`schema.ts:198-201`). Bound values never enter a
-   `Module`, so nothing validates them — an out-of-range speed would make the
-   stack a blur. Tests must read the limits from `SPEC` rather than hard-coding
-   them, so `bind.ts` and the schema cannot drift.
-2. **The authored value is the anchor, not an alternative.** `boundSpeed`
-   preserves `sign(m.motion.speed)`, so a module authored to spin the other way
-   keeps doing so and the signal changes only *how fast*. Every future channel
-   takes the same shape: **live modulates authored, it does not replace it.**
-   That is what keeps a hand edit meaningful on a bound field.
-
-### Status derivation
-
-```
-m.status === 'controller' → 'controller'      // identity, not health
-!up                       → 'fault'
-health == null            → m.status          // no signal is not bad news
-health < 0.34             → 'fault'
-health < 0.67             → 'loading'         // stands in for 'degraded'
-otherwise                 → 'running'
-```
-
-No hysteresis in v1, deliberately: the material key space is bounded at five
-statuses, so a value flapping across a threshold costs **zero allocations** — a
-cosmetic annoyance, not a leak. Smoothing belongs in the backend's PromQL window
-(`avg_over_time`), where it is one expression instead of client state.
-
-### Belt-and-braces: a generation sweep on `MaterialRegistry`
-
-A bounded codomain is a convention, and conventions rot. Add ~25 lines: stamp
-`userData.gen` on hit *and* miss; `sweep()` disposes anything untouched for two
-generations, then opens a new generation; expose a `size` getter for tests and a
-`logger.warn` past a cap.
-
-Three details matter:
-
-- **Two generations of grace, not one** — a value that disappears for one tick
-  and returns must not be rebuilt.
-- **`dispose()` alone is unsafe**: a disposed material still referenced by a live
-  mesh renders black. Call `sweep()` from a **post-commit effect**
-  (`useEffect(() => mats.sweep(), [strips, mats])`), never during render and
-  never per frame, so nothing disposed was used in the render that just landed.
-- `setDimmed` and `pulse` iterate `reg.values()` per frame and simply see fewer
-  entries after a sweep.
-
-### Audio: not bound in v1
-
-`audio.hz`/`audio.level` stay authored, so they change only on a hand edit —
-exactly when rebuilding a voice is the correct behaviour. Zero churn, and
-`Tone.tsx` needs no change.
-
-If audio is ever bound, in order of preference:
-
-1. **`ToneBus.setLevel(audio, level)`** writing into the existing voice's
-   `AudioParam`. `roar()` bakes the level in at `audio.ts:213` and `Voice` is
-   private, so today a level change *must* rebuild. The bus already glides via
-   `setTargetAtTime` with `ROAR.glide = { level: 0.09, cutoff: 0.14 }`
-   (`tone.ts`), so this is inaudible as a transition and costs one param write
-   instead of ~10 node constructions. `Tone` then keys its memo on `[bus, hz]`.
-2. **Quantize `hz` with hysteresis.** Hysteresis is the important half:
-   quantization alone does not stop a value oscillating across a bucket edge
-   (0.4999 / 0.5001) from tearing down the graph every tick. Retuning `hz`
-   properly means three biquad frequencies *plus* recomputing the make-up gain
-   that `tone.ts:99-107` warns about getting wrong — so leave it quantized.
-
-### And never bind band text
-
-`bandText(m)` feeds `labels.get(spec.label)`, and `LabelFactory.cache` is
-unbounded with a `CanvasTexture` per string. The same finite-codomain rule
-applies, plus the same generation sweep, before any live number goes on a band.
+**Fix.** The helpers already exist and have no caller: `readoutOf`
+(`resolve.ts:122`), backed by `effectiveHealth` and `effectiveProgress`
+(`bind.ts:318`, `:323`). Feed the bound controls from the `Reading` when there is
+one, falling back to the authored value when there is not — which is precisely
+what those two functions already compute. `effectiveStatus` (`bind.ts:199`) does
+the same job for the status control.
 
 ---
 
-# Part 5 — The Panel under live data
+# Part 3 — What the feed carries, and what the client keeps
 
-Decision 3 is "live fields locked, rest editable", and it generalizes a
-mechanism that already exists rather than adding one.
+## 3.1 The measurement
 
-Already present: `Form.tsx:113-114` computes
-`const locked = module.layout.locked === true` and
-`const disabledFor = (path) => locked && path !== 'layout.locked'` — a
-**per-path** predicate already threaded through every control. `layout.locked` is
-in the schema; the warning banner is rendered at `Form.tsx:123-126`; the key
-`com_ui_system_core_locked` exists at `translation.json:2077`; `List.tsx:101`
-already draws a lock badge.
+Taken from the captured 28-module snapshot at
+`live/__tests__/__fixtures__/snapshot.json`, which was recorded from this cluster:
 
-So: `BINDINGS` is keyed by the same dotted paths `Form.tsx` already enumerates,
-and `Form` gains `boundAt(path)` alongside `disabledFor(path)`. When `live` is
-null nothing is locked, so the feature-off path and every existing test keep
-working with no special-casing.
-
-**The subtle correctness point.** `Fields.tsx:1-27` documents that controls are
-deliberately **uncontrolled**: the DOM holds the edit in progress, each control
-registers a `read()`, and `Form.commit` asks every control for its value at
-once. Therefore a locked field must:
-
-- render `readOnly`, **not** `disabled` — `disabled` greys a control to
-  unreadability, and the point of a live field is that you can read it; and
-  `readOnly` fires no `change` event, so the delegated listener at
-  `Form.tsx:107` is untouched;
-- **not register a reader.** If it did, `Form.commit` would write the stale DOM
-  value over the live one on the next commit of any *other* field. By not
-  registering, `commit`'s existing `if (read)` guard skips the path and the
-  `structuredClone` preserves what the module holds — so **`commit` needs no
-  change at all**.
-
-Existing actions:
-
-| Action | Effect |
+| | |
 |---|---|
-| `replace` | unchanged — bound paths register no reader, so a commit cannot carry a live value in |
-| `add` | unchanged; a new module has no reading so everything is editable, and it *becomes* bound if its id ever matches a target — a useful manual-binding affordance worth documenting |
-| `remove` | records a dismissal so the catalogue does not resurrect it |
-| `reset` | re-seeds from the catalogue when configured, else the fixture; clears dismissals, runtime, lane sequence, selection |
-| pin-phase | unchanged, and an argument for the layering: `motion.phase` is never bound |
-| copy-JSON | unchanged and correct — it emits the **authored** arrangement; worth a comment saying so |
+| Modules | 28 (28 catalogue, 0 discovered at capture time) |
+| Channels | **91** — 88 `ok`, 3 `missing`, 0 `error` |
+| Channels per module | 2 (×4), 3 (×18), 4 (×2), 5 (×3), 6 (×1) |
+| By polarity | 51 `health`, 40 `activity` |
+| By id | `availability` 26, `capacity` 13, `saturation` 12, `load` 11, `latency` 10, `connections` 8, `throughput` 8, `errors` 3 |
+| By unit | `boolean` 26, `count` 14, `bytes` 11, `seconds` 10, `days` 10, `cores` 9, `per_second` 8, `ratio` 3 |
 
-New chrome: one header chip showing poll state (`live` / `stale` / `paused` /
-`off`) with the last-update age, and a retry button in the error state.
-`List.tsx:97`'s swatch must use the *effective* status, or the legend contradicts
-the bands it is a legend for — which `List.tsx:1-7` explicitly cares about.
+Each channel carries `label`, `state`, `polarity`, `value` (normalized 0..1),
+`raw` (the upstream number in its unit), `unit`, and `source` (the catalogue query
+id).
 
-Free reuse: `meta.group` set from the Prometheus job gives `List.tsx:31-45`
-grouping and headings at no cost, including an "overflow" section; `layout.order`
-from the catalogue gives deterministic ordering, which also removes lane-shuffle
-risk, since `runtimeFor` assigns `lane = laneSeq % LANES` in list order.
+## 3.2 What survives the client boundary
 
-Overflow lane: reserve the outermost ring (`OVERFLOW_LANE = LANES - 1 = 4`,
-consistent with `schema.ts:220` bounding `motion.lane` to `max: 4`), carried as
-`meta.group === 'overflow'` so no schema change is needed and a user can promote
-a module out of it by hand. **None of this is visible until `Strip.tsx:253-258`
-is uncommented.**
+`readingOf` (`live/adapt.ts:45`) is the whole of it:
 
----
-
-# Part 6 — Access control
-
-Decision 4 is `SystemCapabilities.ACCESS_ADMIN`, and the enforcement point is
-the endpoint:
-
-```js
-router.use(requireJwtAuth, requireCapability(SystemCapabilities.ACCESS_ADMIN));
+```ts
+function readingOf(m: SystemCoreModule): Reading {
+  return {
+    status: m.status,
+    up: m.target == null ? true : m.target.up === true,
+    health: finite(m.health),
+    load: finite(m.load),
+    rate: finite(m.rate),
+    stale: m.staleness?.stale === true,
+    overflow: m.origin === 'discovered',
+  };
+}
 ```
 
-`packages/api/src/middleware/capabilities.ts` returns 401 with no user and **403
-`{message:'Forbidden'}`** when the capability is absent, before the handler runs,
-so an unauthorized caller never triggers an upstream query.
+`channels[]` is not read. Nor is `staleness.scrapeAgeSeconds`, nor the rest of
+`target` beyond `up`. `description`, `group`, `tags` and `dependsOn` do survive,
+but through `draftOf` into the authored module — so they are captured once at
+first poll, which is correct for metadata and is unrelated to Defect A.
 
-Admins already hold it: `seedSystemGrants()`
-(`packages/data-schemas/src/methods/systemGrant.ts:516`) grants the ADMIN role
-every capability at startup, idempotently. `AuthService.js:412` makes the first
-registered user ADMIN, and `admin/users.ts:143` / `admin/roles.ts:541` prevent
-demoting the last one.
+Three numbers reach the client, and each is a lossy reduction:
 
-**The client cannot evaluate this.** `SystemCapabilities` is backend-only and
-never re-exported through `librechat-data-provider`; `TUser` has no capabilities
-field; `useHasAccess` reads the unrelated `PermissionTypes` system. Duplicating
-`user?.role === SystemRoles.ADMIN` on the client would also diverge from the
-server the moment someone grants `ACCESS_ADMIN` to a non-admin role through the
-existing grants UI — the API would serve them while the button stayed hidden.
+- `health` = the **mean** of the health-polarity channels that resolved
+  (`scale.ts:99`). Fifty-one channels collapse into one number per module, so
+  which one is unwell is not recoverable. The server compensates for the worst
+  case by carrying `criticalFault` separately into `deriveStatus`
+  (`scale.ts:156`), which is why a root filesystem at 96% faults rather than
+  averaging away — but that is a status flag, not a readable value.
+- `load` = `channelValue(channels, 'load')` — the first `ok` channel with id
+  `load`, normalized. Present on 11 of 28 modules. **Reaches nothing.**
+- `rate` = `channelRaw(channels, 'throughput')` — the first `ok` channel with id
+  `throughput`, raw. Present on 7 of 28.
 
-So add **`GET .../availability`** returning `{ enabled, configured }` with
-`enabled = configured && hasCapability(user, ACCESS_ADMIN)`, fetched once per
-session (`staleTime: Infinity`). Precedent: `useGetSearchEnabledQuery`
-(`Misc/queries.ts:41`) exists for exactly this "fire a query to decide whether to
-show an affordance" purpose. Three consumers: `SystemCoreButton.tsx`
-(early-return null), `useUnifiedSidebarLinks.ts:73-81` (omit the link), and the
-poll's `enabled`.
+**Twenty-one activity channels have no client representation at all**: all twelve
+`saturation` channels (nine pod memory working sets, two "Memory used" ratios,
+bytes stored), all eight `connections` channels (pods running, Mongo connections,
+MySQL threads, Postgres backends, Rabbit queues, MinIO drives online, open
+streams, Gitea users), and the one `activity`-polarity `errors` channel — container
+restarts. The other two `errors` channels are `health` polarity, so they at least
+reach `health`.
 
-The gate is on **discovery, not on the modal**: `SystemCoreDialog` stays mounted
-and stays functional on the fixture, so the 3D toy remains harmless to anyone who
-opens it by other means while the *data* is privileged.
+And no surface anywhere renders a raw value with its unit. The catalogue's
+carefully-chosen labels — "Root filesystem free", "Certificate lifetime",
+"Response time" — reach the browser on every poll and are never drawn.
+
+## 3.3 Two channels bound to the wrong thing
+
+Found while checking which modules have a live `rate`. Both are catalogue
+mistakes, not code defects, and both are one-line changes.
+
+**`rabbitmq.throughput` is a queue depth, not a rate.** `catalog.ts:673-680`
+binds it to `kvBundle`'s `rabbitReady` = `sum(rabbitmq_queue_messages_ready)`.
+That is the number of messages *waiting*, and it reaches `boundSpeed` as the
+module's rate. So the RabbitMQ strip spins **faster as the queue backs up** — a
+stalled consumer reads on screen as a healthy, busy service. This is the one
+finding here with a genuinely misleading visual.
+
+**`meilisearch.throughput` is a boolean.** `catalog.ts:755-762` binds it to
+`meiliIndexing` = `max(meilisearch_is_indexing)`, scaled `bool`. Through the log
+curve, 0 and 1 give factors of 0.85 and 0.94 — a 10% spin difference nobody will
+see. The channel is honest; it is just not a throughput.
+
+There is also a third, less serious: **`kube-state-metrics.errors` is a cumulative
+counter.** `catalog.ts:498-503` binds `sum(kube_pod_container_status_restarts_total)`
+on a `log max 100` scale. A counter only climbs, so once the cluster has
+accumulated restarts the channel saturates and never recovers. It is `activity`
+polarity so it cannot cause a false fault, and it does not reach the client at
+all today — but it will read wrong the moment anything displays it.
+`sum(rate(...[15m]))` is the intended shape; it measures 0 on this cluster now.
 
 ---
 
-# Part 7 — Verification
+# Part 4 — The cluster as it stands
 
-## 7.1 Against the live Prometheus
+Measured 2026-08-23 over `ssh K3s-server` against `http://localhost:30990`.
 
-The curl sweep is written and passing. Re-run it to capture `assemble.spec.ts`
-fixtures **verbatim from the live cluster** rather than inventing response
-envelopes, and to confirm every `up` target is claimed by a catalogue
-`target`/`claims`/`expand` so the overflow lane is empty in steady state.
+## 4.1 The feed is healthy
+
+All fifteen catalogue queries resolve. Series counts:
+
+| Query | Shape | Series | Query | Shape | Series |
+|---|---|---|---|---|---|
+| `up` | labelled | 25 | `nodeBundle` | bundle | 4 |
+| `scrapeAge` | labelled | 25 | `clusterBundle` | bundle | 4 |
+| `podCpu` | labelled | 37 | `sqlBundle` | bundle | 6 |
+| `podMem` | labelled | 37 | `kvBundle` | bundle | 5 |
+| `podsRunning` | labelled | 11 | `blobBundle` | bundle | 4 |
+| `podsReady` | labelled | 11 | `appBundle` | bundle | **0** |
+| `probeSuccess` | labelled | 10 | | | |
+| `probeDuration` | labelled | 10 | | | |
+| `probeCertDays` | labelled | 10 | | | |
+
+`appBundle` returning zero series is correct and documented at `queries.ts:210-213`:
+LibreChat's own `/metrics` is not scraped, so every selector matches nothing, the
+query succeeds with an empty result, and the three channels land as `missing`
+rather than `error`. They light up the day a scrape job is added, with no change
+on either side.
+
+Every bundle tags its operands as designed — `sc=cpu,mem,load1,fsroot` and so on —
+so the `or` union is behaving and no operand is being swallowed.
+
+## 4.2 Twenty-five targets, all up
+
+| Job | Count | Notes |
+|---|---|---|
+| `blackbox-http` | 10 | the `probe.*` expanded modules |
+| `kubernetes-pods` | 6 | rabbitmq, mysql, gitea, mongo, pgvector, redis exporters |
+| `kubernetes-apiserver` / `-nodes` / `-cadvisor` | 3 | cadvisor is claimed by `kube-nodes` (`catalog.ts:440`) |
+| `node-exporter`, `kube-state-metrics`, `prometheus`, `minio`, `meilisearch`, `qdrant` | 6 | one each |
+
+`rag.avarile.com` is currently serving **502**, and `probe_success` is 0 for it,
+so the scene paints that strip `fault` — correctly, and via `probe_success` rather
+than `up`, which is exactly the distinction `queries.ts:129-133` was written to
+preserve. The other nine probes are 200. All ten certificates have 55.8 days left.
+
+## 4.3 Headroom
+
+Prometheus holds **6412 metric names**. The catalogue uses about 25. By family:
+
+| Family | Names | Family | Names | Family | Names |
+|---|---|---|---|---|---|
+| `mongodb_*` | 3389 | `redis_*` | 183 | `minio_*` | 76 |
+| `mysql_*` | 724 | `kube_*` | 157 | `container_*` | 69 |
+| `node_*` | 324 | `apiserver_*` | 148 | `gitea_*` | 26 |
+| `pg_*` | 318 | `rabbitmq_*` | 127 | `probe_*` | 19 |
+| `prometheus_*` | 233 | `kubelet_*` | 104 | `meilisearch_*` | 18 |
+
+Self-monitoring: 92 121 head series, 3070 samples appended per second, 284 MB of
+blocks, worst scrape 1.46 s against a 30 s interval.
+
+---
+
+# Part 5 — Can more be presented?
+
+## 5.1 The constraint, stated first
+
+Three limits govern every candidate, and they point in different directions.
+
+**Upstream cost is per request, not per channel.** Fifteen HTTP calls per snapshot
+is a compile-time constant (`snapshot.ts:12-16`). Folding an operand into an
+existing bundle in `queries.ts` costs **zero extra calls**; only a new `labelled`
+query costs one. The real ceiling is evaluation time: the per-query budget
+defaults to 5 s (`config.ts:44`) and the worst scrape on this cluster already
+takes 1.46 s, so a bundle cannot grow indefinitely. Assumption, not measured: a
+bundle of ~12 operands is still comfortable. The measurement that would settle it
+is the `duration` on `/api/v1/query` for the extended expression.
+
+**Anything reaching a material key must have a finite, enumerable codomain.**
+This is the invariant `live/bind.ts:1-33` exists to hold, and it is why colour is
+driven by `status` and opacity by a single constant. Five materials are requested
+per module per build (`materials.ts:218`); binding a continuous number to colour
+or opacity allocates a fresh set every tick — 140 per tick at 28 modules.
+`MaterialRegistry.sweep()` is the backstop, not the fix. So **new appearance
+bindings are the expensive kind of change**, and the cheap surfaces are elsewhere.
+
+**Geometry is not free either.** Radius, arc and band height reach
+`cylinderGeometry args` (`Strip.tsx:177`). Args are compared element-wise, so
+equal values cost nothing — but a *changed* value reconstructs the geometry
+instance. A continuously-varying geometry binding is per-tick geometry churn, and
+that is why the scene's silhouette stays authored.
+
+What that leaves as genuinely free:
+
+| Surface | Status | Capacity |
+|---|---|---|
+| **The panel** | exists, renders no channel data | unlimited, zero GPU cost |
+| The `<Contact>` lane | built and tested, commented out at `Strip.tsx:267-281` | a second visual plane, already keyed by lane |
+| `glow` / `halo` / `trail` booleans | authored, per-module | finite codomain, so material-safe |
+| Rotation | taken by `rate` | narrow band, low legibility (Part 1.2) |
+| Colour / opacity | taken, codomain-bounded | closed by construction |
+| Band label text | `LabelFactory` caches per string | **unbounded codomain — do not bind** |
+
+One more guard rail: `queries.spec.ts` fails the build on a bundle signal with no
+consumer (`queries.ts:192-196` explains why). Operand and channel land together,
+which is the right coupling and should be preserved.
+
+## 5.2 Ranked shortlist
+
+Twenty candidates, all verified non-empty on this cluster today. "Cost" is extra
+HTTP calls per snapshot. Ranked by operational value per unit of work.
+
+### Tier 1 — fixes something currently wrong, or catches a failure nothing else catches
+
+| # | Channel | PromQL | Module | Scale / polarity | Cost | Now |
+|---|---|---|---|---|---|---|
+| 1 | **Rabbit publish rate** — replaces the queue-depth mis-binding of Part 3.3 | `sum(rate(rabbitmq_channel_messages_published_total[5m]))` | `rabbitmq` `throughput` | `log max 200` / activity | 0 (`kvBundle`) | 0.72/s |
+| 2 | **Rabbit consumers** — a queue with depth and no consumer is the classic stall; `rabbitReady` alone cannot say which | `sum(rabbitmq_consumers)` | `rabbitmq` `connections` | `linear max 50` / activity | 0 (`kvBundle`) | 6 |
+| 3 | **Restart rate** — replaces the cumulative counter of Part 3.3 | `sum(rate(kube_pod_container_status_restarts_total[15m]))` | `kube-state-metrics` `errors` | `band good 0 bad 0.05` / **health** | 0 (`clusterBundle`) | 0 |
+| 4 | **CrashLoopBackOff** | `(count(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} > 0) or vector(0))` | `kube-state-metrics` `errors` | `bool invert` / health, critical | 0 (`clusterBundle`) | 0 |
+| 5 | **Pods pending / failed** — catches a scheduling failure that `unavailable` replicas can miss | `sum(kube_pod_status_phase{phase="Pending"})`, `…{phase="Failed"}` | `kube-state-metrics` `capacity` | `band good 0 bad 3` / health | 0 (`clusterBundle`) | 0 / 0 |
+| 6 | **Scrape duration headroom** — the feed's own early warning; the module the whole scene depends on has only `availability` + cpu/mem today | `max(scrape_duration_seconds)` | `prometheus` `latency` | `band good 1 bad 25` / health, critical | 0 (`clusterBundle`) | 1.46 s |
+| 7 | **Host temperature** — a thermal event is exactly what a physical-cluster view should catch, and nothing reports it | `max(node_hwmon_temp_celsius)` | `node-exporter` `saturation` | `band good 45 bad 85` / health | 0 (`nodeBundle`) | 39 °C (31 sensors) |
+| 8 | **Disk saturation** | `max(rate(node_disk_io_time_seconds_total[5m]))` | `node-exporter` `saturation` | `ratio` / activity | 0 (`nodeBundle`) | 0.006 |
+
+### Tier 2 — real signal, cheap, needs somewhere to display it
+
+| # | Channel | PromQL | Module | Scale / polarity | Cost | Now |
+|---|---|---|---|---|---|---|
+| 9 | Redis keyspace hit rate | `sum(rate(redis_keyspace_hits_total[5m])) / clamp_min(sum(rate(redis_keyspace_hits_total[5m])) + sum(rate(redis_keyspace_misses_total[5m])), 1)` | `redis` `capacity` | `band good 0.9 bad 0.5` / health | 0 (`kvBundle`) | **0.41** |
+| 10 | Redis clients / keys | `sum(redis_connected_clients)`, `sum(redis_db_keys)` | `redis` `connections` | `linear max 200` / activity | 0 (`kvBundle`) | 48 / 1392 |
+| 11 | Postgres cache hit ratio | `sum(rate(pg_stat_database_blks_hit[5m])) / clamp_min(sum(rate(pg_stat_database_blks_hit[5m])) + sum(rate(pg_stat_database_blks_read[5m])), 1)` | `pgvector` `capacity` | `band good 0.99 bad 0.8` / health | 0 (`sqlBundle`) | 1.00 |
+| 12 | Postgres database size | `sum(pg_database_size_bytes)` | `pgvector` `saturation` | `log max 5e10` / activity | 0 (`sqlBundle`) | 139 MB |
+| 13 | Mongo lock queue | `sum(mongodb_ss_globalLock_currentQueue{count_type="total"})` | `mongo` `saturation` | `band good 0 bad 20` / health | 0 (`sqlBundle`) | 0 |
+| 14 | MySQL slow queries | `sum(rate(mysql_global_status_slow_queries[5m]))` | `mysql` `errors` | `band good 0 bad 1` / health | 0 (`sqlBundle`) | 0 |
+| 15 | Node network throughput | `sum(rate(node_network_receive_bytes_total{device!~"lo\|veth.*\|cni.*\|flannel.*"}[5m]))` + transmit | `node-exporter` `throughput` | `log max 1e8` / activity | 0 (`nodeBundle`) | 16.2 / 9.2 KB/s |
+| 16 | MinIO free capacity | `sum(minio_cluster_capacity_usable_free_bytes)` | `minio` `capacity` | `log max 2e12` / health | 0 (`blobBundle`) | 345 GB |
+| 17 | Meilisearch request rate — gives the strip a real rotation instead of the boolean of Part 3.3 | `sum(rate(meilisearch_http_requests_total[5m]))` | `meilisearch` `throughput` | `log max 200` / activity | 0 (`kvBundle`) | 0.33/s |
+| 18 | TSDB head series | `sum(prometheus_tsdb_head_series)` | `prometheus` `saturation` | `log max 1e7` / activity | 0 (`clusterBundle`) | 92 121 |
+
+### Tier 3 — available, lower value, or costs a request
+
+| # | Channel | Note |
+|---|---|---|
+| 19 | Node uptime, `time() - node_boot_time_seconds` = 674 149 s (7.8 d) | context rather than health; a panel readout, not a visual channel |
+| 20 | apiserver 4xx rate and p99 latency | 4xx is 0/s and free in `clusterBundle`. **The p99 is a trap**: `histogram_quantile(0.99, …apiserver_request_duration_seconds_bucket…)` returns 60 s because watch long-polls dominate the buckets. Needs `{verb!~"WATCH\|CONNECT"}` before it means anything |
+| — | Per-pod network I/O | would need a new `labelled` query, +1 HTTP call. 179 KB/s aggregate. Only worth it once pods have somewhere to show it |
+| — | Gitea repos / orgs / issues (4 / 1 / 0), PVC count (16), deployment replicas (37), load5 / load15 (0.53 / 0.56), swap free (16.8 GB) | all live and free; low information density for a scene |
+
+### Confirmed unavailable — do not add
+
+| Metric | Status |
+|---|---|
+| `minio_node_disk_free_bytes`, `minio_bucket_usage_object_total` | empty on this cluster; the free-space note at `queries.ts:192-196` is right, and #16 is the working alternative |
+| `meilisearch_index_docs_count` | empty |
+| `qdrant_*` | **the exporter emits none.** Qdrant is scraped for `up` only, so the cAdvisor-only treatment at `catalog.ts:696` is correct and cannot be improved |
+| `http_requests_total{job="librechat"}`, `sse_streams_in_flight` | not scraped. `appBundle` is already waiting for them |
+
+## 5.3 The order the work should happen in
+
+Stated as a sequence because the dependencies are real, not as a schedule.
+
+1. **Fix Defect A** (`catalogShape`). Until the revision tracks the assembled set,
+   nothing new that arrives from discovery or expansion can ever be seen, which
+   makes every other item here partly untestable.
+2. **Fix Defect B** (bound form fields). One-line-ish, uses helpers that already
+   exist, and removes a UI element that currently asserts something false.
+3. **Build a display surface for `channels[]`.** This is the item that unlocks the
+   whole shortlist. 91 channels already arrive with labels, units, raw values and
+   states; the panel is the natural home and costs nothing on the GPU. Until this
+   exists, Tier 1 and 2 above widen a payload that is discarded at
+   `live/adapt.ts:45`.
+4. **Then Tier 1**, which is where the operational value is and where two current
+   mis-bindings get corrected.
+5. **Consider restoring `<Contact>`** if a second visual plane is wanted. The lane
+   assignment and the overflow ring are already computed and tested
+   (`resolve.ts:137`); `Strip.tsx:267-281` documents exactly what restoring it
+   involves. Note that it stays off by choice today, not by oversight.
+
+Tier 2 and 3 follow display surface, not the other way round.
+
+---
+
+# Appendix — how to reproduce the measurements
 
 ```bash
-PROM=http://192.168.0.103:30990     # or ssh K3s-server, then localhost:9090
-curl -s "$PROM/api/v1/status/buildinfo" | jq -r '.data.version'
-curl -sG "$PROM/api/v1/query" --data-urlencode 'query=up' \
-  | jq -r '.data.result[] | [.metric.job, .metric.instance] | @tsv' | sort
+# every catalogue query, against the live Prometheus
+ssh K3s-server 'curl -s --get --data-urlencode "query=up" \
+  http://localhost:30990/api/v1/query'
+
+# the metric-name inventory of Part 4.3
+ssh K3s-server 'curl -s http://localhost:30990/api/v1/label/__name__/values'
+
+# the channel census of Part 3.1, from the committed fixture
+python3 -c "import json;d=json.load(open('client/src/components/SystemCore/live/__tests__/__fixtures__/snapshot.json'));print(sum(len(m['channels']) for m in d['modules']))"
+
+# cache growth across ticks — all four numbers flat is the passing condition
+VITE_ENABLE_LOGGER=true npm run frontend:dev   # then read 'system_core' in the console
 ```
 
-## 7.2 End to end
-
-`npm run backend:dev` (3080) + `npm run frontend:dev` (3090).
-
-1. **Feature off first** — 26 fixture modules, every field editable including
-   `status` and `Speed`, and **no snapshot request** in the Network tab. This is
-   the state most deployments are in.
-2. **No poll while closed** — one availability request, zero snapshots until the
-   modal opens; one snapshot on open, then one per ~20 s; **requests stop on
-   close**; reopening within five minutes paints from cache with one background
-   refetch.
-3. **Rotation survives a poll**, using only existing UI: set a module's `Speed`
-   to 2, open Motion, hit **pin** (`Fields.tsx:315`) and note the radian value;
-   wait past a tick boundary; pin again. The delta must be ≈
-   `speed × SPIN × elapsed` where `SPIN = 2π × 0.15` (`palette.ts:29`). A
-   remount would have restarted from the pinned phase, so the delta would be
-   ≈0. Visually, a wide band must not stutter at the tick.
-4. **Caches stay flat** — add a probe in `Scene.tsx` using the repo's own
-   tag-filtered logger (free in production):
-
-   ```ts
-   useEffect(() => {
-     logger.log('system_core', {
-       materials: mats.size,
-       geometries: gl.info.memory.geometries,
-       textures: gl.info.memory.textures,
-       programs: gl.info.programs?.length,
-     });
-   }, [strips, mats, gl]);
-   ```
-
-   Run with `VITE_ENABLE_LOGGER=true VITE_LOGGER_FILTER=system_core` and watch
-   ≥10 ticks. **All four numbers must be flat.** `materials` climbing means a
-   continuous channel reached `MaterialRegistry.get()`. `textures` climbing means
-   something reached `LabelFactory`. **`geometries` climbing would refute §4.3's
-   one unverified assumption** — that R3F does not rebuild geometry on
-   referentially-new `args` arrays — and this is where that gets settled.
-5. **Failure path** — stop Prometheus, watch four failed polls, confirm the
-   breaker latches, the Panel shows the error chip, and retry resumes.
-6. **The gate** — non-admin JWT → 403; no JWT → 401; and injection attempts
-   (`?query=…`, a POST body) leave the outgoing PromQL byte-identical to a clean
-   run.
-
-## 7.3 Tests
-
-Real logic over mocks throughout; the Prometheus HTTP API is the one legitimate
-mock boundary (CLAUDE.md names external HTTP APIs explicitly).
-
-**Backend** (`cd packages/api && npx jest systemCore`) — `config.spec.ts` (real
-env manipulation, clamping, URL rejection); `scale.spec.ts` (table-driven over
-all five scaling rules with the real live values, plus `NaN`/`Infinity` → `null`
-not `0`, plus the status truth table); `queries.spec.ts` (**invariants over the
-static registry**: no backtick or `${` in any expression, every rate window ≥ 2×
-the scrape interval, no `query_range`/`start`/`step`, every bundle's declared
-signals present with `label_replace` count equal to signal count, ids unique);
-`catalog.spec.ts` (every emitted id matches the client's `ID_RE`, every placement
-inside the ranges `schema.ts:SPEC` declares — **the guard against emitting a
-module `normalize()` will reject**); `assemble.spec.ts` (pure, over fixtures
-captured live: happy path, one target down, `appBundle` empty → `missing` while
-cAdvisor channels stay `ok`, one bundle failed → six channels `error` and the
-rest fine, unmatched target → one slugified overflow module, 200 unmatched → 64
-plus a `truncated` error, claimed exporter → **no** overflow module, probe
-expansion → 10 distinct ids, stale scrape → `loading`, and two assembles of the
-same input → byte-identical ids and order); `snapshot.spec.ts` (`jest.spyOn(global,
-'fetch')`: 10 concurrent calls → exactly 14 fetches, second call in TTL → 0,
-unconfigured → **fetch never called**, every request body an exact member of the
-registry's expression set, total failure → serve-stale); `handler.spec.ts`
-(including the adversarial case — `req.query`/`req.body`/`req.params` populated,
-asserting outgoing bodies are byte-identical to the clean run).
-
-**Route** (`cd api && npx jest admin/systemCore`) — middleware order, 403 with
-the handler never invoked, 200 when allowed, only `GET /snapshot` routed.
-
-**Client** (`cd client && npx jest src/components/SystemCore src/data-provider/SystemCore`) —
-`bind.spec.ts` (**`effectiveStatus` never returns a key outside `STATUS_KEYS`**
-over hundreds of generated readings including `NaN`, `±Infinity`, `-0`, `1e308`
-— the codomain guarantee that closes the material leak, asserted directly;
-`boundSpeed` within `SPEC`'s bounds *read from `SPEC`*; sign preservation and
-monotonicity; every `BINDINGS` key resolves in `SPEC`, guarding against a typo
-silently un-locking a field); `adapt.spec.ts` (every synthesized overflow module
-passes the schema's own `verify`, determinism across repeated adapts,
-`reconcile` never rewrites authored fields and prunes runtime);
-`materials.spec.ts` (500 distinct triples with sweeps between → size stays
-capped; `jest.spyOn` on real `dispose`; **nothing from the current or previous
-generation ever disposed**; repeated `get()` returns the identical instance —
-the prop-identity guarantee behind "zero GPU uploads");
-`useModules.spec.tsx` (catalogue add/remove, runtime pruned, dismissal honoured,
-and phase survival across five new `readings` identities);
-`queries.spec.ts` (breaker latches after N failures and reopens on reset;
-hostile `nextPollMs` floored); plus extensions to `Panel.spec.tsx` and
-`Dialog.spec.tsx` — **first fixing the stale `(25)` and `0.62` assertions** —
-including "no poll while closed" as a spy assertion.
-
----
-
-# Part 8 — Sequencing
-
-1. **Decide the `.gitignore` fix, track `data/`, and green the 6 failing tests.**
-   Nothing else is safe while the fixture is unversioned.
-2. **`MaterialRegistry` sweep + `size` getter + `materials.spec.ts`, landed
-   alone.** Independently verifiable, and it makes everything after it safe.
-3. `live/bind.ts` + spec with `live` always `null` — prove the feature-off path
-   is a no-op.
-4. `resolve.ts` third parameter, `Scene.tsx` (memo deps, `opacityOf`, sweep
-   effect, the instrumentation probe), `List.tsx` swatch — still with empty
-   readings. **The whole scene refactor lands green before any Prometheus data
-   arrives.**
-5. Backend: `config` → `queries` → `catalog` → `scale` → `assemble` →
-   `snapshot` → `handler` → route, with specs.
-6. Wire contract, then `npm run build:data-provider`.
-7. `live/adapt.ts`, `data-provider/SystemCore/`, `useLive`, `useModules`
-   reconcile/prune/dismiss, `Dialog.tsx` wiring.
-8. Panel locked fields, localization keys, spec extensions.
-9. Access gating: availability query, button, sidebar, poll `enabled`.
-10. Uncomment `Strip.tsx:253-258`, check `Contact.tsx:42`'s distance formula
-    against `SCANNER.rings`, then the overflow lane.
-11. Follow-ups, in dependency order: a `degraded` status (needs step 1);
-    `appearance.opacity` from staleness (needs a fixed opacity ladder **plus**
-    hysteresis, or the registry key space reopens); `geometry.arc` from load
-    (needs step 4's geometry measurement first); `audio.level` from health
-    (needs `ToneBus.setLevel`).
-
----
-
-# Part 9 — Open items
-
-1. **The `.gitignore` fix is a user decision.** It is a repo-wide change, so it
-   is not made silently here. Everything in Part 8 step 1 waits on it.
-2. **Concurrent edits to SystemCore.** `Scene.tsx` was modified outside this
-   work during the design pass — the `Hum` import and its render were removed —
-   and `.gitignore` gained an unrelated Ruflo block. Several Claude sessions are
-   running against this repo. Confirm no other session is editing SystemCore
-   before starting, since `Scene.tsx` is central to steps 3–4.
-3. **Naming.** The scene's module ids will become real service names
-   (`mongo`, `pgvector`, `redis`), replacing the fictional set
-   (`db-users`, `cache-l1`). If the fictional names are wanted for presentation,
-   the catalogue's `label` can carry them while `id` stays real — but that should
-   be a deliberate choice, not a default.
-4. **Enabling LibreChat's own metrics** is a one-line scrape job plus
-   `METRICS_SECRET`, and the design already carries the bindings. It is a cluster
-   change, so it stays out of scope until asked for.
-5. **`geometries` flatness** (§7.2 step 4) is the one assumption not provable by
-   reading the code. If it fails, geometry must stay authored permanently, and
-   any future `geometry.arc` binding is off the table without a different
-   approach.
+Regenerating the snapshot fixture is `packages/api/src/systemCore/capture.manual.spec.ts`.
+Redact before committing, and do not assert on a live magnitude in a test — the
+numbers in this document are a reading of one moment, not a contract.

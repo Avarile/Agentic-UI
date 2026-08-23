@@ -158,6 +158,92 @@ describe('MaterialRegistry passes after a sweep', () => {
     expect(() => reg.pulse(1234)).not.toThrow();
   });
 
+  it('pulses the picked strip only, and never the resting one', () => {
+    // The guard for the whole emphasis design. `hot` is the resting appearance of
+    // every unselected strip and `mark` is the picked one; because the registry is
+    // keyed by appearance rather than by module, a pulse that also touched `hot`
+    // would make the entire stack breathe in lockstep the moment anything was
+    // selected. Nothing else in the repo tests these visuals — Dialog.spec mocks
+    // Scene outright — so this is the only thing standing between that and a
+    // release.
+    const reg = new MaterialRegistry();
+    const hot = reg.get('hot', RUNNING, null, 1);
+    const mark = reg.get('mark', RUNNING, null, 1);
+    const restingOpacity = hot.opacity;
+    const restingEmissive = hot.emissiveIntensity;
+
+    reg.pulse(0);
+    reg.pulse(900);
+    reg.pulse(1234);
+
+    expect(hot.opacity).toBe(restingOpacity);
+    expect(hot.emissiveIntensity).toBe(restingEmissive);
+    expect(mark.opacity).not.toBe(restingOpacity);
+  });
+
+  it('pulses opacity rather than emissive, so every colour swings alike', () => {
+    // The canvas leaves ACES tone mapping on, which saturates emissiveIntensity
+    // past ~1.5 and clips differently per hue — a pulse written on emissive is
+    // invisible on white and obvious on red. Opacity is the post-tone-mapping
+    // blend factor, so the ratio is identical for every status in the palette.
+    const reg = new MaterialRegistry();
+    // Every status colour: running, fault, init, loading, controller.
+    const colours = [RUNNING, FAULT, 0x2fcb6a, 0x3e8cf0, 0xffffff];
+    const marks = colours.map((c) => reg.get('mark', c, null, 1));
+    const emissiveBefore = marks.map((m) => m.emissiveIntensity);
+
+    reg.pulse(700);
+
+    for (const [i, mark] of marks.entries()) {
+      expect(mark.emissiveIntensity).toBe(emissiveBefore[i]);
+    }
+    // One opacity for all of them, so one ratio for all of them.
+    expect(new Set(marks.map((m) => m.opacity)).size).toBe(1);
+  });
+
+  it('never pulses the selected strip below the resting appearance', () => {
+    // Selection is emphasis, so a picked strip must not read as dimmer than its
+    // neighbours at any point in the cycle. At the trough it matches them exactly.
+    const reg = new MaterialRegistry();
+    const hot = reg.get('hot', RUNNING, null, 1);
+    const mark = reg.get('mark', RUNNING, null, 1);
+
+    // The two share a resting recipe; only motion separates them.
+    expect(mark.opacity).toBe(hot.opacity);
+    expect(mark.emissiveIntensity).toBe(hot.emissiveIntensity);
+
+    let lowest = Infinity;
+    let highest = -Infinity;
+    // The cycle is ~2.6s at the current rate; sample past a full period.
+    for (let t = 0; t <= 3200; t += 25) {
+      reg.pulse(t);
+      lowest = Math.min(lowest, mark.opacity);
+      highest = Math.max(highest, mark.opacity);
+    }
+
+    expect(lowest).toBeGreaterThanOrEqual(hot.opacity - 1e-9);
+    expect(highest).toBeGreaterThan(hot.opacity);
+    // Opacity is a blend factor; past 1 it would silently clamp and the top of
+    // the swing would be wasted.
+    expect(highest).toBeLessThanOrEqual(1);
+  });
+
+  it('separates the picked overlay from the rest while something is selected', () => {
+    // The cue that works in a still frame. At the trough of its cycle `mark` is
+    // identical to `hot` by construction, so the pulse alone cannot say which
+    // strip is selected — dimming the unselected overlays is what does.
+    const reg = new MaterialRegistry();
+    const hot = reg.get('hot', RUNNING, null, 1);
+    const mark = reg.get('mark', RUNNING, null, 1);
+
+    reg.setDimmed(true);
+    expect(hot.opacity).toBeLessThan(mark.opacity);
+    expect(hot.emissiveIntensity).toBeLessThan(mark.emissiveIntensity);
+
+    reg.setDimmed(false);
+    expect(hot.opacity).toBeCloseTo(mark.opacity, 10);
+  });
+
   it('restores emissive intensity from the recorded base after dimming', () => {
     const reg = new MaterialRegistry();
     const band = reg.get('band', RUNNING, null, 0.62);

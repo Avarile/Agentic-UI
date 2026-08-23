@@ -121,7 +121,7 @@ const CONTROLLER_PLACEMENT: SystemCorePlacement = {
   order: 0,
 };
 
-const BAND = 0.05;
+const BAND = 0.02;
 const DEFAULT_LEVEL = 0.5;
 
 /* ------------------------------------------------------------------ rotation */

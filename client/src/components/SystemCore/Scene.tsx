@@ -88,8 +88,17 @@ function Frame({
   return null;
 }
 
-/** The selection pulse. Only the picked module's overlays render with these
- *  materials, so this animates its strip and its contact in lockstep. */
+/**
+ * The selection pulse.
+ *
+ * Motion *is* the selection signal now: every strip carries the bright overlay as
+ * its resting appearance, and only the picked one breathes. So this runs while
+ * something is selected and not otherwise — and `pulse()` deliberately animates
+ * only the `mark` kind, which is the picked strip's material alone. Were it to
+ * touch `hot` as well, the whole stack would pulse together the instant anything
+ * was clicked, because the registry is keyed by appearance and every unselected
+ * strip of a given status shares one material.
+ */
 function Pulse({ mats, active }: { mats: MaterialRegistry; active: boolean }) {
   useFrame(({ clock }) => {
     if (active) {

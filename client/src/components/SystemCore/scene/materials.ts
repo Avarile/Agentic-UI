@@ -29,6 +29,49 @@ export interface ModuleMaterials {
   mark: THREE.MeshStandardMaterial;
 }
 
+/**
+ * The resting appearance both overlays share.
+ *
+ * WHY THE PULSE IS ON OPACITY AND NOT ON emissiveIntensity
+ * -------------------------------------------------------
+ * R3F applies `ACESFilmicToneMapping` unless the Canvas passes `flat`, and ours
+ * does not (see Scene.tsx). Tone mapping runs in the fragment shader *before* the
+ * additive blend; `opacity` is the blend factor applied *after* it. So the two
+ * knobs are not interchangeable:
+ *
+ *   emissiveIntensity  saturates hard past ~1.5 and has almost no authority at
+ *                      3.2. Swinging it 3.2 -> 5.0 moves the light actually added
+ *                      by about 4% — and by a different 4% per colour, because
+ *                      where a channel clips depends on the hue. A pulse written
+ *                      this way is invisible on white and obvious on red.
+ *   opacity            multiplies the added light linearly, identically for every
+ *                      colour. Full authority.
+ *
+ * So the pulse is an opacity swing, and the ratio it produces is exact and
+ * colour-independent: 1.00 / 0.85 = 1.176x on every status in the palette.
+ */
+const EMPHASIS_EMISSIVE = 3.2;
+const EMPHASIS_OPACITY = 0.85;
+/**
+ * How far above the resting opacity the pulse reaches.
+ *
+ * 0.15 takes it to exactly 1.0, which is the ceiling — added light is clamped per
+ * channel, and the resting overlay already spends most of the budget. There is no
+ * more swing to be had here without lowering `EMPHASIS_OPACITY`, which would
+ * change how the scene looks at rest.
+ */
+const PULSE_GAIN = 0.15;
+/**
+ * Pulse angular frequency, in radians per millisecond: a 2.6-second breath.
+ *
+ * The old rate was 0.005 — a 1.26s cycle — tuned when the pulse was the whole
+ * scene throbbing. On a single bright ring that reads as a fault blinker, which
+ * collides with what `fault` already means in this palette. A slower cycle also
+ * gives a modest swing the dwell time it needs to register as breathing rather
+ * than as flicker.
+ */
+const PULSE_W = 0.0024;
+
 const MAT_KINDS: Record<
   MatKind,
   (c: number, o: number | null, gain: number) => THREE.MeshStandardMaterialParameters
@@ -64,14 +107,23 @@ const MAT_KINDS: Record<
     blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
   }),
-  // Selection overlays. Kept out of the dimming pass below: they are the thing
-  // being emphasised, so brightening the rest would defeat them.
+  // THE TWO EMPHASIS OVERLAYS, WHICH DIFFER ONLY IN WHETHER THEY MOVE
+  // -----------------------------------------------------------------
+  // `hot` is how a strip looks normally — this used to be the selection
+  // treatment, and it is now the resting appearance of every strip in the scene.
+  // `mark` is the picked one. Their recipes are deliberately identical, because
+  // motion is the whole of the difference: `pulse()` drives `mark` upward from
+  // this shared base, so a selected strip is never dimmer than its neighbours,
+  // only livelier.
+  //
+  // Both stay out of the dimming pass below: they are the thing being emphasised,
+  // so dimming them along with the rest would defeat them.
   hot: (c) => ({
     color: 0x000000,
     emissive: c,
-    emissiveIntensity: 3.2,
+    emissiveIntensity: EMPHASIS_EMISSIVE,
     transparent: true,
-    opacity: 0.85,
+    opacity: EMPHASIS_OPACITY,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
@@ -79,16 +131,31 @@ const MAT_KINDS: Record<
   mark: (c) => ({
     color: 0x000000,
     emissive: c,
-    emissiveIntensity: 2.6,
+    emissiveIntensity: EMPHASIS_EMISSIVE,
     transparent: true,
-    opacity: 0.8,
+    opacity: EMPHASIS_OPACITY,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
   }),
 };
 
-const DIMMABLE = new Set<MatKind>(['band', 'glow', 'halo']);
+/**
+ * `hot` is in here; `mark` is not. That asymmetry is the selection signal.
+ *
+ * `hot` was excluded while `pulse()` owned its opacity — two writers on one
+ * property. The pulse now touches only `mark`, so the conflict is gone and the
+ * dimming pass can do something useful again. Without `hot` in the set the pass
+ * had become decorative: every strip carries the overlay now, so dimming only the
+ * base layers drops all 28 identically and produces no picked-vs-unpicked
+ * difference at all — just a global flinch on every click.
+ *
+ * With it, an unselected overlay drops to 55% while the picked one holds full, a
+ * ~2x separation. That matters because it is the only cue legible in a *still*
+ * frame: at the trough of its cycle `mark` is pixel-identical to `hot` by
+ * construction, so the pulse alone cannot say which strip is selected.
+ */
+const DIMMABLE = new Set<MatKind>(['band', 'glow', 'halo', 'hot']);
 
 /** How far the always-on materials drop while something is picked. */
 const DIM = 0.55;
@@ -158,10 +225,13 @@ export class MaterialRegistry {
     };
   }
 
-  /** Dim the always-on materials while something is picked, so the selected
-   *  strip and its contact carry the eye. Driven off each material's own
-   *  recorded base rather than recomputed constants, since a per-module colour
-   *  override means there is no fixed set of materials to enumerate. */
+  /** Dim the always-on materials while something is picked, so the emphasis
+   *  overlays carry the eye. This is a global pass, not a per-module one — the
+   *  registry is keyed by appearance and shared, so it cannot single one strip
+   *  out; what it does is drop the background so the overlays read louder.
+   *  Driven off each material's own recorded base rather than recomputed
+   *  constants, since a per-module colour override means there is no fixed set of
+   *  materials to enumerate. */
   setDimmed(on: boolean): void {
     const k = on ? DIM : 1;
     for (const mat of this.reg.values()) {
@@ -175,15 +245,24 @@ export class MaterialRegistry {
     }
   }
 
-  /** The selection pulse. Only the picked module's meshes are visible with
-   *  these materials, so this animates the strip and its contact in lockstep. */
+  /**
+   * The selection pulse: `mark` and nothing else.
+   *
+   * `hot` is deliberately untouched. It is the resting appearance of every
+   * unselected strip, and because the registry is keyed by appearance rather than
+   * by module, animating it here would make the entire stack breathe in lockstep
+   * the moment anything was selected — the steady default would survive exactly
+   * until the first click.
+   *
+   * Walking the registry rather than taking a module is what keeps the cost
+   * independent of how many strips are on screen. It also means every *selected*
+   * strip would pulse in step, which is fine: there is only ever one.
+   */
   pulse(now: number): void {
-    const p = 0.5 + 0.5 * Math.sin(now * 0.005);
+    const p = 0.5 + 0.5 * Math.sin(now * PULSE_W);
     for (const mat of this.reg.values()) {
-      if (mat.userData.kind === 'hot') {
-        mat.opacity = 0.55 + 0.35 * p;
-      } else if (mat.userData.kind === 'mark') {
-        mat.emissiveIntensity = 1.7 + 1.7 * p;
+      if (mat.userData.kind === 'mark') {
+        mat.opacity = EMPHASIS_OPACITY + PULSE_GAIN * p;
       }
     }
   }

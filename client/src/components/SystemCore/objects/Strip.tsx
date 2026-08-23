@@ -240,8 +240,12 @@ export default function Strip({
         </mesh>
       )}
 
-      {/* Selection overlay: a brighter twin of the band, hidden until picked. */}
-      <mesh name={`${id}-select`} material={mats.hot} visible={picked}>
+      {/* The emphasis overlay: a brighter twin of the band, and the resting
+          appearance of every strip rather than a selection state.
+          `hot` and `mark` share one recipe, so this mesh looks the same either
+          way — what marks the picked strip is that `mark` is the only kind
+          MaterialRegistry.pulse() animates. Motion is the selection signal. */}
+      <mesh name={`${id}-select`} material={picked ? mats.mark : mats.hot}>
         <cylinderGeometry
           args={[radius + 0.006, radius + 0.006, h * 1.45, seg, 1, true, -0.015, arc + 0.03]}
         />

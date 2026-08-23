@@ -1,6 +1,4 @@
-# Goal: Present the Promethus data using the CoreModule(The 3D Presentation in client/src/components/SystemCore)
+# Goal: Analysis if change of the state will update the status live, and reflect on from the 3D Representation
 
-1. Goal step one: Analysis the code structure of the 3D Presentation of the CodeModule, how the UI of 3D Objects is driven by the data needs to be findout and verified. If the data driven is not implemented or not working properly, redesign the components, layer them properly (This also includes the state-management)
-2. Goal step two: Analysis the data provided from Promethus, Map the data received from the Promethus, design proper interface accordingly.
-3. Goal step three: Design a comprehensive way to update the UI layer periodically driven by the data from the Promethus.
-4. Output to scripts/development/Design.
+1. Analysis the exsiting implmentation of the client/src/components/SystemCore, let me know if the change of the stats update the UI live.
+2. Analysis the data pulled from the Prometheus, then output to scripts/development/Design, then analysis if more data can be presented.
