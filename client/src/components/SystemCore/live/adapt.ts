@@ -54,6 +54,10 @@ function readingOf(m: SystemCoreModule): Reading {
     rate: finite(m.rate),
     stale: m.staleness?.stale === true,
     overflow: m.origin === 'discovered',
+    // Guarded like everything else here: a snapshot is remote input, and the
+    // failure mode for a malformed one is a module with no readings rather than a
+    // modal that white-screens behind an error boundary.
+    channels: Array.isArray(m.channels) ? m.channels : [],
   };
 }
 

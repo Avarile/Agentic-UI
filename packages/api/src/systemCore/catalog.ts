@@ -25,6 +25,7 @@
 
 import type {
   SystemCoreUnit,
+  SystemCoreModule,
   SystemCoreStatus,
   SystemCoreChannelId,
   SystemCorePlacement,
@@ -476,6 +477,27 @@ export const CATALOG: readonly CatalogEntry[] = [
         polarity: 'health',
         critical: true,
       },
+      {
+        id: 'saturation',
+        // Carried in the label because the wire has no temperature unit, and
+        // inventing one would mean a data-provider change for one channel.
+        label: 'Temperature °C',
+        unit: 'count',
+        // The one physical signal in the whole catalogue, and nothing else
+        // reports it: a machine cooking itself is invisible to every other
+        // channel here until something falls over.
+        select: bundle('nodeBundle', 'temp'),
+        scale: { kind: 'band', good: 45, bad: 85 },
+        polarity: 'health',
+      },
+      {
+        id: 'load',
+        label: 'Disk busy',
+        unit: 'ratio',
+        select: bundle('nodeBundle', 'diskio'),
+        scale: { kind: 'ratio' },
+        polarity: 'activity',
+      },
     ],
   },
   {
@@ -496,10 +518,16 @@ export const CATALOG: readonly CatalogEntry[] = [
       {
         id: 'errors',
         label: 'Container restarts',
-        unit: 'count',
+        // Per second now, not a running total — see the `restarts` operand in
+        // ./queries. A cumulative counter on a log scale saturated the first time
+        // anything restarted and never came back down.
+        unit: 'per_second',
         select: bundle('clusterBundle', 'restarts'),
-        scale: { kind: 'log', max: 100 },
-        polarity: 'activity',
+        // 0.05/s is three restarts a minute, which is a crash loop rather than a
+        // blip. Health rather than activity: containers restarting is not the
+        // cluster being busy.
+        scale: { kind: 'band', good: 0, bad: 0.05 },
+        polarity: 'health',
       },
       {
         id: 'capacity',
@@ -663,19 +691,33 @@ export const CATALOG: readonly CatalogEntry[] = [
     channels: [
       availability(self()),
       {
-        id: 'connections',
-        label: 'Queues',
-        unit: 'count',
-        select: bundle('kvBundle', 'rabbitQueues'),
-        scale: { kind: 'linear', max: 50 },
+        id: 'throughput',
+        label: 'Published',
+        unit: 'per_second',
+        // The rate, which is what `throughput` means everywhere else and what the
+        // strip's rotation is modulated by. This channel used to carry the queue
+        // depth, so a broker whose consumers had stalled span *faster*.
+        select: bundle('kvBundle', 'rabbitPublish'),
+        scale: { kind: 'log', max: 200 },
         polarity: 'activity',
       },
       {
-        id: 'throughput',
+        id: 'saturation',
         label: 'Messages ready',
         unit: 'count',
+        // Still worth showing — it is simply a backlog rather than a throughput.
         select: bundle('kvBundle', 'rabbitReady'),
         scale: { kind: 'log', max: 1000 },
+        polarity: 'activity',
+      },
+      {
+        id: 'connections',
+        label: 'Consumers',
+        unit: 'count',
+        // The other half of the pair: depth alone cannot distinguish a busy
+        // broker from one nobody is draining.
+        select: bundle('kvBundle', 'rabbitConsumers'),
+        scale: { kind: 'linear', max: 50 },
         polarity: 'activity',
       },
     ],
@@ -754,6 +796,16 @@ export const CATALOG: readonly CatalogEntry[] = [
       availability(self()),
       {
         id: 'throughput',
+        label: 'Requests',
+        unit: 'per_second',
+        // A real rate. `throughput` reaches the strip's rotation, and a boolean
+        // there gave two indistinguishable speeds ten per cent apart.
+        select: bundle('kvBundle', 'meiliRequests'),
+        scale: { kind: 'log', max: 200 },
+        polarity: 'activity',
+      },
+      {
+        id: 'saturation',
         label: 'Indexing',
         unit: 'boolean',
         select: bundle('kvBundle', 'meiliIndexing'),
@@ -853,7 +905,24 @@ export const CATALOG: readonly CatalogEntry[] = [
     order: 150,
     target: { job: 'prometheus' },
     authoredStatus: 'running',
-    channels: [availability(self()), ...resourceChannels('infra', 'prometheus', 2, 4 * GB)],
+    channels: [
+      availability(self()),
+      {
+        id: 'latency',
+        label: 'Scrape duration',
+        unit: 'seconds',
+        // The feed watching itself. Every number in this scene is downstream of a
+        // scrape completing inside its interval, and until now the one module
+        // that could have said so reported only whether its own port answered.
+        // Critical: a Prometheus taking sixteen seconds to scrape is not serving
+        // current data, whatever its `up` series says.
+        select: bundle('clusterBundle', 'scrapeMax'),
+        scale: { kind: 'band', good: 1, bad: 25 },
+        polarity: 'health',
+        critical: true,
+      },
+      ...resourceChannels('infra', 'prometheus', 2, 4 * GB),
+    ],
   },
   {
     id: 'blackbox-exporter',
@@ -950,17 +1019,36 @@ export const CATALOG_BY_ID = new Map<string, CatalogEntry>(CATALOG.map((e) => [e
  *  turn 50,000 targets into 50,000 strips. */
 export const MAX_OVERFLOW = 64;
 
+/** The fields of an assembled module that are allowed to move the revision. */
+export type RevisionInput = Pick<SystemCoreModule, 'id' | 'placement' | 'channels'>;
+
 /**
- * A fingerprint of the catalogue's *shape*.
+ * A fingerprint of the module *set*, sent to the client as `catalogRevision`.
  *
- * Sent to the client as `catalogRevision` so it can tell "the module list
- * changed" from "the numbers changed" and reconcile only when it must. Derived
- * from ids, placement inputs and order — never from a sample.
+ * It lets the client tell "the module list changed" from "the numbers changed",
+ * so it reconciles its scene graph rarely and applies readings often.
+ *
+ * WHY THIS TAKES THE ASSEMBLED MODULES AND NOT `CATALOG`
+ * -----------------------------------------------------
+ * It used to be a pure function of the CATALOG constant, which made it a
+ * compile-time constant — and CATALOG is not the module list. `expandCatalog`
+ * turns the one `probe` entry into a module per blackbox target, and
+ * `buildOverflow` appends whatever discovery found. So a new probe, a new scrape
+ * target, or a target going away all left the revision untouched, the client's
+ * reconcile ran exactly once per page load, and the scene silently stopped
+ * tracking the cluster until someone reloaded the tab.
+ *
+ * Every term below is still something a *measurement* cannot move: ids come from
+ * which targets exist, placement is derived from the entry and the module's
+ * position in the set, and the channel count is static per entry. An id appearing
+ * or disappearing does move it, and that is the whole point — a module arriving
+ * is not a sample changing.
  */
-export function catalogShape(): string {
+export function revisionOf(modules: readonly RevisionInput[]): string {
   const parts: string[] = [];
-  for (const e of CATALOG) {
-    parts.push(`${e.id}:${e.order}:${e.radius}:${e.arc}:${e.speed}:${e.channels.length}`);
+  for (const m of modules) {
+    const p = m.placement;
+    parts.push(`${m.id}:${p.order}:${p.radius}:${p.arc}:${p.speed}:${m.channels.length}`);
   }
   return parts.join('|');
 }

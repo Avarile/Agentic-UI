@@ -11,7 +11,6 @@ import {
   CATALOG,
   CATALOG_BY_ID,
   MAX_OVERFLOW,
-  catalogShape,
   placementFor,
   overflowPlacement,
   speedFor,
@@ -365,28 +364,13 @@ describe('expansion', () => {
   });
 });
 
-describe('catalogShape', () => {
-  it('is stable across calls', () => {
-    expect(catalogShape()).toBe(catalogShape());
-  });
-
-  it('mentions every entry, so an added or removed module changes it', () => {
-    const shape = catalogShape();
-    for (const entry of CATALOG) {
-      expect(shape).toContain(entry.id);
-    }
-  });
-
-  it('is built only from things a sample cannot change', () => {
-    // The client keys its reconcile on this. If a reading could move it, every
-    // poll would rebuild the module list and the scene would restart its
-    // animation twice a minute.
-    const shape = catalogShape();
-    for (const entry of CATALOG) {
-      expect(shape).toContain(`${entry.id}:${entry.order}:${entry.radius}`);
-    }
-  });
-});
+// `catalogRevision` is asserted in ./assemble.spec.ts rather than here.
+//
+// It used to be tested against `catalogShape()`, a pure function of CATALOG, and
+// the invariant those tests encoded — "built only from things a sample cannot
+// change" — was satisfied by a constant, which is exactly what the bug was. The
+// property worth holding is about assembled snapshots: values moving must not
+// move the revision, and the target set moving must.
 
 describe('speedFor', () => {
   it('keeps every module inside the declared band', () => {

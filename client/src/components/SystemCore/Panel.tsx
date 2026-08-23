@@ -16,6 +16,7 @@ import type { Reading } from './live/bind';
 import type { Module } from './data/schema';
 import { serialize } from './data/serialize';
 import { displayName } from './data/schema';
+import Channels from './Channels';
 import Form from './Form';
 import List from './List';
 import { useLocalize } from '~/hooks';
@@ -225,6 +226,10 @@ export default function Panel({
             <p className="mb-2 truncate text-xs font-medium text-text-primary">
               {displayName(current)}
             </p>
+            {/* Above the form, because it is what the cluster says and the form
+                is what the arrangement says. Renders nothing when the poll is
+                off, which is what keeps the fixture-only panel unchanged. */}
+            <Channels channels={readings.get(current.id)?.channels ?? []} />
             <Form
               module={current}
               live={readings.get(current.id) ?? null}

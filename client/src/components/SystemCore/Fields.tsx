@@ -128,6 +128,25 @@ const FIELD = 'h-8 rounded-lg px-2 py-1 text-xs bg-surface-primary';
 /** A live field reads as a readout rather than as an input you have not noticed. */
 const BOUND_FIELD = 'cursor-default text-text-secondary';
 
+/**
+ * Uncontrolled while a person owns the field, controlled once the poll does.
+ *
+ * Every control here is uncontrolled by default: `defaultValue` is read once and
+ * the whole block is remounted by a key when the module changes (`Form.tsx`). That
+ * is right for something being typed into — it keeps the caret where it is — and
+ * wrong for a readout, because a new prop then changes nothing on screen. It is
+ * why a bound field showed its first-poll value for the rest of the session.
+ *
+ * Switching to `value` when bound is safe precisely because a bound control
+ * registers no reader (see `useField` below), so it has no path back into the
+ * module and cannot fight the commit. `readOnly` is set alongside, which is also
+ * what keeps React from warning about a value with no `onChange`.
+ */
+function valueProps(value: unknown, bound?: TranslationKeys) {
+  const text = value == null ? '' : String(value);
+  return bound != null ? { value: text } : { defaultValue: text };
+}
+
 /** Status keys are schema values; these are their display names. Mapped
  *  explicitly rather than built from the key so the translation keys stay
  *  statically checkable. */
@@ -155,7 +174,7 @@ function TextControl({ path, spec, value, disabled, id, bound }: ControlProps) {
       id={id}
       type="text"
       className={cn(FIELD, bound != null && BOUND_FIELD)}
-      defaultValue={value == null ? '' : String(value)}
+      {...valueProps(value, bound)}
       readOnly={bound != null}
       disabled={disabled}
     />
@@ -183,7 +202,7 @@ function NumberControl({ path, spec, value, disabled, id, bound }: ControlProps)
       min={spec.min}
       max={spec.max}
       placeholder={isNullable(spec) ? localize('com_ui_system_core_auto') : undefined}
-      defaultValue={value == null ? '' : String(value)}
+      {...valueProps(value, bound)}
       readOnly={bound != null}
       disabled={disabled}
     />
@@ -216,7 +235,9 @@ function StatusControl({ path, value, disabled, id, bound }: ControlProps) {
   const commit = useField(path, () => current, bound);
   return (
     <Select
-      value={current}
+      // State while a person owns it, the prop once the poll does — the state is
+      // seeded once and would otherwise pin the status to its first-poll value.
+      value={bound != null ? String(value ?? '') : current}
       // Radix renders a button, which has no readOnly to fall back on.
       disabled={disabled || bound != null}
       onValueChange={(next) => {

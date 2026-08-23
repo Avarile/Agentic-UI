@@ -32,6 +32,7 @@
 // three-free so the dialog shell does not drag the library into the eager
 // bundle.
 
+import type { SystemCoreChannel } from 'librechat-data-provider';
 import type { TranslationKeys } from '~/hooks/useLocalize';
 import type { Module } from '../data/schema';
 import { groupFields } from '../data/schema';
@@ -84,42 +85,40 @@ export interface Reading {
   stale: boolean;
   /** Arrived without a catalogue entry, so it belongs on the overflow lane. */
   overflow: boolean;
-}
-
-/** Which `Reading` field drives a given module path, for the panel's lock. */
-export interface LiveBinding {
-  channel: keyof Reading;
-  name: TranslationKeys;
+  /**
+   * Every channel the server resolved for this module, verbatim.
+   *
+   * Deliberately not reduced here, unlike everything above it. `health` is
+   * already the mean of the health-polarity channels and `load` and `rate` are
+   * already picks off named ids; this is the layer underneath those three, and it
+   * is the only one that still knows what each reading is called, what unit it is
+   * in, and whether it resolved at all. Both the panel readout and the band
+   * ticker want that, and neither can recover it from a mean.
+   *
+   * Empty rather than absent when nothing resolved, so no consumer has to
+   * null-check before iterating. Read-only because it is handed straight out of
+   * the query cache and shared with every other consumer of that snapshot —
+   * nothing downstream may sort or splice it in place.
+   */
+  channels: readonly SystemCoreChannel[];
 }
 
 /**
- * The paths the poll owns, keyed exactly as `Form.tsx` addresses its controls.
+ * Which `Reading` field drives a given module path, and what the panel shows for
+ * it.
  *
- * Kept small on purpose. Everything absent here — geometry, lane, labels,
- * audio, the colour override, opacity, the glow/halo/trail flags, visibility —
- * stays authored and fully editable, which is what lets the arrangement remain
- * something a person composes rather than something the cluster dictates.
- *
- * `status` is the only entry that reaches a material, and it is safe because its
- * codomain is STATUS_KEYS. Adding an entry here that resolves to a continuous
- * appearance value would reopen the leak described at the top of this file.
- *
- * OWNED IS NOT THE SAME AS MODULATED
- * ----------------------------------
- * `appearance.opacity` and `audio.level` are both driven by the poll and are
- * deliberately *absent* here, which is not an oversight. This map means "the poll
- * owns this field, so lock it"; those two are modulations of an authored value
- * that stays meaningful and is the only control over it — opacity applies
- * whenever the sample is current, and level is the ceiling the health curve
- * scales down from. Locking them would take away the only way to set them.
- * Before adding a path here, ask which of the two it is.
+ * `display` is what makes a bound control a readout rather than a label. Without
+ * it the form rendered the *authored* value under a "Driven by live data" badge
+ * — the module is seeded from the first snapshot and never rewritten, so a module
+ * could go from running to fault, recolour in the scene, recolour in the list,
+ * and still read `running` in the form for the rest of the session.
  */
-export const BINDINGS: Record<string, LiveBinding> = {
-  status: { channel: 'health', name: 'com_ui_system_core_channel_health' },
-  'motion.speed': { channel: 'rate', name: 'com_ui_system_core_channel_rate' },
-  'telemetry.health': { channel: 'health', name: 'com_ui_system_core_channel_health' },
-  'telemetry.progress': { channel: 'load', name: 'com_ui_system_core_channel_load' },
-};
+export interface LiveBinding {
+  channel: keyof Reading;
+  name: TranslationKeys;
+  /** The value to show for this path when there is a reading. */
+  display: (m: Module, live: Reading) => unknown;
+}
 
 // Speed bounds come from the schema rather than from literals here. Bound values
 // never pass through normalize(), so nothing else would catch an out-of-range
@@ -323,3 +322,53 @@ export function effectiveHealth(m: Module, live: Reading | null): number | null 
 export function effectiveProgress(m: Module, live: Reading | null): number | null {
   return (live == null ? null : ratio(live.load)) ?? ratio(m.telemetry.progress);
 }
+
+/**
+ * The paths the poll owns, keyed exactly as `Form.tsx` addresses its controls.
+ *
+ * Declared here rather than at the top of the file because every `display` below
+ * references a function defined above it — an object literal is evaluated at
+ * module load, so hoisting this would be a temporal dead zone error rather than a
+ * style question.
+ *
+ * Kept small on purpose. Everything absent here — geometry, lane, labels,
+ * audio, the colour override, opacity, the glow/halo/trail flags, visibility —
+ * stays authored and fully editable, which is what lets the arrangement remain
+ * something a person composes rather than something the cluster dictates.
+ *
+ * `status` is the only entry that reaches a material, and it is safe because its
+ * codomain is STATUS_KEYS. Adding an entry here that resolves to a continuous
+ * appearance value would reopen the leak described at the top of this file.
+ *
+ * OWNED IS NOT THE SAME AS MODULATED
+ * ----------------------------------
+ * `appearance.opacity` and `audio.level` are both driven by the poll and are
+ * deliberately *absent* here, which is not an oversight. This map means "the poll
+ * owns this field, so lock it"; those two are modulations of an authored value
+ * that stays meaningful and is the only control over it — opacity applies
+ * whenever the sample is current, and level is the ceiling the health curve
+ * scales down from. Locking them would take away the only way to set them.
+ * Before adding a path here, ask which of the two it is.
+ */
+export const BINDINGS: Record<string, LiveBinding> = {
+  status: {
+    channel: 'health',
+    name: 'com_ui_system_core_channel_health',
+    display: effectiveStatus,
+  },
+  'motion.speed': {
+    channel: 'rate',
+    name: 'com_ui_system_core_channel_rate',
+    display: boundSpeed,
+  },
+  'telemetry.health': {
+    channel: 'health',
+    name: 'com_ui_system_core_channel_health',
+    display: effectiveHealth,
+  },
+  'telemetry.progress': {
+    channel: 'load',
+    name: 'com_ui_system_core_channel_load',
+    display: effectiveProgress,
+  },
+};

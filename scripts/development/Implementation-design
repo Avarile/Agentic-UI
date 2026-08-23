@@ -1,0 +1,858 @@
+# Implementation plan — live channel data, from the wire to the strip surface
+
+Execution plan for the findings in `scripts/development/Design`. That document is
+the *why* and the evidence; this one is the *what to type*, in the order it should
+be typed.
+
+Six stages. Stages 0 and 1 are independent of everything else and of each other.
+Every stage is separately shippable and separately revertable — none of them
+leaves the scene in a half-built state.
+
+| Stage | What | Design ref | Workspace | Blocks |
+|---|---|---|---|---|
+| 0 | `catalogRevision` tracks the assembled module set | Part 2.1 | `packages/api` | 3, 4, 5 |
+| 1 | `LabelFactory` generation + sweep | Part 6.6 | `client` | 4 |
+| 2 | `Reading.channels` — carry the data across | Part 6.5 | `client` | 3, 4 |
+| 3 | Panel: bound fields tell the truth, and a channel readout | Parts 2.2, 6.5 | `client` | 4 |
+| 4 | The band ticker | Part 6.6 | `client` | — |
+| 5 | Catalogue: three mis-bindings and the Tier 1 channels | Parts 3.3, 5.2 | `packages/api` | — |
+
+---
+
+## Ground rules
+
+Carried from `CLAUDE.md` and from the invariants the existing code already holds.
+None of these is optional.
+
+- **New backend code is TypeScript in `packages/api`.** Nothing in this plan
+  touches `/api`.
+- **No new types that already exist.** `SystemCoreChannel` and friends live in
+  `packages/data-provider/src/types/queries.ts`; import them, do not restate them.
+  Rebuild with `npm run build:data-provider` if that package changes — it does not
+  in this plan.
+- **No `any`. Avoid `unknown`.** The one deliberate exception is `schema.ts`, which
+  validates untrusted input and documents why (`schema.ts:9-13`).
+- **`live/bind.ts` and `scene/resolve.ts` must stay free of `three` and of React.**
+  `resolve.ts:1-19` explains that the dialog shell imports it, so a `three` import
+  there drags the whole library into the eager bundle. New file `live/ticker.ts`
+  inherits the same rule.
+- **The codomain invariant (`live/bind.ts:1-33`).** Anything reaching a material
+  key must have a finite enumerable codomain. Stage 1 extends that guarantee to
+  the label cache, which is currently outside it.
+- **Single-word file names**, per `CLAUDE.md`. New files are `live/ticker.ts` and
+  `Channels.tsx`.
+- **Only English locale keys** are edited, in
+  `client/src/locales/en/translation.json`. Other languages are automated.
+- **Tests exercise real logic.** `MaterialRegistry` and `LabelFactory` both run
+  under jest today — `jest-canvas-mock` is already installed and imported at
+  `client/test/setupTests.js:18`, so canvas rasterisation works in tests.
+
+---
+
+## Stage 0 — `catalogRevision` must track the assembled module set
+
+**Why first.** Until this is fixed, a module that appears mid-session never gets a
+strip, so every later stage is partly untestable against a live cluster: you cannot
+watch a new probe light up because it never arrives.
+
+### The change
+
+`catalogShape()` (`packages/api/src/systemCore/catalog.ts:960`) is a pure function
+of the static `CATALOG` constant, so the revision is a compile-time constant. The
+list it is meant to fingerprint is not — `expandCatalog` produces one module per
+`probeSuccess` instance and `buildOverflow` appends discovered targets.
+
+Replace it with a function of the modules actually assembled.
+
+```ts
+// packages/api/src/systemCore/catalog.ts — replaces catalogShape()
+
+/**
+ * A fingerprint of the module *set*.
+ *
+ * Sent as `catalogRevision` so the client can tell "the module list changed" from
+ * "the numbers changed" and reconcile only when it must.
+ *
+ * Built from the assembled modules rather than from CATALOG, because CATALOG is
+ * not the list: `expandCatalog` turns one `probe` entry into one module per
+ * blackbox target, and `buildOverflow` appends whatever discovery found. Deriving
+ * this from the static array made it a compile-time constant, and the client
+ * reconciled exactly once per page load.
+ *
+ * Every term is something a *measurement* cannot move. An id appearing or
+ * disappearing is not a measurement — that is precisely the event this exists to
+ * signal.
+ */
+export function revisionOf(
+  modules: readonly Pick<SystemCoreModule, 'id' | 'placement' | 'channels'>[],
+): string {
+  const parts: string[] = [];
+  for (const m of modules) {
+    const p = m.placement;
+    parts.push(`${m.id}:${p.order}:${p.radius}:${p.arc}:${p.speed}:${m.channels.length}`);
+  }
+  return parts.join('|');
+}
+```
+
+```ts
+// packages/api/src/systemCore/assemble.ts — assembleSnapshot tail
+  const overflow = buildOverflow(results, claimedKeys(pending, results), errors);
+  const all = [...modules, ...overflow];
+
+  return {
+    configured: true,
+    collectedAt: new Date(collectedAtMs).toISOString(),
+    cacheAgeMs: 0,
+    nextPollMs: config.cacheTtlMs,
+    scrapeIntervalSeconds: config.scrapeIntervalSeconds,
+    catalogRevision: revisionOf(all),
+    modules: all,
+    errors,
+  };
+```
+
+`unconfiguredSnapshot` becomes `revisionOf([])`. The client only reads the revision
+when `configured === true` (`useLive.ts:118`), so the value is inert there; keep it
+consistent rather than special-cased.
+
+### Files
+
+- `packages/api/src/systemCore/catalog.ts` — replace `catalogShape`, add the
+  `SystemCoreModule` type import.
+- `packages/api/src/systemCore/assemble.ts` — two call sites.
+- `packages/api/src/systemCore/catalog.spec.ts` — **delete** the
+  `describe('catalogShape')` block at `:368-389`. Its third case asserts the
+  revision is "built only from things a sample cannot change", which is the wrong
+  invariant: it is satisfied by a constant, which is the bug.
+- `packages/api/src/systemCore/assemble.spec.ts` — the new tests belong here,
+  because the invariant is now about assembled snapshots rather than about a
+  catalogue helper.
+
+### Tests
+
+In `assemble.spec.ts`, against `assembleSnapshot` with hand-built `QueryResults`:
+
+1. `is stable when only the values move` — same target set, every sample value
+   changed; revision identical. This is the invariant that matters and the one the
+   client's 20-second poll depends on.
+2. `changes when a probe target appears` — add an `instance` to `probeSuccess`;
+   revision differs.
+3. `changes when a target is discovered` — add an unclaimed `up` row; revision
+   differs.
+4. `changes when a probe target goes away` — the reverse of 2.
+5. `is stable across two identical assemblies` — determinism.
+
+### Verify
+
+```bash
+cd packages/api && npx jest systemCore
+```
+
+End to end, against the live cluster: open the modal, add a blackbox target to the
+Prometheus config, and confirm a new strip appears within two poll intervals
+without a reload.
+
+### Known behaviour this introduces
+
+A target that flaps in and out of `up` will now add and remove its module. The
+runtime map is deleted on removal (`useModules.ts:125-129`), so a flapping module
+restarts its spin phase each time it returns — a visible stutter. It is confined to
+*expanded* and *overflow* modules; curated catalogue entries are static and never
+vanish. Accept it for now; if it proves noisy in practice the fix is a grace period
+on the server, not a change on the client.
+
+### Definition of done
+
+`packages/api` suite green; a new scrape target reaches the scene without a reload.
+
+---
+
+## Stage 1 — `LabelFactory` generation and sweep
+
+**Why now.** It is a latent leak *today*, independent of everything else, and it is
+the hard prerequisite for Stage 4. One `<canvas>` + `CanvasTexture` +
+`MeshBasicMaterial` per distinct string (`labels.ts:85-146`), freed only by
+`dispose()` at scene unmount (`Scene.tsx:146`). No generation counter, no eviction,
+no `delete`.
+
+### The change
+
+Mirror `MaterialRegistry` (`materials.ts:181`, `:286`) exactly, including the
+two-generation grace that lets a string vanish for one build and return free.
+
+```ts
+// client/src/components/SystemCore/scene/labels.ts
+
+/**
+ * When the cache is bigger than this, something is feeding it a continuous value.
+ *
+ * Bounded by the number of *distinct* strings the scene can ask for: one name per
+ * module, plus one ticker per module. A few hundred is generous. The same reasoning
+ * and the same backstop as MAX_MATERIALS in ./materials.ts.
+ */
+export const MAX_LABELS = 128;
+
+export class LabelFactory {
+  private readonly cache = new Map<string, THREE.MeshBasicMaterial>();
+  private readonly anisotropy: number;
+  private gen = 0;
+
+  get size(): number {
+    return this.cache.size;
+  }
+
+  /** The fixed band name. Shared by string — the codomain is the module names. */
+  get(text: string): THREE.MeshBasicMaterial {
+    return this.material('name\u0000' + text, text, false);
+  }
+
+  /**
+   * The scrolling readout.
+   *
+   * Keyed by id as well as text, so no two strips are ever handed the same
+   * texture. `offset.x` is advanced once per frame by whichever strip owns the
+   * mesh, and a shared texture would be advanced once per sharer — two modules
+   * whose readings happened to format identically would scroll at double rate.
+   */
+  ticker(id: string, text: string): THREE.MeshBasicMaterial {
+    return this.material('ticker\u0000' + id + '\u0000' + text, text, true);
+  }
+
+  private material(key: string, text: string, repeating: boolean): THREE.MeshBasicMaterial {
+    const found = this.cache.get(key);
+    if (found) {
+      // Stamped on the hit as well as the miss: a material still in use has to
+      // look used, or the next sweep disposes it out from under a live mesh.
+      found.userData.gen = this.gen;
+      return found;
+    }
+    const mat = this.rasterize(text, repeating);
+    mat.userData.gen = this.gen;
+    this.cache.set(key, mat);
+    return mat;
+  }
+
+  /**
+   * Releases what the last build stopped asking for, and opens a generation.
+   *
+   * After the commit, never during render and never per frame — a disposed
+   * texture still referenced by a mesh that has just rendered draws blank.
+   */
+  sweep(): void {
+    const floor = this.gen - 1;
+    for (const [key, mat] of this.cache) {
+      if ((mat.userData.gen as number) >= floor) {
+        continue;
+      }
+      mat.map?.dispose();
+      mat.dispose();
+      this.cache.delete(key);
+    }
+    this.gen += 1;
+    if (this.cache.size > MAX_LABELS) {
+      logger.warn(
+        'system_core',
+        `label cache holds ${this.cache.size} entries (cap ${MAX_LABELS}); ` +
+          'a string with an unbounded codomain is probably reaching LabelFactory',
+      );
+    }
+  }
+}
+```
+
+The existing body of `get()` becomes `private rasterize(text, repeating)`, with two
+additions at the end:
+
+```ts
+    if (repeating) {
+      tex.wrapS = THREE.RepeatWrapping;
+    }
+```
+
+### Files
+
+- `client/src/components/SystemCore/scene/labels.ts`
+- `client/src/components/SystemCore/Scene.tsx` — add `labels.sweep()` to the
+  existing post-commit effect at `:208-210`, alongside `mats.sweep()`. Add `labels`
+  to its dependency array. Add `labels: labels.size` to the `logger.log` payload at
+  `:216-224`, which is the diagnostic that makes a leak visible.
+
+### Tests — new file `scene/__tests__/labels.spec.ts`
+
+Model it on `materials.spec.ts`, which already exercises the identical mechanism.
+
+1. `hands back one material per distinct string` — two `get('redis')` calls return
+   the same object; `size` is 1.
+2. `keys the ticker by module as well as text` — `ticker('a', X)` and
+   `ticker('b', X)` return **different** objects with different textures. This is
+   the double-scroll guard and it is the reason this file exists.
+3. `keeps a string that is still asked for` — get, sweep, get, sweep; still cached.
+4. `releases a string nothing asked for` — get, sweep, sweep, sweep; disposed and
+   evicted. Assert `size` drops and that `map.dispose` was called (spy on the
+   texture, per the house preference for spies over mocks).
+5. `gives a vanished string two generations of grace` — absent for one build, back
+   the next, same object identity.
+6. `sets RepeatWrapping on a ticker and not on a name` — the property Stage 4
+   depends on.
+7. `does not throw when swept before anything is cached`.
+
+### Verify
+
+```bash
+cd client && npx jest SystemCore/scene
+```
+
+In the browser with `VITE_ENABLE_LOGGER=true`: open the modal, leave it for five
+minutes, and confirm `textures` and the new `labels` count in the `system_core` log
+line are flat across ticks.
+
+### Definition of done
+
+Client scene suite green; label count flat over a five-minute observation.
+
+---
+
+## Stage 2 — `Reading.channels`
+
+The smallest stage, and it unblocks 3 and 4.
+
+```ts
+// client/src/components/SystemCore/live/bind.ts
+import type { SystemCoreChannel } from 'librechat-data-provider';
+
+export interface Reading {
+  // ... the existing seven, unchanged ...
+  /**
+   * Every channel the server resolved for this module, verbatim.
+   *
+   * Deliberately not reduced here. `health` is already the mean of the
+   * health-polarity channels and `load` and `rate` are already picks; this is the
+   * layer underneath those, and both the panel readout and the band ticker want
+   * the individual readings with their own labels and units.
+   *
+   * Empty rather than absent when nothing resolved, so no consumer has to
+   * null-check before iterating. It is the one field on Reading that is a
+   * collection, and it must stay read-only: it is handed straight out of the
+   * query cache and is shared with every other consumer of that snapshot.
+   */
+  channels: readonly SystemCoreChannel[];
+}
+```
+
+```ts
+// client/src/components/SystemCore/live/adapt.ts — readingOf
+    stale: m.staleness?.stale === true,
+    overflow: m.origin === 'discovered',
+    // Guarded like everything else here: a snapshot is remote input, and the
+    // failure mode for a malformed one is a module with no readings rather than a
+    // modal that white-screens.
+    channels: Array.isArray(m.channels) ? m.channels : [],
+```
+
+### Files
+
+`live/bind.ts`, `live/adapt.ts`. Two type-only import lines and one field.
+
+### Tests — `live/__tests__/adapt.spec.ts`
+
+1. `carries every channel through` — against the committed fixture
+   (`live/__tests__/__fixtures__/snapshot.json`), assert the total channel count
+   across all readings equals the count in the payload, and that a named module's
+   channels match it by identity. Sum it from the fixture rather than writing the
+   number down: Stage 5 takes it from 91 to 96, and a literal there would have to
+   be edited by hand every time the catalogue grows.
+2. `yields an empty array when a module has no channels key` — malformed payload.
+3. `yields an empty array when channels is not an array` — malformed payload.
+
+Do **not** assert on a live magnitude; the fixture is a reading of one moment.
+Count and shape only.
+
+### Verify
+
+```bash
+cd client && npx jest SystemCore/live
+```
+
+### Definition of done
+
+`live` suite green. Nothing renders differently yet — this stage is invisible by
+design.
+
+---
+
+## Stage 3 — The panel tells the truth, and shows the readings
+
+Two changes that belong together: both are "the panel stops lying about live data".
+
+### 3a — Defect B: bound fields display the authored value
+
+`Form.tsx:156` and `:186` pass `value={readPath(module, path)}` — the authored
+module — while `boundAt` stamps the control "Driven by live data" and makes it
+read-only.
+
+**There is a wrinkle the design document did not cover, and it decides the fix.**
+The controls are *uncontrolled*: `TextControl` and `NumberControl` use
+`defaultValue` (`Fields.tsx:158`, `:186`), `StatusControl` seeds `useState` once
+(`:215`), and the whole block only remounts when `` `${module.id}:${refillKey}` ``
+changes (`Form.tsx:147`). Passing a fresh `value` prop would therefore change
+nothing on screen. Folding a live hash into the key would remount every control on
+every poll, destroying focus and caret position in the fields being edited.
+
+So: **make bound controls controlled.** This is safe precisely because
+`useField` (`Fields.tsx:84-99`) guarantees a bound control registers no reader —
+it can never write back, so there is no commit path to disturb. `readOnly` is
+already set alongside, so React raises no "value without onChange" warning.
+
+```tsx
+// Fields.tsx — NumberControl, and the same shape in TextControl
+      {...(bound != null
+        ? { value: value == null ? '' : String(value) }
+        : { defaultValue: value == null ? '' : String(value) })}
+      readOnly={bound != null}
+```
+
+`StatusControl` already renders `value={current}` from state; make that
+`value={bound != null ? String(value ?? '') : current}`.
+
+Then give `BINDINGS` the resolver, so the map stays the single place that knows
+which paths the poll owns:
+
+```ts
+// live/bind.ts
+export interface LiveBinding {
+  channel: keyof Reading;
+  name: TranslationKeys;
+  /** What the panel shows for this path when there is a reading. */
+  display: (m: Module, live: Reading) => unknown;
+}
+
+export const BINDINGS: Record<string, LiveBinding> = {
+  status: {
+    channel: 'health',
+    name: 'com_ui_system_core_channel_health',
+    display: effectiveStatus,
+  },
+  'motion.speed': {
+    channel: 'rate',
+    name: 'com_ui_system_core_channel_rate',
+    display: boundSpeed,
+  },
+  'telemetry.health': {
+    channel: 'health',
+    name: 'com_ui_system_core_channel_health',
+    display: effectiveHealth,
+  },
+  'telemetry.progress': {
+    channel: 'load',
+    name: 'com_ui_system_core_channel_load',
+    display: effectiveProgress,
+  },
+};
+```
+
+`BINDINGS` must be declared **after** the four functions it references — it is a
+`const` object literal evaluated at module load, not a function body.
+
+```tsx
+// Form.tsx — beside the existing boundAt
+  const boundValueAt = (path: string): unknown =>
+    live == null ? undefined : BINDINGS[path]?.display(module, live);
+
+  // at both Field call sites
+  value={boundValueAt(path) ?? readPath(module, path)}
+```
+
+This finally gives `readoutOf`, `effectiveHealth` and `effectiveProgress`
+(`resolve.ts:122`, `bind.ts:318`, `:323`) their first non-test callers.
+
+### 3b — The channel readout
+
+New component, sibling of `List.tsx` and `Form.tsx`:
+
+```
+client/src/components/SystemCore/Channels.tsx
+```
+
+Renders `live.channels` for the selected module as a definition list: the server's
+`label`, the formatted `raw` with its unit, and a state marker for `missing` and
+`error`. It reuses `reading()` from `live/ticker.ts` (Stage 4) for formatting —
+**write `ticker.ts` in this stage**, so the formatter is read carefully in a
+readable 12-pixel list before it is 0.02 world units tall on a moving cylinder.
+
+Mount it in `Panel.tsx` above the `<Form>`, inside the existing `current != null`
+branch (`Panel.tsx:223-235`).
+
+Channel labels are server data and free text — they are **not** localized, the same
+way module labels are not. Only the surrounding chrome takes new keys:
+
+```json
+"com_ui_system_core_channels": "Readings",
+"com_ui_system_core_channel_missing": "not reported",
+"com_ui_system_core_channel_unavailable": "unavailable"
+```
+
+Styling per `CLAUDE.md`: semantic roles only — `text-text-secondary`,
+`text-text-tertiary`, `bg-surface-tertiary`. No raw palette utilities. The one
+sanctioned exception in this feature is the status swatch in `List.tsx:99-107`,
+which reads the scene palette because a legend must match what it is a legend for;
+a channel readout is ordinary UI and gets no such exemption.
+
+### Files
+
+- `live/bind.ts` — `LiveBinding.display`, `BINDINGS` reordered below its helpers.
+- `Form.tsx` — `boundValueAt`, two call sites.
+- `Fields.tsx` — controlled-when-bound in `TextControl`, `NumberControl`,
+  `StatusControl`.
+- `live/ticker.ts` — new; the formatter, exactly as written in Design Part 6.5.
+- `Channels.tsx` — new.
+- `Panel.tsx` — mount it.
+- `client/src/locales/en/translation.json` — three keys.
+
+### Tests
+
+`live/__tests__/ticker.spec.ts` — new:
+
+1. One case per `SystemCoreUnit`, asserting the formatted string.
+2. `rounds every unit` — the cache-hit property. Feed a value and that value plus
+   a millionth; assert the two format **identically**. This is the test that keeps
+   Stage 4 from rasterising a canvas per module per poll, and it is the reason the
+   formatter is tested at all.
+3. `skips channels that did not resolve` — `missing` and `error` produce nothing.
+4. `ends with the separator` — the seamless-loop property.
+5. `returns null when nothing resolved`.
+
+`live/__tests__/bind.spec.ts` — extend:
+
+6. `every binding resolves a display value` — iterate `BINDINGS`, call each
+   `display`, assert non-undefined. Guards the declaration-order hazard above.
+
+`__tests__/Panel.spec.tsx` — extend the existing
+`describe('SystemCore Panel under live data')` at `:156`:
+
+7. `shows the live status, not the authored one` — module authored `running`,
+   reading says `fault`; the status control reads `fault`.
+8. `updates a bound field when a new reading arrives` — rerender with a changed
+   reading; the displayed number changes without a remount. **This is the
+   regression test for Defect B**; it fails against today's uncontrolled controls.
+9. `leaves unbound fields editable and untouched` — type into `geometry.radius`,
+   deliver a new reading, assert the typed value survives.
+10. `lists every resolved channel for the selected module`.
+11. `marks a missing channel rather than showing a zero` — the distinction
+    `scale.ts:1-9` exists to preserve.
+
+### Verify
+
+```bash
+cd client && npx jest SystemCore
+```
+
+In the browser against the live cluster: select `node-exporter`, watch
+`telemetry.health` change across polls, and confirm the readings list shows "Root
+filesystem free 71%". Type into `geometry.radius` and confirm a poll does not clear
+it.
+
+### Definition of done
+
+Client SystemCore suite green. Every one of the 91 channels is now visible
+somewhere in the product for the first time — 96 once Stage 5 has landed.
+
+---
+
+## Stage 4 — The band ticker
+
+Fixed name, `||`, then the readings scrolling right to left. Depends on 1, 2 and 3.
+
+### 4a — Carry the string to the scene
+
+```ts
+// objects/Strip.tsx — StripSpec
+  /**
+   * The scrolling readout, already quantised and separator-terminated.
+   * null draws no ticker: nothing resolved, or the scene is holding still.
+   */
+  ticker: string | null;
+```
+
+```ts
+// scene/resolve.ts — stripSpec
+    ticker: live == null ? null : tickerOf(live.channels),
+```
+
+### 4b — Layout
+
+Extend the existing `label` memo (`Strip.tsx:138-158`) to return both slices
+rather than adding a second memo — they share `lr`, `lh`, `arc` and `lead`, and
+the ticker window is defined by what the name leaves over.
+
+Append the separator to the **name** string rather than giving it geometry of its
+own: `labels.get(spec.label + ' ||')`. One less mesh, one less measurement, and the
+name cache stays bounded by the module count.
+
+```ts
+// scene/config.ts
+/** Share of a strip's usable arc the fixed name may take before it shrinks. */
+export const NAME_SHARE = 0.4;
+/** How fast the readout scrolls, in world units per second. */
+export const TICKER_SPEED = 0.09;
+/** Below this window width the readout is dropped rather than shown unreadable. */
+export const TICKER_MIN_SHARE = 0.25;
+```
+
+```ts
+const usable = arc * (1 - 2 * LABEL_LEAD);
+const winTheta = usable - nameTheta;
+// A wide name on a narrow arc leaves no window. Dropping the ticker is the right
+// answer: the panel has the same numbers, in a font you can actually read.
+if (winTheta < usable * TICKER_MIN_SHARE) {
+  return { name, ticker: null };
+}
+map.wrapS = THREE.RepeatWrapping;
+map.repeat.x = (winTheta * lr) / (lh * aspect);
+const step = TICKER_SPEED / (lh * aspect); // uv units per second
+```
+
+### 4c — Scroll
+
+One line in the existing `useFrame` (`Strip.tsx:123-130`), sharing its clamped
+delta. `MAX_DELTA` applies for the same reason it applies to rotation: returning to
+a backgrounded tab must not fling the text.
+
+```ts
+  useFrame((_, delta) => {
+    const group = groupRef.current;
+    if (!group || !animate) {
+      return;
+    }
+    const d = Math.min(delta, MAX_DELTA);
+    group.rotation.y += rate * d;
+    onPhase(id, group.rotation.y);
+    const map = ticker?.material.map;
+    if (map) {
+      map.offset.x += ticker.step * d;
+    }
+  });
+```
+
+### 4d — Carry the offset across a content swap
+
+Without this the ticker snaps back to the start every time a number changes — three
+times a minute. In an effect, not in the memo: seeding during render would be a
+render-phase write to a cached object.
+
+```ts
+const carried = useRef(0);
+useEffect(() => {
+  const map = ticker?.material.map;
+  if (!map) {
+    return;
+  }
+  map.offset.x = carried.current % 1;
+  return () => {
+    carried.current = map.offset.x;
+  };
+}, [ticker]);
+```
+
+This buys continuity of *motion*, not of *content*: the string changed length, so
+which word sits under the viewport cannot be preserved. It removes the snap; it
+does not remove the swap.
+
+### 4e — Reduced motion
+
+`animate` is false under `prefers-reduced-motion` (`Scene.tsx:281`) and there is no
+`useFrame`, so a ticker would freeze mid-string and read as broken text. **Skip the
+mesh entirely** — `spec.ticker != null && animate`. Same call `Scene.tsx:130-141`
+already makes for the audio bus, and the accessible one: text in motion has to be
+pausable. The panel carries the same readings.
+
+### Files
+
+`objects/Strip.tsx`, `scene/resolve.ts`, `scene/config.ts`. No new files.
+
+### Tests
+
+The scene is thin on component tests by design — `Dialog.spec.tsx:18` mocks
+`Scene` outright — so the coverage goes where the logic is, which is `resolve.ts`
+and the layout arithmetic:
+
+1. `resolve.spec.ts` (new) — `stripSpec` carries a ticker when there is a reading
+   and null when there is not.
+2. Export the window arithmetic as a pure helper from `scene/config.ts` or a small
+   `scene/ticker.ts` and test it directly: a wide name on a narrow arc yields no
+   window; `repeat.x` scales with `winTheta`; `step` is independent of string
+   length — **the property that makes a stack of strips read as one instrument.**
+3. Extend `labels.spec.ts` with the two-strips-same-text case if it was not already
+   added in Stage 1.
+
+### Verify
+
+Visual, and it must be visual. `cd client && npx jest SystemCore` for the
+arithmetic, then in the browser:
+
+- A name is readable while its strip faces the camera.
+- The seam between the last reading and the first reads as another `||`.
+- The 50° controller ring — longest label, narrowest arc — either shows a readable
+  window or correctly shows none.
+- With `VITE_ENABLE_LOGGER=true`, `labels` in the `system_core` line is flat over
+  five minutes and does not climb per poll.
+- With `prefers-reduced-motion` forced on, no ticker appears anywhere.
+
+### The two tuning calls
+
+Both are judgements to make looking at a real screen, not derivations — the same
+standing this repo gives `GAIN` at `catalog.ts:129-143`, which was retuned once
+after being looked at. Land them as named constants so they are one-line changes:
+
+- **`TICKER_SPEED` against the strip's own rotation.** The band already turns, at
+  18–67 seconds a revolution. Two motions compound where the arc faces the camera.
+- **How much goes in the string.** All resolved channels is the honest default. If
+  it reads as noise, filter to `polarity === 'health'` — one predicate in
+  `tickerOf`.
+
+### Definition of done
+
+Ticker visible and readable on the live cluster; label cache flat; no ticker under
+reduced motion.
+
+---
+
+## Stage 5 — Catalogue corrections and Tier 1 channels
+
+Independent of 1–4 for *correctness*, but pointless before Stage 3, because until
+something displays a channel a new one is invisible. `queries.spec.ts` fails the
+build on a bundle signal with no consumer, so each operand and its channel land in
+the same commit.
+
+### 5a — Three mis-bindings (Design Part 3.3)
+
+| Module | Now | Should be |
+|---|---|---|
+| `rabbitmq.throughput` | `rabbitReady` — a queue **depth** | `sum(rate(rabbitmq_channel_messages_published_total[5m]))` |
+| `meilisearch.throughput` | `meiliIndexing` — a **boolean** | `sum(rate(meilisearch_http_requests_total[5m]))` |
+| `kube-state-metrics.errors` | cumulative counter, climbs forever | `sum(rate(kube_pod_container_status_restarts_total[15m]))` |
+
+The rabbitmq one is the only finding in the whole audit with a genuinely misleading
+visual: `throughput` reaches `boundSpeed`, so today a stalled consumer makes that
+strip spin **faster**. Keep `rabbitReady` as a `connections` channel — the depth is
+worth showing, it is just not a rate.
+
+### 5b — Tier 1, in Design Part 5.2 order
+
+Restart rate, CrashLoopBackOff, pods pending/failed, scrape-duration headroom, host
+temperature, disk saturation, Rabbit consumers. Every one folds into an existing
+bundle: **zero extra HTTP calls**, the 15-call constant holds.
+
+### The one cost to watch
+
+Bundles grow as expressions, not as requests. The per-query budget defaults to 5 s
+(`systemCore/config.ts:44`) and the worst scrape already takes 1.46 s. After
+each bundle grows, measure:
+
+```bash
+ssh K3s-server 'curl -s -o /dev/null -w "%{time_total}\n" --get \
+  --data-urlencode "query=<the extended bundle>" http://localhost:30990/api/v1/query'
+```
+
+**Measured, 2026-08-23, after all three bundles grew.** The assumption was that a
+bundle of roughly twelve operands is still comfortable. It is not close to being
+the binding constraint:
+
+| Measurement | Result |
+|---|---|
+| Widest bundle now | `kvBundle`, 7 operands |
+| Slowest single query, on the Prometheus host | 4.7 ms (`clusterBundle`) |
+| Same query from this workstation, over the LAN | 43 ms |
+| All 15 queries, end to end through `getSystemCoreSnapshot` | **38 ms** |
+| Per-query budget (`systemCore/config.ts:44`) | 5000 ms |
+
+Three orders of magnitude of headroom, so the 1.46 s figure above is a *scrape*
+duration and not a query time — the two were easy to conflate and only one of them
+is on this path. Re-measure with the command above if a bundle ever approaches a
+dozen operands; nothing in Tier 2 or Tier 3 gets close.
+
+### Tests
+
+`catalog.spec.ts` and `queries.spec.ts` already assert the structural rules — no
+backtick or `${` in any expression, every bundle signal consumed by a channel.
+Extend `assemble.spec.ts` with a case per new channel resolving from a hand-built
+`QueryResults`, following the existing idiom.
+
+### Definition of done
+
+`packages/api` suite green; new channels visible in the panel readout; total
+upstream calls per snapshot still 15.
+
+---
+
+## Sequencing
+
+```
+Stage 0 ──────────────┐  (packages/api, independent)
+Stage 1 ──────┐       │  (client, independent)
+              ├─► 4 ──┤
+Stage 2 ──► 3 ┘       │
+                      └─► 5
+```
+
+0 and 1 can be done in either order or in parallel — different workspaces, no
+shared files. 2 is half an hour. 3 is the largest and the most valuable on its own.
+4 is the only stage that needs all of the others.
+
+**Ship 0 and 3 first if anything has to be cut.** Stage 0 fixes a scene that
+silently stops tracking the cluster; Stage 3 puts 91 measurements in front of a
+human for the first time. Stage 4 is the one people will point at, and it is worth
+the least of the three.
+
+---
+
+## Test commands
+
+Per-workspace, never from the root — the root watcher has no config on this machine
+and fails by default.
+
+```bash
+cd packages/api && npx jest systemCore     # stages 0, 5
+cd client       && npx jest SystemCore     # stages 1–4
+```
+
+Live-cluster checks in the browser need the backend running with
+`SYSTEM_CORE_PROMETHEUS_URL` set, plus `npm run frontend:dev`. Add
+`VITE_ENABLE_LOGGER=true` for the cache diagnostics — `Scene.tsx:216-224` logs
+modules, materials, geometries, textures and programs, and **all of them flat
+across ticks is the passing condition** for Stages 1 and 4.
+
+---
+
+## Risks
+
+| Risk | Stage | Mitigation |
+|---|---|---|
+| A flapping target restarts its strip's spin | 0 | Confined to probe and overflow modules. Accept; server-side grace period if it proves noisy. |
+| Reconcile now runs more often, walking every module through `normalize` | 0 | Only on set change, which is the intent. `useModules.ts:131-134` returns array identity when nothing actually changed. |
+| Making bound controls controlled changes commit behaviour | 3 | It cannot: `useField` (`Fields.tsx:84-99`) guarantees a bound control registers no reader, so it has no commit path. Test 9 pins this. |
+| `BINDINGS` referencing functions declared below it | 3 | Module-load TDZ error, caught immediately. Test 6 guards it. |
+| Ticker rasterises a canvas per module per poll | 4 | Quantisation in `reading()`, pinned by ticker test 2. The Stage 1 sweep turns any residue from a leak into bounded churn. |
+| Two strips sharing one ticker texture, scrolling double | 4 | Impossible by construction — keyed by id. Labels test 2. |
+| Ticker illegible at 0.02 world units on the controller | 4 | `TICKER_MIN_SHARE` drops the window rather than showing mush. Visual check named above. |
+| A grown bundle exceeds the 5 s query budget | 5 | Measure with the `time_total` command after each bundle change. |
+
+---
+
+## Out of scope
+
+Deliberately not in this plan, and each one is a decision already recorded rather
+than an oversight:
+
+- **Restoring `<Contact>`** (`Strip.tsx:267-281`). It is off by choice, not by
+  oversight, and the lane and overflow-ring code is dormant on purpose.
+- **The remaining unreached wire fields** — `staleness.scrapeAgeSeconds` and four
+  of the five `target` fields (Design Part 6.2). Small and easy once `Channels.tsx`
+  exists; nothing depends on them.
+- **Tier 2 and Tier 3 channels** (Design Part 5.2). Follow Stage 5 by the same
+  pattern.
+- **`telemetry.metrics`.** It keeps its present role as the authored fallback
+  beneath the live layer. Channels go on `Reading`, for the three reasons in Design
+  Part 6.4.
+- **Persisting arrangements.** Panel edits stay in-memory; `serialize` plus copy
+  remains the only way an arrangement leaves the modal.

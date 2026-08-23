@@ -26,7 +26,7 @@
 // module schema or the status table. The scene resolves all of that and hands
 // over numbers, which is what lets a strip be sized and reasoned about alone.
 
-import { useRef, useMemo, useCallback } from 'react';
+import { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import Tone from './Tone';
@@ -36,7 +36,8 @@ import Tone from './Tone';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Contact from './Contact';
 import { SPIN } from '../scene/palette';
-import { SOFT, LABEL_H, LABEL_FILL, LABEL_LEAD, MAX_DELTA } from '../scene/config';
+import { bandLayout } from '../scene/layout';
+import { SOFT, LABEL_H, LABEL_FILL, MAX_DELTA } from '../scene/config';
 import type { LabelFactory } from '../scene/labels';
 import type { ModuleMaterials } from '../scene/materials';
 import type { ToneBus } from '../scene/audio';
@@ -58,6 +59,14 @@ export interface StripSpec {
   /** Text printed on the band; null draws no label at all. */
   label: string | null;
   labelScale: number;
+  /**
+   * The scrolling readout: every resolved reading, quantised and separated.
+   *
+   * null draws no readout — nothing resolved, or the poll is off. It is also
+   * ignored under reduced motion, where there is no frame loop to scroll it and
+   * a string frozen mid-loop would read as broken text rather than as a still.
+   */
+  ticker: string | null;
   /** Revolutions per second, before SPIN scales it. */
   speed: number;
   /** Drone fundamental in Hz; null makes no sound at all. */
@@ -125,37 +134,87 @@ export default function Strip({
     if (!group || !animate) {
       return;
     }
-    group.rotation.y += rate * Math.min(delta, MAX_DELTA);
+    const step = Math.min(delta, MAX_DELTA);
+    group.rotation.y += rate * step;
     onPhase(id, group.rotation.y);
+    // One float per strip per frame, and it allocates nothing: `offset` feeds the
+    // sampler's uv transform, which the renderer re-derives each frame from
+    // `matrixAutoUpdate`. No texture data is re-uploaded, so this is the same
+    // cost class as the rotation above rather than a redraw.
+    //
+    // Clamped by the same delta for the same reason: coming back to a
+    // backgrounded tab hands over one enormous frame, and text that leapt half a
+    // loop would read as a glitch.
+    const map = text?.readout?.material.map;
+    if (map) {
+      map.offset.x += (text?.readout?.slice.step ?? 0) * step;
+    }
   });
 
   const arc = THREE.MathUtils.degToRad(spec.arcDeg);
   const seg = Math.max(24, Math.round(spec.arcDeg / 3));
 
-  // Text printed on the band: a cylinder slice on the same axis, a hair outside
-  // the band's own radius. The cylinder's UVs run along the arc, so the texture
-  // wraps with the curve instead of hovering flat in front of it.
-  const label = useMemo(() => {
-    if (spec.label == null) {
+  // Text on the band: cylinder slices on the same axis, a hair outside the
+  // band's own radius. The cylinder's UVs run along the arc, so a texture wraps
+  // with the curve instead of hovering flat in front of it — which is also what
+  // lets the readout below be scrolled by sliding its `offset.x`.
+  //
+  // A readout is built only when the scene is animating: there is no frame loop
+  // under reduced motion to move it, and a string stopped mid-loop reads as
+  // broken text rather than as a still frame. The panel carries the same numbers.
+  const text = useMemo(() => {
+    const line = animate ? spec.ticker : null;
+    // The separator belongs to the *name* texture, so the join between a fixed
+    // title and a moving readout needs no mesh and no measurement of its own.
+    const name = spec.label == null ? null : labels.get(spec.label + (line == null ? '' : ' ||'));
+    const readout = line == null ? null : labels.ticker(id, line);
+    if (name == null && readout == null) {
       return null;
     }
-    const material = labels.get(spec.label);
     // Clear of the band by enough that depth testing never nibbles the text.
     const lr = radius + 0.014;
-    let lh = Math.min(LABEL_H, h * LABEL_FILL) * spec.labelScale;
-    let lTheta = (lh * (material.userData.aspect as number)) / lr;
-    // Set flush to the arc's leading edge, one lead in. The tail keeps a
-    // matching gap, so a name that fills its strip still stops short of both
-    // edges rather than running off one of them.
-    const lead = arc * LABEL_LEAD;
-    // Long name on a short arc: scale the label down rather than squash it.
-    const fit = arc * (1 - 2 * LABEL_LEAD);
-    if (lTheta > fit) {
-      lh *= fit / lTheta;
-      lTheta = fit;
+    const layout = bandLayout({
+      arc,
+      radius: lr,
+      height: Math.min(LABEL_H, h * LABEL_FILL) * spec.labelScale,
+      nameAspect: name == null ? null : (name.userData.aspect as number),
+      readoutAspect: readout == null ? null : (readout.userData.aspect as number),
+    });
+    // The window can come back null when the name leaves too little arc to read
+    // through. The material is still cached and swept — it simply is not drawn.
+    return {
+      lr,
+      name: layout.name == null || name == null ? null : { material: name, slice: layout.name },
+      readout:
+        layout.readout == null || readout == null
+          ? null
+          : { material: readout, slice: layout.readout },
+    };
+  }, [labels, id, spec.label, spec.ticker, spec.labelScale, animate, radius, h, arc]);
+
+  // Where the readout has scrolled to, kept across a content swap.
+  //
+  // The string changes whenever a number does, which replaces the texture and
+  // would otherwise restart it from zero — a visible snap three times a minute.
+  // Seeding the incoming offset from the outgoing one buys continuity of motion;
+  // it cannot buy continuity of content, because the string itself changed
+  // length, so which reading sits under the window is not preserved.
+  const scrolled = useRef(0);
+  useEffect(() => {
+    const readout = text?.readout;
+    const map = readout?.material.map;
+    if (!map) {
+      return;
     }
-    return { material, lr, lh, lTheta, lead };
-  }, [labels, spec.label, spec.labelScale, radius, h, arc]);
+    // In an effect rather than in the memo above: both of these mutate a cached
+    // object, and a render-phase write to something the registry hands out would
+    // land whether or not the render was committed.
+    map.repeat.x = readout.slice.repeat;
+    map.offset.x = scrolled.current % 1;
+    return () => {
+      scrolled.current = map.offset.x;
+    };
+  }, [text]);
 
   // R3F reports how far the pointer travelled between down and up, which is how
   // a click on a band is told apart from an orbit drag that happened to end on
@@ -223,18 +282,38 @@ export default function Strip({
         </mesh>
       )}
 
-      {label && (
-        <mesh name={`${id}-label`} material={label.material} renderOrder={10}>
+      {text?.name && (
+        <mesh name={`${id}-label`} material={text.name.material} renderOrder={10}>
           <cylinderGeometry
             args={[
-              label.lr,
-              label.lr,
-              label.lh,
-              Math.max(12, Math.round(label.lTheta * 48)),
+              text.lr,
+              text.lr,
+              text.name.slice.height,
+              Math.max(12, Math.round(text.name.slice.theta * 48)),
               1,
               true,
-              label.lead,
-              label.lTheta,
+              text.name.slice.start,
+              text.name.slice.theta,
+            ]}
+          />
+        </mesh>
+      )}
+
+      {/* The readout: a window onto a tiling texture, scrolled by useFrame above.
+          Its arc does not change between polls, so this geometry is built once
+          and only the material swaps when the numbers move. */}
+      {text?.readout && (
+        <mesh name={`${id}-readout`} material={text.readout.material} renderOrder={10}>
+          <cylinderGeometry
+            args={[
+              text.lr,
+              text.lr,
+              text.readout.slice.height,
+              Math.max(12, Math.round(text.readout.slice.theta * 48)),
+              1,
+              true,
+              text.readout.slice.start,
+              text.readout.slice.theta,
             ]}
           />
         </mesh>

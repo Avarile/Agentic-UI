@@ -42,6 +42,7 @@ function reading(over: Partial<Reading> = {}): Reading {
     rate: 0,
     stale: false,
     overflow: false,
+    channels: [],
     ...over,
   };
 }

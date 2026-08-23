@@ -19,6 +19,7 @@
 // the same integer anyway. ../live/bind.ts is three-free for the same reason.
 
 import { bandText } from '../data/schema';
+import { tickerOf } from '../live/ticker';
 import type { Reading } from '../live/bind';
 import type { StripSpec } from '../objects/Strip';
 import type { Module } from '../data/schema';
@@ -101,6 +102,11 @@ export function stripSpec(m: Module, rt: Runtime, live: Reading | null): StripSp
     trail: m.appearance.trail,
     label: m.appearance.labelVisible ? bandText(m) : null,
     labelScale: m.appearance.labelScale,
+    // The one live channel that is words rather than an appearance. It is here
+    // rather than in ../live/bind.ts because it modulates nothing — the binding
+    // layer decides what a reading does to how a strip *looks*, and this is what
+    // a reading says.
+    ticker: live == null ? null : tickerOf(live.channels),
     speed: boundSpeed(m, live),
     tone: m.audio.hz,
     toneLevel: boundLevel(m, live),

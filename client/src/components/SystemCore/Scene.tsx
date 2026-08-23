@@ -122,11 +122,19 @@ function Core({
   const controlsRef = useRef<OrbitControls | null>(null);
   const camera = useThree((state) => state.camera);
   const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy());
+  // What the GPU will accept as a texture width. A readout string runs to a
+  // hundred characters, which at the rasteriser's type size is a canvas several
+  // thousand pixels wide, and WebGL2 only guarantees 2048 — so the factory needs
+  // this to scale the canvas into range rather than have the upload fail.
+  const maxTextureSize = useThree((state) => state.gl.capabilities.maxTextureSize);
 
   // One registry per scene. Materials are shared across modules that look
   // alike, and the dimming pass has to be able to reach every one of them.
   const mats = useMemo(() => new MaterialRegistry(), []);
-  const labels = useMemo(() => new LabelFactory(maxAnisotropy), [maxAnisotropy]);
+  const labels = useMemo(
+    () => new LabelFactory(maxAnisotropy, maxTextureSize),
+    [maxAnisotropy, maxTextureSize],
+  );
   // Not built at all when the stack is holding still, which silences the
   // mainframe's hum as well as the strips.
   //
@@ -202,26 +210,31 @@ function Core({
     [modules, readings, runtimeFor, mats, fontReady],
   );
 
-  // Release materials the build above stopped asking for, and open the next
-  // generation. After the commit rather than inside the memo: a material still
-  // referenced by a mesh that has just rendered would draw black if disposed.
+  // Release materials and label textures the build above stopped asking for, and
+  // open the next generation. After the commit rather than inside the memo: a
+  // material still referenced by a mesh that has just rendered would draw black
+  // if disposed, and a texture would draw blank.
   useEffect(() => {
     mats.sweep();
-  }, [strips, mats]);
+    labels.sweep();
+  }, [strips, mats, labels]);
 
-  // What the caches are holding. Free unless VITE_ENABLE_LOGGER is on. All four
-  // numbers should be flat across ticks in the steady state — a climbing count
+  // What the caches are holding. Free unless VITE_ENABLE_LOGGER is on. Every
+  // number here should be flat across ticks in the steady state — a climbing count
   // means something with an unbounded codomain reached a cache (see live/bind.ts).
+  // `labels` is the one to watch once a band carries live text: it is a canvas and
+  // a texture per distinct string, so it climbs first and fastest.
   const gl = useThree((state) => state.gl);
   useEffect(() => {
     logger.log('system_core', {
       modules: strips.length,
       materials: mats.size,
+      labels: labels.size,
       geometries: gl.info.memory.geometries,
       textures: gl.info.memory.textures,
       programs: gl.info.programs?.length,
     });
-  }, [strips, mats, gl]);
+  }, [strips, mats, labels, gl]);
 
   return (
     <>

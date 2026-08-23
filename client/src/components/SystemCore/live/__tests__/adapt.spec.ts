@@ -129,6 +129,45 @@ describe('readingsOf', () => {
     const readings = readingsOf(withModule({ id: '' }));
     expect(readings.size).toBe(0);
   });
+
+  it('carries every channel through, not just the three scalars derived from them', () => {
+    // The reduction above this — one mean, two picks — is what the scene consumes,
+    // and for a long time it was all that crossed the boundary. Everything the
+    // catalogue chose to name and unit was thrown away here.
+    let carried = 0;
+    for (const m of snapshot.modules) {
+      const channels = readings.get(m.id)?.channels ?? [];
+      // Identity, not deep equality: these come straight out of the query cache
+      // and must not be copied per poll.
+      expect(channels).toBe(m.channels);
+      carried += channels.length;
+    }
+    // A count, not a magnitude: the fixture is one moment of a real cluster, and
+    // asserting a reading would assert the weather.
+    expect(carried).toBe(snapshot.modules.reduce((n, m) => n + m.channels.length, 0));
+    expect(carried).toBeGreaterThan(snapshot.modules.length);
+  });
+
+  it('keeps a channel that did not resolve, rather than filtering it away here', () => {
+    // 'missing' and a genuine zero mean opposite things, and deciding which to
+    // show is the display layer's job. Dropping them here would take the choice
+    // away from it.
+    const states = [...readings.values()].flatMap((r) => r.channels.map((c) => c.state));
+    expect(states).toContain('missing');
+  });
+
+  it('yields an empty array when a module carries no channels key', () => {
+    const channels = readingsOf(withModule({ channels: undefined })).get('mongo')?.channels;
+    expect(channels).toEqual([]);
+  });
+
+  it('yields an empty array when channels is not an array', () => {
+    // Remote input: a malformed payload must leave a module with no readings, not
+    // put a non-iterable where the panel expects to map over one.
+    const hostile = { ...moduleOf('mongo'), channels: 'nope' } as unknown as SystemCoreModule;
+    const channels = readingsOf({ ...snapshot, modules: [hostile] }).get('mongo')?.channels;
+    expect(channels).toEqual([]);
+  });
 });
 
 describe('catalogOf', () => {

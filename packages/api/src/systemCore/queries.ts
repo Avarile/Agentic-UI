@@ -147,22 +147,38 @@ export const QUERIES: readonly PromQueryDef[] = [
   {
     id: 'nodeBundle',
     shape: 'bundle',
-    signals: ['cpu', 'mem', 'load1', 'fsroot'],
+    signals: ['cpu', 'mem', 'load1', 'fsroot', 'temp', 'diskio'],
     expr:
       'label_replace(1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])), "sc", "cpu", "", "")' +
       ' or label_replace(1 - (sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes)), "sc", "mem", "", "")' +
       ' or label_replace(avg(node_load1), "sc", "load1", "", "")' +
-      ' or label_replace(1 - avg(node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}), "sc", "fsroot", "", "")',
+      ' or label_replace(1 - avg(node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}), "sc", "fsroot", "", "")' +
+      // The hottest sensor on the box, not the average: a thermal problem is one
+      // component, and averaging it across thirty sensors is how it hides.
+      ' or label_replace(max(node_hwmon_temp_celsius), "sc", "temp", "", "")' +
+      // Already a ratio — seconds of IO per second is the fraction of wall clock
+      // the busiest disk spent working.
+      ' or label_replace(max(rate(node_disk_io_time_seconds_total[5m])), "sc", "diskio", "", "")',
   },
   {
     id: 'clusterBundle',
     shape: 'bundle',
-    signals: ['apiserverRate', 'apiserverErrors', 'restarts', 'unavailable'],
+    signals: ['apiserverRate', 'apiserverErrors', 'restarts', 'unavailable', 'scrapeMax'],
     expr:
       'label_replace(sum(rate(apiserver_request_total[5m])), "sc", "apiserverRate", "", "")' +
       ' or label_replace((sum(rate(apiserver_request_total{code=~"5.."}[5m])) or vector(0)), "sc", "apiserverErrors", "", "")' +
-      ' or label_replace(sum(kube_pod_container_status_restarts_total), "sc", "restarts", "", "")' +
-      ' or label_replace((sum(kube_deployment_status_replicas_unavailable) or vector(0)), "sc", "unavailable", "", "")',
+      // A RATE, NOT THE COUNTER.
+      // `kube_pod_container_status_restarts_total` only ever climbs, so bound
+      // directly it saturated its scale the first time anything restarted and
+      // stayed there — a channel that says "worse than ever" for the rest of the
+      // cluster's life. What an operator wants to know is whether something is
+      // restarting *now*.
+      ' or label_replace(sum(rate(kube_pod_container_status_restarts_total[5m])), "sc", "restarts", "", "")' +
+      ' or label_replace((sum(kube_deployment_status_replicas_unavailable) or vector(0)), "sc", "unavailable", "", "")' +
+      // The feed's own early warning: a scrape that approaches the scrape interval
+      // means the next sample is about to be late, and every number in this scene
+      // is downstream of it.
+      ' or label_replace(max(scrape_duration_seconds), "sc", "scrapeMax", "", "")',
   },
   {
     id: 'sqlBundle',
@@ -179,13 +195,29 @@ export const QUERIES: readonly PromQueryDef[] = [
   {
     id: 'kvBundle',
     shape: 'bundle',
-    signals: ['redisOps', 'redisMem', 'rabbitQueues', 'rabbitReady', 'meiliIndexing'],
+    signals: [
+      'redisOps',
+      'redisMem',
+      'rabbitReady',
+      'rabbitPublish',
+      'rabbitConsumers',
+      'meiliIndexing',
+      'meiliRequests',
+    ],
     expr:
       'label_replace(sum(rate(redis_commands_processed_total[5m])), "sc", "redisOps", "", "")' +
       ' or label_replace(sum(redis_memory_used_bytes), "sc", "redisMem", "", "")' +
-      ' or label_replace(sum(rabbitmq_queues), "sc", "rabbitQueues", "", "")' +
       ' or label_replace(sum(rabbitmq_queue_messages_ready), "sc", "rabbitReady", "", "")' +
-      ' or label_replace(max(meilisearch_is_indexing), "sc", "meiliIndexing", "", "")',
+      // THE BROKER'S ACTUAL THROUGHPUT.
+      // `rabbitReady` is a queue *depth* and used to be bound to the throughput
+      // channel, which reaches the strip's rotation — so a stalled consumer made
+      // that ring spin up, and a backing-up broker read on screen as a busy one.
+      ' or label_replace(sum(rate(rabbitmq_channel_messages_published_total[5m])), "sc", "rabbitPublish", "", "")' +
+      // Depth and consumers are the diagnostic pair: a backlog with nobody
+      // draining it is the failure, and neither number says that alone.
+      ' or label_replace(sum(rabbitmq_consumers), "sc", "rabbitConsumers", "", "")' +
+      ' or label_replace(max(meilisearch_is_indexing), "sc", "meiliIndexing", "", "")' +
+      ' or label_replace(sum(rate(meilisearch_http_requests_total[5m])), "sc", "meiliRequests", "", "")',
   },
   {
     id: 'blobBundle',

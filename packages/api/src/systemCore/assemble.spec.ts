@@ -93,6 +93,17 @@ function channelOf(module: SystemCoreModule, id: string) {
   return found;
 }
 
+/** One operand out of a bundle response, by the `sc` label that names it. Read
+ *  from the fixture rather than written as a literal: these are live readings and
+ *  every one of them moves on its own. */
+function signalValue(id: SystemCoreQueryId, sc: string): number {
+  const row = rowsOf(id).find((r) => r.metric.sc === sc);
+  if (row == null) {
+    throw new Error(`no ${sc} operand in ${id}; re-run capture.manual after changing a bundle`);
+  }
+  return Number(row.value[1]);
+}
+
 describe('the fixture itself', () => {
   it('covers the whole registry', () => {
     for (const def of QUERIES) {
@@ -521,6 +532,192 @@ describe('discovery', () => {
   });
 });
 
+describe('the corrected bindings', () => {
+  // Three channels were wired to a metric that did not mean what the channel's
+  // name promised. Each of these pins the *distinction* that was wrong rather
+  // than the value, because the value is the cluster's business.
+  const snapshot = assemble();
+
+  it('drives rabbitmq throughput from a rate, not from the queue depth', () => {
+    // The one mis-binding in the audit with a misleading *visual*: `throughput`
+    // reaches the strip's rotation, so binding it to `rabbitmq_queue_messages_ready`
+    // made a broker whose consumers had stalled spin *faster* the further behind
+    // it fell. Depth is still worth showing — it is simply not a throughput.
+    const rabbit = moduleById(snapshot.modules, 'rabbitmq');
+    expect(channelOf(rabbit, 'throughput').state).toBe('ok');
+    expect(channelOf(rabbit, 'throughput').raw).toBe(signalValue('kvBundle', 'rabbitPublish'));
+    expect(channelOf(rabbit, 'saturation').raw).toBe(signalValue('kvBundle', 'rabbitReady'));
+    expect(channelOf(rabbit, 'throughput').unit).toBe('per_second');
+  });
+
+  it('pairs the backlog with the consumers draining it', () => {
+    // Neither number says "nobody is draining this" on its own.
+    const rabbit = moduleById(snapshot.modules, 'rabbitmq');
+    expect(channelOf(rabbit, 'connections').state).toBe('ok');
+    expect(channelOf(rabbit, 'connections').raw).toBe(signalValue('kvBundle', 'rabbitConsumers'));
+  });
+
+  it('drives meilisearch throughput from a rate, not from a boolean', () => {
+    // `meilisearch_is_indexing` is 0 or 1, and through `boundSpeed` that gave two
+    // indistinguishable speeds ten per cent apart.
+    const meili = moduleById(snapshot.modules, 'meilisearch');
+    expect(channelOf(meili, 'throughput').raw).toBe(signalValue('kvBundle', 'meiliRequests'));
+    expect(channelOf(meili, 'throughput').unit).toBe('per_second');
+    expect(channelOf(meili, 'saturation').unit).toBe('boolean');
+  });
+
+  it('reports container restarts as a rate that can come back down', () => {
+    // `kube_pod_container_status_restarts_total` only ever climbs, so bound
+    // directly it saturated its scale the first time anything restarted and said
+    // "worse than ever" for the rest of the cluster's life. A rate can recover,
+    // which is the whole point.
+    const ksm = moduleById(snapshot.modules, 'kube-state-metrics');
+    expect(channelOf(ksm, 'errors').state).toBe('ok');
+    expect(channelOf(ksm, 'errors').raw).toBe(signalValue('clusterBundle', 'restarts'));
+    expect(channelOf(ksm, 'errors').unit).toBe('per_second');
+  });
+});
+
+describe('the Tier 1 channels', () => {
+  // Each folds into a bundle that was already being fetched, so the whole tier
+  // costs zero extra HTTP calls — the property the next test pins.
+  const snapshot = assemble();
+
+  it.each([
+    ['node-exporter', 'saturation', 'nodeBundle', 'temp'],
+    ['node-exporter', 'load', 'nodeBundle', 'diskio'],
+    ['prometheus', 'latency', 'clusterBundle', 'scrapeMax'],
+  ])('resolves %s.%s from %s/%s', (moduleId, channelId, queryId, sc) => {
+    const channel = channelOf(moduleById(snapshot.modules, moduleId), channelId);
+    expect(channel.state).toBe('ok');
+    expect(channel.raw).toBe(signalValue(queryId as SystemCoreQueryId, sc));
+    // Normalized, because a raw temperature or a raw duration means nothing to a
+    // colour. The 0..1 property is asserted wholesale elsewhere; here it is the
+    // per-channel scale being wired at all.
+    expect(channel.value).not.toBeNull();
+  });
+
+  it('lets the feed report on itself', () => {
+    // Every number in this scene is downstream of a scrape completing inside its
+    // interval, and until this channel existed the one module that could have
+    // said so reported only whether its own port answered.
+    const latency = channelOf(moduleById(snapshot.modules, 'prometheus'), 'latency');
+    expect(latency.unit).toBe('seconds');
+    expect(latency.state).toBe('ok');
+  });
+
+  it('faults Prometheus on a scrape that is running out of interval', () => {
+    // What `critical: true` on that channel actually buys — and the reason it is
+    // set. A Prometheus taking twenty-four seconds to scrape is not serving
+    // current data whatever its own `up` series says, so the module has to go red
+    // on the strength of this one channel rather than be averaged back to green by
+    // the healthy ones beside it. `critical` is a catalogue-side flag and never
+    // reaches the wire, so the status is the only place it is observable.
+    const slow = rowsOf('clusterBundle').map((row) =>
+      row.metric.sc === 'scrapeMax'
+        ? { metric: { ...row.metric }, value: [row.value[0], '24'] as [number, string] }
+        : row,
+    );
+    const degraded = assemble({ clusterBundle: { ok: true, series: slow } });
+    const prometheus = moduleById(degraded.modules, 'prometheus');
+    expect(channelOf(prometheus, 'latency').raw).toBe(24);
+    expect(prometheus.status).toBe('fault');
+    // And it is that channel doing it, not the target falling over.
+    expect(prometheus.target?.up).toBe(true);
+  });
+
+  it('costs no additional upstream calls', () => {
+    // The constant the whole catalogue design rests on: bundles grow as
+    // expressions, not as requests.
+    expect(QUERIES).toHaveLength(15);
+  });
+});
+
+describe('catalogRevision', () => {
+  // The client reconciles its scene graph when this string changes and applies
+  // readings when it does not, so both halves matter and they pull in opposite
+  // directions. Too eager and the stack rebuilds twenty times a minute; too lazy
+  // — which is what a constant is — and the scene silently stops tracking the
+  // cluster until someone reloads the tab.
+  const base = assemble();
+
+  /** The same targets, reporting different numbers. */
+  function moved(): Partial<Record<SystemCoreQueryId, QueryOutcome>> {
+    const out: Partial<Record<SystemCoreQueryId, QueryOutcome>> = {};
+    for (const def of QUERIES) {
+      out[def.id] = {
+        ok: true,
+        series: rowsOf(def.id).map((row) => ({
+          metric: { ...row.metric },
+          value: [row.value[0], String(Number(row.value[1]) + 7)] as [number, string],
+        })),
+      };
+    }
+    return out;
+  }
+
+  it('is stable across two identical assemblies', () => {
+    expect(assemble().catalogRevision).toBe(base.catalogRevision);
+  });
+
+  it('does not move when every value moves', () => {
+    // The load-bearing half. A poll that carries nothing but new numbers must
+    // leave this alone, or every strip on screen restarts its rotation.
+    expect(assemble(moved()).catalogRevision).toBe(base.catalogRevision);
+  });
+
+  it('does not move when a target goes down', () => {
+    // The case most likely to be noticed if it regressed: a service failing is a
+    // status change, not a change to which modules exist.
+    const down = rowsOf('up').map((row, i) => ({
+      metric: { ...row.metric },
+      value: [row.value[0], i === 0 ? '0' : row.value[1]] as [number, string],
+    }));
+    expect(assemble({ up: { ok: true, series: down } }).catalogRevision).toBe(base.catalogRevision);
+  });
+
+  it('accounts for the expanded probe modules, not just the catalogue', () => {
+    // The regression this whole change exists for: `probe` is one catalogue entry
+    // and ten modules, and a fingerprint taken from CATALOG could not see them.
+    expect(base.catalogRevision).toContain('probe.');
+  });
+
+  it('moves when a probe target appears', () => {
+    const rows = rowsOf('probeSuccess');
+    const added = [
+      ...rows,
+      {
+        metric: { ...rows[0].metric, instance: 'https://newly-probed.example.test' },
+        value: [rows[0].value[0], '1'] as [number, string],
+      },
+    ];
+    expect(assemble({ probeSuccess: { ok: true, series: added } }).catalogRevision).not.toBe(
+      base.catalogRevision,
+    );
+  });
+
+  it('moves when a probe target goes away', () => {
+    const fewer = rowsOf('probeSuccess').slice(1);
+    expect(assemble({ probeSuccess: { ok: true, series: fewer } }).catalogRevision).not.toBe(
+      base.catalogRevision,
+    );
+  });
+
+  it('moves when discovery finds an unrecognised target', () => {
+    const rows = rowsOf('up');
+    const discovered = [
+      ...rows,
+      {
+        metric: { __name__: 'up', job: 'brand-new-exporter', instance: '10.0.0.99:9999' },
+        value: [rows[0].value[0], '1'] as [number, string],
+      },
+    ];
+    expect(assemble({ up: { ok: true, series: discovered } }).catalogRevision).not.toBe(
+      base.catalogRevision,
+    );
+  });
+});
+
 describe('slug', () => {
   it.each([
     ['10.42.0.31:9100', '10.42.0.31-9100'],
@@ -563,9 +760,10 @@ describe('unconfiguredSnapshot', () => {
     expect(unconfiguredSnapshot('invalid_url', COLLECTED_AT_MS).reason).toBe('invalid_url');
   });
 
-  it('still reports the catalogue revision, so the client can prime itself', () => {
-    expect(unconfiguredSnapshot('unset', COLLECTED_AT_MS).catalogRevision.length).toBeGreaterThan(
-      0,
-    );
+  it('reports an empty revision, because it has no modules to fingerprint', () => {
+    // The revision describes the assembled module set, and there is not one. The
+    // client never reads this field unless `configured` is true, so the value is
+    // inert; what matters is that it does not claim a list that was never built.
+    expect(unconfiguredSnapshot('unset', COLLECTED_AT_MS).catalogRevision).toBe('');
   });
 });

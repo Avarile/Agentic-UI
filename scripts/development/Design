@@ -527,6 +527,473 @@ Tier 2 and 3 follow display surface, not the other way round.
 
 ---
 
+# Part 6 — The module interface, and whether it can hold more
+
+Part 3 established that 91 channels arrive per snapshot and none of them survive
+`live/adapt.ts:45`. This part asks the structural question underneath that: what
+are the interfaces, how do they line up against the wire, and can they be reshaped
+to carry the channel data onto the strip surface.
+
+**The short answer: the gap is exactly one field, and the schema already contains
+an empty slot for it that is the wrong shape rather than the wrong idea.** The
+work is additive at three layers that are already correctly separated. It is not a
+restructure.
+
+## 6.1 There are three interfaces, not one
+
+| Interface | Declared | Fields | Lifetime |
+|---|---|---|---|
+| `Module` | `data/schema.ts:92`, driven by `SPEC` at `:144` | **34** | authored; reconciled once, serialized, hand-editable |
+| `Reading` | `live/bind.ts:60` | **7** | rebuilt every poll; never serialized |
+| `StripSpec` | `objects/Strip.tsx:44` | **16** | flat per-frame contract; knows nothing of the schema |
+
+`Module`'s 34 are three scalars — `id`, `label`, `status` — plus eight groups:
+`geometry` 4, `motion` 3, `audio` 2, `appearance` 8, `layout` 4, `meta` 5,
+`links` 2, `telemetry` 3.
+
+On the wire: `SystemCoreModule` 15 (`data-provider/src/types/queries.ts:358`),
+with `SystemCorePlacement` 9, `SystemCoreChannel` 8, `SystemCoreTarget` 5 and
+`SystemCoreStaleness` 2 hanging off it.
+
+The split is by **who owns the value**, and it is the reason the redesign is cheap:
+
+- `Module` is composition a person edits. It survives edits, it round-trips
+  through `serialize`, and the poll never writes to it (`useModules.ts:14-21`).
+- `Reading` is measurement the cluster owns. Replaced wholesale every 20 s.
+- `StripSpec` is numbers the GPU consumes. `resolve.ts:1-19` is explicit that it
+  exists so the 3D objects can be sized "without knowing the module format or the
+  status table", and `bind.ts:22-28` is explicit that live *modulates* authored
+  rather than replacing it.
+
+Each layer already has exactly one place where the next is derived: `draftOf` and
+`readingOf` (`adapt.ts:88`, `:45`) build the first two, `stripSpec` and
+`appearanceOf` (`resolve.ts:91`, `:82`) build the third.
+
+## 6.2 Field by field against the wire
+
+| Wire field | → `Module` | → `Reading` |
+|---|---|---|
+| `id`, `label` | `id`, `label` | — |
+| `status` | `status` (guarded) | `status` |
+| `origin` | — (carried as `meta.group === 'overflow'`) | `overflow` |
+| `health` | `telemetry.health` | `health` |
+| `load` | `telemetry.progress` | `load` |
+| `rate` | — | `rate` |
+| `placement.{radius,y,arc,band}` | `geometry.*` | — |
+| `placement.{speed,lane}` | `motion.*` | — |
+| `placement.{hz,level}` | `audio.*` | — |
+| `placement.order` | `layout.order` | — |
+| `description`, `group`, `tags` | `meta.*` | — |
+| `dependsOn` | `links.dependsOn` | — |
+| `staleness.stale` | — | `stale` |
+| `target.up` | — | `up` (no consumer — Part 1.2) |
+| **`channels[]`** | **—** | **—** |
+| `staleness.scrapeAgeSeconds` | — | — |
+| `target.{job,instance,namespace,pod}` | — | — |
+
+The accounting:
+
+- **18 of `Module`'s 34 fields are populated from the wire.** All nine `placement`
+  fields are consumed; nothing the server sends about arrangement is dropped.
+- **16 are authored-only**, and the server never touches them: `motion.phase`, all
+  eight of `appearance`, `layout.{visible,locked,selectable}`, `meta.{href,tooltip}`,
+  `links.connections`, and `telemetry.metrics`. That is the editable surface, and
+  it is exactly what makes hand edits safe against the poll.
+- **Three things reach nothing at all**: `channels[]` entirely, `scrapeAgeSeconds`,
+  and four of the five `target` fields.
+
+Of those three, `channels[]` is the whole of the problem — 91 values per snapshot
+against two scalars and four label strings. **The interface gap is one field.**
+
+## 6.3 The empty slot that already exists
+
+`telemetry.metrics: Record<string, number>` is declared at `schema.ts:371` as
+`kind: 'nummap'`, rendered by `PairsControl` (`Fields.tsx:304`), written by
+`serialize`, defaulted to `{}`, and asserted so in `schema.spec.ts:29`.
+
+It has **zero readers**. And no fixture module carries a `telemetry` block at all —
+the 26 modules in `data/modules.json` between them use only `id`, `label`,
+`status`, `geometry`, `motion`, `audio` and `meta`.
+
+So the schema anticipated this. What it did not anticipate is the shape: a
+`Record<string, number>` can hold `{"cpu": 0.039}` and nothing more. It loses
+`label` (the human name the catalogue chose), `unit` (without which 0.039 is
+meaningless), `state` (so `missing` and a genuine zero collapse — the exact
+distinction `data-provider/src/types/queries.ts:302-315` and `scale.ts:1-9` exist
+to preserve), `polarity`,
+`source`, and the `raw`-versus-`value` split.
+
+## 6.4 Where the channels must not go, and why
+
+Three independent reasons `channels[]` does not belong on `Module`:
+
+1. **It would be serialized.** `Panel.tsx:131-143` deliberately emits the authored
+   arrangement, and says why: "a live value in here would export a momentary
+   telemetry sample as though it were composition data, and pasting it back would
+   pin those numbers permanently." `serialize.ts:42-52` writes every field it
+   finds, unknown keys included, so anything on `Module` lands in the clipboard.
+2. **It would freeze.** Reconcile adds and removes but never rewrites
+   (`useModules.ts:14-21`), so a channel array on `Module` would hold its
+   first-poll values forever — the identical mechanism to Defects A and B.
+3. **It would be editable.** `Form.tsx` enumerates every `SPEC` field into a
+   control, so a measurement would be offered up for hand-editing.
+
+**Channels extend `Reading`.** `telemetry.metrics` keeps its present role: the
+authored fallback beneath the live layer, the same job `telemetry.health` and
+`telemetry.progress` already do at `bind.ts:310-320`.
+
+## 6.5 The proposed shape
+
+Three additive changes. The wire type is reused rather than restated — `adapt.ts`
+already imports from `librechat-data-provider`, and duplicating a type that exists
+there is against the house rules.
+
+```ts
+// live/bind.ts — one field, and bind.ts stays three-free and React-free
+import type { SystemCoreChannel } from 'librechat-data-provider';
+
+export interface Reading {
+  status: string;
+  up: boolean;
+  health: number | null;
+  load: number | null;
+  rate: number | null;
+  stale: boolean;
+  overflow: boolean;
+  /**
+   * Every channel the server resolved, verbatim.
+   *
+   * Deliberately not reduced here. `health` is already the mean and `load` and
+   * `rate` are already picks; this is the layer underneath those, and the panel
+   * and the band ticker both want the individual readings with their own labels
+   * and units. Empty rather than absent when nothing resolved, so no consumer
+   * has to null-check before iterating.
+   */
+  channels: readonly SystemCoreChannel[];
+}
+```
+
+```ts
+// live/adapt.ts — readingOf gains one guarded line
+    stale: m.staleness?.stale === true,
+    overflow: m.origin === 'discovered',
+    channels: Array.isArray(m.channels) ? m.channels : [],
+```
+
+```ts
+// live/ticker.ts — new, three-free, so resolve.ts can reach it
+import type { SystemCoreUnit, SystemCoreChannel } from 'librechat-data-provider';
+
+/** Between readings, and after the last one so the loop reads seamlessly. */
+const SEPARATOR = ' || ';
+
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+function bytes(raw: number): string {
+  let n = Math.abs(raw);
+  let step = 0;
+  while (n >= 1000 && step < BYTE_UNITS.length - 1) {
+    n /= 1000;
+    step += 1;
+  }
+  return `${Math.round(n)} ${BYTE_UNITS[step]}`;
+}
+
+/**
+ * One reading as it is printed.
+ *
+ * EVERY BRANCH ROUNDS, AND THAT IS THE POINT
+ * ------------------------------------------
+ * The quantisation here is for the *cache*, not for legibility. A ticker string
+ * is a LabelFactory key, and a key that varies continuously rasterises a fresh
+ * canvas per module per poll. Rounded, a quiet module produces a byte-identical
+ * string tick after tick, the cache hits, and nothing is drawn at all. Same
+ * argument as PRECISION in ./bind.ts, applied to a different cache.
+ */
+function reading(raw: number, unit: SystemCoreUnit): string {
+  switch (unit) {
+    case 'ratio':
+      return `${Math.round(raw * 100)}%`;
+    case 'bytes':
+      return bytes(raw);
+    // Probe latencies live between 1ms and 1s, where seconds reads as "0.0".
+    case 'seconds':
+      return `${Math.round(raw * 1000)}ms`;
+    case 'days':
+      return `${Math.round(raw)}d`;
+    case 'count':
+      return `${Math.round(raw)}`;
+    case 'cores':
+      return `${(Math.round(raw * 100) / 100).toFixed(2)} cores`;
+    case 'per_second':
+      return `${Math.round(raw * 10) / 10}/s`;
+    case 'boolean':
+      return raw === 0 ? 'no' : 'yes';
+    default:
+      return `${Math.round(raw)}`;
+  }
+}
+
+/**
+ * The scrolling readout for one module, or null when there is nothing to say.
+ *
+ * Terminated with the separator rather than joined by it: the texture tiles, so
+ * the seam between the last reading and the first has to read as just another
+ * divider.
+ */
+export function tickerOf(channels: readonly SystemCoreChannel[]): string | null {
+  const parts: string[] = [];
+  for (const c of channels) {
+    if (c.state !== 'ok' || c.raw == null) {
+      continue;
+    }
+    parts.push(`${c.label} ${reading(c.raw, c.unit)}`);
+  }
+  return parts.length === 0 ? null : parts.join(SEPARATOR) + SEPARATOR;
+}
+```
+
+```ts
+// objects/Strip.tsx — StripSpec gains one field
+  /** Text printed on the band; null draws no label at all. */
+  label: string | null;
+  labelScale: number;
+  /**
+   * The scrolling readout, already quantised and separator-terminated.
+   * null draws no ticker: nothing resolved, or the scene is holding still.
+   */
+  ticker: string | null;
+```
+
+```ts
+// scene/resolve.ts — stripSpec gains one line
+    label: m.appearance.labelVisible ? bandText(m) : null,
+    labelScale: m.appearance.labelScale,
+    ticker: live == null ? null : tickerOf(live.channels),
+```
+
+That is the whole of the data path. On the current cluster it produces, for the
+`redis` module:
+
+```
+Availability yes || Commands 53.4/s || Memory used 71 MB ||
+```
+
+## 6.6 The strip surface: a fixed name, then a right-to-left ticker
+
+The design: **the name stays pinned at the leading edge, `||` separates, and the
+readings scroll right to left.**
+
+```
+[ REDIS || ] Commands 53.4/s || Memory used 71 MB || Availability yes ||
+  ^fixed      ^a window onto a looping texture, scrolling ←
+```
+
+This dissolves the arc-budget problem. The band stops being a fixed-width label
+slot and becomes a viewport onto a string of any length, so "too much data to fit"
+stops being a failure mode and becomes a longer loop.
+
+### The mechanism: scroll by texture offset, not by redrawing
+
+Verified against `node_modules/three` at **0.184.0**:
+
+- `Texture.offset`, `.repeat` and `.wrapS` exist (`src/textures/Texture.js:199`,
+  `:210`, `:127`) and `matrixAutoUpdate` defaults to true (`:240`).
+- `RepeatWrapping` is exported (`src/constants.js:555`).
+- `WebGLMaterials.js:15` re-derives the uv matrix on every frame a map is used
+  whenever `matrixAutoUpdate` is set — so nothing needs a `needsUpdate` flag and
+  no texture data is re-uploaded.
+- `CylinderGeometry` maps `u` linearly across `radialSegments`, which spans
+  `thetaLength` (`src/geometries/CylinderGeometry.js:119`, `:140`) — which is why
+  `Strip.tsx:135-137` can already say the UVs "run along the arc".
+
+So `repeat.x` tiles copies of the string across the window and `offset.x` slides
+them along it. **Advancing `offset.x` in `useFrame` costs one uniform write per
+strip per frame and allocates nothing** — the same cost class as
+`group.rotation.y += rate * delta`, which `Strip.tsx:128` already does every frame.
+
+Version pinned deliberately: those are library internals, and a major bump could
+move them.
+
+### Five consequences that have to be designed for
+
+**1. Two meshes, two caching rules — and the ticker must not share.**
+
+The fixed name keeps today's shared, cache-by-string material. Its codomain is the
+28 module names, so it is already bounded and sharing is a saving.
+
+The ticker cannot share, and this is the subtle one. `LabelFactory.get` caches by
+string and hands back a material carrying a **shared** `CanvasTexture`
+(`labels.ts:85-146`). Two strips whose readings happened to format identically
+would both write `offset.x` on the same texture every frame and scroll it at
+double rate. Key the ticker cache by `id` *and* text and the hazard is impossible
+by construction — and the cache is bounded at one live entry per visible module,
+which is what the sweep below then collects.
+
+**2. `LabelFactory` needs a generation sweep — and needs one today regardless.**
+
+It is an append-only cache: one `<canvas>`, one `CanvasTexture` and one
+`MeshBasicMaterial` per distinct string, freed only by `dispose()` when the scene
+unmounts (`Scene.tsx:146`). `MaterialRegistry` has a generation stamp and a
+`sweep()` (`materials.ts:181`, `:286`); `LabelFactory` has neither — no counter,
+no eviction, no `delete`.
+
+With a per-poll ticker string that is roughly 84 leaked textures a minute at 28
+modules. Mirror `MaterialRegistry` exactly, including the two-generation grace
+that lets a value vanish for one build and come back free:
+
+```ts
+export class LabelFactory {
+  private readonly cache = new Map<string, THREE.MeshBasicMaterial>();
+  private gen = 0;
+
+  /** The fixed name. Shared by string — the codomain is the module names. */
+  get(text: string): THREE.MeshBasicMaterial {
+    return this.material('name\u0000' + text, text, false);
+  }
+
+  /**
+   * The scrolling readout.
+   *
+   * Keyed by id as well as text so that no two strips can ever be handed the
+   * same texture: `offset.x` is advanced per frame by whichever strip owns the
+   * mesh, and a shared texture would be advanced once per sharer.
+   */
+  ticker(id: string, text: string): THREE.MeshBasicMaterial {
+    return this.material('ticker\u0000' + id + '\u0000' + text, text, true);
+  }
+
+  /** Releases what the last build stopped asking for. After commit, never in
+   *  render — a disposed texture still on a live mesh draws black. */
+  sweep(): void {
+    const floor = this.gen - 1;
+    for (const [key, mat] of this.cache) {
+      if ((mat.userData.gen as number) >= floor) {
+        continue;
+      }
+      mat.map?.dispose();
+      mat.dispose();
+      this.cache.delete(key);
+    }
+    this.gen += 1;
+  }
+}
+```
+
+`Scene.tsx:208-210` already runs a post-commit effect for `mats.sweep()`; the
+label sweep belongs on the same one.
+
+**3. Quantise the string — for the cache, not for the pixels.**
+
+Covered in `tickerOf` above. Every formatter branch rounds, so a module whose
+numbers have not meaningfully moved yields a byte-identical key and the cache hits
+without rasterising anything. Unquantised, every poll is a fresh canvas per module
+even with the sweep in place — churn instead of a leak, which is better but not
+free.
+
+**4. Carry the offset across a content swap.**
+
+When the string does change, the texture is replaced and `offset` starts at zero,
+so the ticker would visibly snap back to the start every 20 seconds. Read the
+outgoing offset and seed the incoming one:
+
+```ts
+const carried = tickerRef.current?.map?.offset.x ?? 0;
+material.map.offset.x = carried % 1;
+```
+
+Be honest about what this does and does not buy: it removes the snap-to-start, but
+it cannot preserve which word sits under the viewport, because the string itself
+changed length. Continuity of motion, not continuity of content.
+
+**5. Reduced motion must not scroll.**
+
+`animate` is false under `prefers-reduced-motion` (`Scene.tsx:281`) and there is no
+`useFrame` to advance anything, so a ticker would sit frozen mid-string and read as
+broken text rather than as a still frame. **Skip the ticker mesh entirely** and let
+the panel be the readout — the same call `Scene.tsx:130-141` already makes for the
+audio bus, and the accessible one, since text in motion has to be pausable.
+
+### Geometry, sizing and layout
+
+Cost is **one additional static `cylinderGeometry` per module**. The window's arc
+does not change between ticks, so nothing reconstructs; only the material swaps.
+
+Sizing follows the same shape as the existing label math at `Strip.tsx:151-156`.
+With canvas aspect `A` and world text height `lh`, one tile is `lh * A` wide in
+world units, and a window spanning `winTheta` at radius `lr` has arc length
+`winTheta * lr`:
+
+```ts
+const usable   = arc * (1 - 2 * LABEL_LEAD);
+const nameMax  = usable * NAME_SHARE;          // name shrinks into its share
+const winTheta = usable - nameTheta - sepTheta;
+
+map.wrapS  = THREE.RepeatWrapping;
+map.repeat.x = (winTheta * lr) / (lh * A);
+// per frame:
+map.offset.x += (SCROLL_SPEED / (lh * A)) * Math.min(delta, MAX_DELTA);
+```
+
+Two properties worth noting. The scroll rate is **independent of string length** —
+a module with six channels loops for longer, it does not scroll faster, which is
+what makes a stack of strips read as one instrument. And `MAX_DELTA`
+(`scene/config.ts:65`) applies for the same reason it applies to rotation: returning to a
+backgrounded tab must not fling the text.
+
+Arc is still finite even if width no longer is. `LABEL_LEAD` 0.05, `LABEL_FILL`
+0.95, `LABEL_H` 0.058 (`scene/config.ts:46-56`), and catalogue arcs run 50°–260°. The
+name already auto-shrinks rather than squashing when it does not fit
+(`Strip.tsx:151-156`), so the proposal is to split the usable arc by a fixed share,
+let the name shrink into its half exactly as it does today, and **drop the ticker
+on any strip whose window falls below a legibility floor**. The 50° controller ring
+is the case that tests this — it carries the longest label in the catalogue
+("cluster - control plane") on the narrowest arc.
+
+There is also the trailing region the `trail` mesh occupies
+(`Strip.tsx:218-224`, `arc` → `arc + min(arc * 0.8, 2.4)`) if the ticker ever wants
+to run past the band's own arc rather than inside it. Not recommended for a first
+pass — it would put text where there is no band behind it.
+
+### Two calls to make looking at a real screen
+
+Recorded as judgements, not derivations — the same standing this repo gives `GAIN`
+at `catalog.ts:129-143`, which was retuned once after being looked at.
+
+1. **Scroll rate against strip rotation.** The band is already turning: 18–67
+   seconds per revolution (Part 1.2). A ticker adds a second motion to the same
+   surface, and the two compound where the arc faces the camera. The rotation is
+   slow enough that a readable ticker should dominate cleanly, but that is a guess
+   until it is on screen. The measurement that settles it: whether a name is
+   readable while its strip is at the near face.
+2. **How much goes in the ticker.** At 2–6 channels a module, a full string runs
+   roughly 40–110 characters. Band height is 0.05 world units — 0.02 on the
+   controller — so the limit is legibility, not space. All channels is the honest
+   default; a `polarity === 'health'`-only filter is the fallback if it reads as
+   noise.
+
+## 6.7 Order of work
+
+1. **`LabelFactory` generation and sweep.** A latent leak today, independent of
+   this feature, and the hard prerequisite for putting any changing string on a
+   band.
+2. **`Reading.channels` and the `readingOf` line.** Carries the data across the
+   boundary that currently drops all 91 values.
+3. **The panel readout.** Zero GPU cost, unlocks every channel at once, and makes
+   step 4 designable against something real rather than imagined — the formatter
+   in `ticker.ts` is shared by both, so the panel is where its output gets read
+   carefully before it is 0.02 world units tall on a moving cylinder.
+4. **`StripSpec.ticker`, the second mesh, and the `useFrame` offset advance.**
+
+Steps 1–3 are independently useful and independently shippable. Only step 4
+depends on all of them.
+
+This list follows the defect fixes in Part 5.3 rather than replacing them: Defect A
+in particular has to be fixed first, or a module that appears mid-session has no
+strip for any of this to render on.
+
+---
+
 # Appendix — how to reproduce the measurements
 
 ```bash
@@ -542,6 +1009,13 @@ python3 -c "import json;d=json.load(open('client/src/components/SystemCore/live/
 
 # cache growth across ticks — all four numbers flat is the passing condition
 VITE_ENABLE_LOGGER=true npm run frontend:dev   # then read 'system_core' in the console
+
+# the interface field counts of Part 6.1
+grep -cE '^      \w+: \{' client/src/components/SystemCore/data/schema.ts   # Module group fields
+grep -cE '^  \w+[?]?:' client/src/components/SystemCore/objects/Strip.tsx   # (inside StripSpec)
+
+# the LabelFactory claim of Part 6.6 — no sweep, no generation, no eviction
+grep -nE 'sweep|gen|delete' client/src/components/SystemCore/scene/labels.ts
 ```
 
 Regenerating the snapshot fixture is `packages/api/src/systemCore/capture.manual.spec.ts`.

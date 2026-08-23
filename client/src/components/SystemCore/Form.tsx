@@ -130,6 +130,19 @@ export default function Form({ module, live, refillKey, onCommit, onPin }: FormP
   const boundAt = (path: string): TranslationKeys | undefined =>
     live == null ? undefined : BINDINGS[path]?.name;
 
+  // What a bound control actually shows. `module` is the authored arrangement,
+  // seeded from the first snapshot and never rewritten by a poll — so reading a
+  // bound path off it displayed a first-poll value under a "Driven by live data"
+  // badge for the rest of the session. The binding knows how to resolve its own
+  // path; ask it.
+  const valueAt = (path: string): unknown => {
+    if (live == null) {
+      return readPath(module, path);
+    }
+    const bound = BINDINGS[path];
+    return bound == null ? readPath(module, path) : bound.display(module, live);
+  };
+
   const groups = useMemo(
     () => GROUPS.map((g) => ({ g, spec: SPEC[g], fields: Object.entries(groupFields(g)) })),
     [],
@@ -153,7 +166,7 @@ export default function Form({ module, live, refillKey, onCommit, onPin }: FormP
                 key={path}
                 path={path}
                 spec={spec}
-                value={readPath(module, path)}
+                value={valueAt(path)}
                 disabled={disabledFor(path)}
                 bound={boundAt(path)}
               />
@@ -183,7 +196,7 @@ export default function Form({ module, live, refillKey, onCommit, onPin }: FormP
                       key={path}
                       path={path}
                       spec={fs}
-                      value={readPath(module, path)}
+                      value={valueAt(path)}
                       disabled={disabledFor(path)}
                       bound={boundAt(path)}
                       onPin={onPin}

@@ -26,6 +26,7 @@ function reading(over: Partial<Reading> = {}): Reading {
     rate: 52,
     stale: false,
     overflow: false,
+    channels: [],
     ...over,
   };
 }
@@ -209,6 +210,155 @@ describe('SystemCore Panel under live data', () => {
 
     expect(screen.getByLabelText('Radius')).toHaveValue(1.5);
     expect(screen.getByTestId('authored-speed').textContent).toBe(before);
+  });
+
+  it('follows the status the cluster reports, not the one it was authored with', async () => {
+    // Asserted across a *change* rather than on first render, because the status
+    // control seeds its state once from the prop — so a fresh mount would show
+    // the right answer even with the bug, and only a service degrading after the
+    // panel was opened reveals it. Which is exactly the case that matters.
+    expect(KERNEL?.status).toBe('running');
+    const healthy: ReadonlyMap<string, Reading> = new Map([
+      ['kernel-scheduler', reading({ status: 'running' })],
+    ]);
+    const faulted: ReadonlyMap<string, Reading> = new Map([
+      ['kernel-scheduler', reading({ status: 'fault', health: 0.1 })],
+    ]);
+
+    const { rerender } = render(<Harness readings={healthy} liveState="live" cacheAgeMs={0} />);
+    await selectModule('kernel-scheduler');
+    expect(screen.getByLabelText(/^Status/)).toHaveTextContent('running');
+
+    rerender(<Harness readings={faulted} liveState="live" cacheAgeMs={0} />);
+
+    expect(screen.getByLabelText(/^Status/)).toHaveTextContent('fault');
+  });
+
+  it('moves a bound field when a new reading arrives', async () => {
+    // THE REGRESSION TEST for a bound control showing its first-poll value for
+    // ever. Every control here is uncontrolled — `defaultValue`, remounted by a
+    // key on the module — so a fresh prop changed nothing on screen. It fails
+    // against that implementation and is the reason a bound control is
+    // controlled.
+    const quiet: ReadonlyMap<string, Reading> = new Map([
+      ['kernel-scheduler', reading({ rate: 0 })],
+    ]);
+    const busy: ReadonlyMap<string, Reading> = new Map([
+      ['kernel-scheduler', reading({ rate: 5000 })],
+    ]);
+
+    const { rerender } = render(<Harness readings={quiet} liveState="live" cacheAgeMs={0} />);
+    await selectModule('kernel-scheduler');
+    await openSection('Motion');
+
+    const before = (screen.getByLabelText(/^Speed/) as HTMLInputElement).value;
+    rerender(<Harness readings={busy} liveState="live" cacheAgeMs={0} />);
+    const after = (screen.getByLabelText(/^Speed/) as HTMLInputElement).value;
+
+    // A magnitude would assert the binding curve, which is tuned by eye and has
+    // been retuned once. What matters is that the number tracks the poll at all.
+    expect(after).not.toBe(before);
+    expect(Number(after)).toBeGreaterThan(Number(before));
+  });
+
+  it('leaves a half-typed edit alone when a poll lands', async () => {
+    // The other half of making bound controls controlled: the unbound ones must
+    // stay uncontrolled, or every poll would reset the field being typed into.
+    const { rerender } = render(<Harness readings={LIVE} liveState="live" cacheAgeMs={0} />);
+    await selectModule('kernel-scheduler');
+
+    const radius = screen.getByLabelText('Radius');
+    await userEvent.clear(radius);
+    await userEvent.type(radius, '1.5');
+
+    rerender(
+      <Harness
+        readings={new Map([['kernel-scheduler', reading({ rate: 999 })]])}
+        liveState="live"
+        cacheAgeMs={0}
+      />,
+    );
+
+    expect(screen.getByLabelText('Radius')).toHaveValue(1.5);
+  });
+
+  it('lists every resolved reading for the selected module', async () => {
+    const withChannels: ReadonlyMap<string, Reading> = new Map([
+      [
+        'kernel-scheduler',
+        reading({
+          channels: [
+            {
+              id: 'availability',
+              label: 'Availability',
+              state: 'ok',
+              polarity: 'health',
+              value: 1,
+              raw: 1,
+              unit: 'boolean',
+              source: 'up',
+            },
+            {
+              id: 'saturation',
+              label: 'Memory used',
+              state: 'ok',
+              polarity: 'activity',
+              value: 0.3,
+              raw: 137_957_376,
+              unit: 'bytes',
+              source: 'podMem',
+            },
+          ],
+        }),
+      ],
+    ]);
+
+    render(<Harness readings={withChannels} liveState="live" cacheAgeMs={0} />);
+    await selectModule('kernel-scheduler');
+
+    expect(screen.getByText('Readings')).toBeInTheDocument();
+    expect(screen.getByText('Availability')).toBeInTheDocument();
+    expect(screen.getByText('yes')).toBeInTheDocument();
+    expect(screen.getByText('Memory used')).toBeInTheDocument();
+    // The raw value in its own unit — `value` has been through scale.ts and is
+    // 0..1 for everything, which says nothing to a person.
+    expect(screen.getByText('138 MB')).toBeInTheDocument();
+  });
+
+  it('says a reading is missing rather than showing it as a zero', async () => {
+    // The distinction the server preserves all the way down: a gauge reading zero
+    // and a gauge that does not exist mean opposite things.
+    const missing: ReadonlyMap<string, Reading> = new Map([
+      [
+        'kernel-scheduler',
+        reading({
+          channels: [
+            {
+              id: 'throughput',
+              label: 'HTTP requests',
+              state: 'missing',
+              polarity: 'activity',
+              value: null,
+              raw: null,
+              unit: 'per_second',
+              source: 'appBundle',
+            },
+          ],
+        }),
+      ],
+    ]);
+
+    render(<Harness readings={missing} liveState="live" cacheAgeMs={0} />);
+    await selectModule('kernel-scheduler');
+
+    expect(screen.getByText('not reported')).toBeInTheDocument();
+    expect(screen.queryByText('0/s')).not.toBeInTheDocument();
+  });
+
+  it('shows no readings section when the poll is off', async () => {
+    render(<Harness />);
+    await selectModule('kernel-scheduler');
+    expect(screen.queryByText('Readings')).not.toBeInTheDocument();
   });
 
   it('disables the status control, which has no read-only to fall back on', async () => {

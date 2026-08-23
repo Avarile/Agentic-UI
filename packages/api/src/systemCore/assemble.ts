@@ -19,7 +19,7 @@ import type {
 import type { CatalogEntry, ChannelBinding, LabelMatch, SeriesReduce } from './catalog';
 import type { SystemCoreQueryId } from './queries';
 import type { SystemCoreConfig } from './config';
-import { CATALOG, MAX_OVERFLOW, catalogShape, placementFor, overflowPlacement } from './catalog';
+import { CATALOG, MAX_OVERFLOW, revisionOf, placementFor, overflowPlacement } from './catalog';
 import {
   normalize,
   stateFor,
@@ -435,6 +435,9 @@ export function assembleSnapshot(input: AssembleInput): SystemCoreSnapshotRespon
   const count = pending.length;
   const modules = pending.map((p, i) => buildModule(p, results, config, i, count));
   const overflow = buildOverflow(results, claimedKeys(pending, results), errors);
+  // Built once and used for both the revision and the payload, so the fingerprint
+  // can never describe a different list from the one that is sent.
+  const all = [...modules, ...overflow];
 
   return {
     configured: true,
@@ -442,8 +445,8 @@ export function assembleSnapshot(input: AssembleInput): SystemCoreSnapshotRespon
     cacheAgeMs: 0,
     nextPollMs: config.cacheTtlMs,
     scrapeIntervalSeconds: config.scrapeIntervalSeconds,
-    catalogRevision: catalogShape(),
-    modules: [...modules, ...overflow],
+    catalogRevision: revisionOf(all),
+    modules: all,
     errors,
   };
 }
@@ -460,7 +463,9 @@ export function unconfiguredSnapshot(
     cacheAgeMs: 0,
     nextPollMs: 0,
     scrapeIntervalSeconds: 0,
-    catalogRevision: catalogShape(),
+    // No modules, so no revision. Inert either way: the client only reads this
+    // when `configured` is true.
+    catalogRevision: revisionOf([]),
     modules: [],
     errors: [],
   };
