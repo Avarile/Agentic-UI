@@ -1,10 +1,10 @@
 <p align="center">
-  <a href="https://librechat.ai">
-    <img src="client/public/assets/logo.svg" height="256">
-  </a>
-  <h1 align="center">
-    <a href="https://librechat.ai">LibreChat</a>
-  </h1>
+  <img src="client/public/assets/logo.svg" height="256">
+  <h1 align="center">Cybernetics · Agentic Centre</h1>
+</p>
+
+<p align="center">
+  <strong>Centralized Agentic Platform of Cybernetics</strong>
 </p>
 
 <p align="center">
@@ -12,44 +12,9 @@
   <a href="README.zh.md">中文</a>
 </p>
 
-<p align="center">
-  <a href="https://discord.librechat.ai"> 
-    <img
-      src="https://img.shields.io/discord/1086345563026489514?label=&logo=discord&style=for-the-badge&logoWidth=20&logoColor=white&labelColor=000000&color=blueviolet">
-  </a>
-  <a href="https://www.youtube.com/@LibreChat"> 
-    <img
-      src="https://img.shields.io/badge/YOUTUBE-red.svg?style=for-the-badge&logo=youtube&logoColor=white&labelColor=000000&logoWidth=20">
-  </a>
-  <a href="https://docs.librechat.ai"> 
-    <img
-      src="https://img.shields.io/badge/DOCS-blue.svg?style=for-the-badge&logo=read-the-docs&logoColor=white&labelColor=000000&logoWidth=20">
-  </a>
-  <a aria-label="Sponsors" href="https://github.com/sponsors/danny-avila">
-    <img
-      src="https://img.shields.io/badge/SPONSORS-brightgreen.svg?style=for-the-badge&logo=github-sponsors&logoColor=white&labelColor=000000&logoWidth=20">
-  </a>
-</p>
-
-<p align="center">
-<a href="https://railway.com/deploy/librechat-official?referralCode=HI9hWz&utm_medium=integration&utm_source=readme&utm_campaign=librechat">
-  <img src="https://railway.com/button.svg" alt="Deploy on Railway" height="30">
-</a>
-<a href="https://zeabur.com/templates/0X2ZY8">
-  <img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur" height="30"/>
-</a>
-<a href="https://template.cloud.sealos.io/deploy?templateName=librechat">
-  <img src="https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg" alt="Deploy on Sealos" height="30">
-</a>
-</p>
-
-<p align="center">
-  <a href="https://www.librechat.ai/docs/translation">
-    <img 
-      src="https://img.shields.io/badge/dynamic/json.svg?style=for-the-badge&color=2096F3&label=locize&query=%24.translatedPercentage&url=https://api.locize.app/badgedata/4cb2598b-ed4d-469c-9b04-2ed531a8cb45&suffix=%+translated" 
-      alt="Translation Progress">
-  </a>
-</p>
+> Built on [LibreChat](https://github.com/danny-avila/LibreChat). See
+> [Upstream](#-upstream) for what that means and where the underlying
+> documentation lives.
 
 ## 🚀 What's New in v0.8.8-rc1
 
@@ -69,7 +34,7 @@
 - **Streaming and tool reliability:** Adaptive provider smoothing, Redis delta batching, dynamic MCP tool refresh, parsed MCP response media types, runtime OAuth recovery, and Agent stream circuit breakers improve long-running workflows.
 - **Deployment and reliability:** Added configurable HTTP timeouts, Amazon DocumentDB 5.0+ support, low-noise Redis and browser observability, and a rolling-upgrade-safe generation protocol.
 
-Read the [full v0.8.8-rc1 changelog](https://www.librechat.ai/changelog/v0.8.8-rc1).
+Read the [full upstream v0.8.8-rc1 changelog](https://www.librechat.ai/changelog/v0.8.8-rc1).
 
 # ✨ Features
 
@@ -77,7 +42,7 @@ Read the [full v0.8.8-rc1 changelog](https://www.librechat.ai/changelog/v0.8.8-r
 
 - 🤖 **AI Model Selection**:  
   - Anthropic (Claude), AWS Bedrock, OpenAI, Azure OpenAI, Google, Vertex AI, OpenAI Responses API (incl. Azure)
-  - [Custom Endpoints](https://www.librechat.ai/docs/quick_start/custom_endpoints): Use any OpenAI-compatible API with LibreChat, no proxy required
+  - [Custom Endpoints](https://www.librechat.ai/docs/quick_start/custom_endpoints): Use any OpenAI-compatible API with Cybernetics, no proxy required
   - Compatible with [Local & Remote AI Providers](https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints):
     - Ollama, groq, Cohere, Mistral AI, Apple MLX, koboldcpp, together.ai,
     - OpenRouter, Helicone, Perplexity, ShuttleAI, Deepseek, Qwen, and more
@@ -89,7 +54,7 @@ Read the [full v0.8.8-rc1 changelog](https://www.librechat.ai/changelog/v0.8.8-r
   - Open-Source & Self-Hostable: powered by [ClickHouse/code-interpreter](https://github.com/ClickHouse/code-interpreter)
 
 - 🔦 **Agents & Tools Integration**:  
-  - **[LibreChat Agents](https://www.librechat.ai/docs/features/agents)**:
+  - **[Agents](https://www.librechat.ai/docs/features/agents)**:
     - No-Code Custom Assistants: Build specialized, AI-driven helpers
     - Agent Marketplace: Discover and deploy community-built agents
     - Collaborative Sharing: Share agents with specific users and groups
@@ -173,61 +138,38 @@ Read the [full v0.8.8-rc1 changelog](https://www.librechat.ai/changelog/v0.8.8-r
   - Completely Open-Source & Built in Public  
   - Community-driven development, support, and feedback
 
-[For a thorough review of our features, see our docs here](https://docs.librechat.ai/) 📚
+[For a thorough review of these features, see the upstream docs](https://docs.librechat.ai/) 📚
 
-## 🪶 All-In-One AI Conversations with LibreChat
+## 🪶 All-In-One AI Conversations with Cybernetics
 
-LibreChat is a self-hosted AI chat platform that unifies all major AI providers in a single, privacy-focused interface.
+Agentic Centre is the centralized application of the Cybernetics ecosystem — a self-hosted AI chat platform that unifies all major AI providers in a single, privacy-focused interface.
 
-Beyond chat, LibreChat provides AI Agents, Model Context Protocol (MCP) support, Artifacts, Code Interpreter, custom actions, conversation search, and enterprise-ready multi-user authentication.
+Beyond chat, it provides AI Agents, Model Context Protocol (MCP) support, Artifacts, Code Interpreter, custom actions, conversation search, and enterprise-ready multi-user authentication.
 
-Open source, actively developed, and built for anyone who values control over their AI infrastructure.
+Self-hosted and built for anyone who values control over their AI infrastructure.
 
 ---
 
-## 🌐 Resources
+## 🌐 Upstream
 
-**GitHub Repo:**
-  - **RAG API:** [github.com/danny-avila/rag_api](https://github.com/danny-avila/rag_api)
-  - **Website:** [github.com/LibreChat-AI/librechat.ai](https://github.com/LibreChat-AI/librechat.ai)
+Agentic Centre is a fork of LibreChat. The feature documentation linked above is
+maintained upstream and applies to this codebase.
 
-**Other:**
-  - **Website:** [librechat.ai](https://librechat.ai)
+**Upstream project:**
+  - **Repository:** [github.com/danny-avila/LibreChat](https://github.com/danny-avila/LibreChat)
   - **Documentation:** [librechat.ai/docs](https://librechat.ai/docs)
-  - **Blog:** [librechat.ai/blog](https://librechat.ai/blog)
+  - **Releases:** [github.com/danny-avila/LibreChat/releases](https://github.com/danny-avila/LibreChat/releases)
+  - **Changelog:** [librechat.ai/changelog](https://www.librechat.ai/changelog)
+  - **RAG API:** [github.com/danny-avila/rag_api](https://github.com/danny-avila/rag_api)
 
----
+**⚠️ Please consult the upstream [changelog](https://www.librechat.ai/changelog) for breaking changes before updating.**
 
-## 📝 Changelog
+Agentic Centre exists in its current state thanks to everyone who contributes to
+LibreChat:
 
-Keep up with the latest updates by visiting the releases page and notes:
-- [Releases](https://github.com/danny-avila/LibreChat/releases)
-- [Changelog](https://www.librechat.ai/changelog) 
-
-**⚠️ Please consult the [changelog](https://www.librechat.ai/changelog) for breaking changes before updating.**
-
----
-
-## ⭐ Star History
-
-<p align="center">
-  <a href="https://www.star-history.com/?type=date&repos=danny-avila%2FLibreChat">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=danny-avila/LibreChat&type=date&theme=dark&legend=top-left&sealed_token=CXsk3L39t1nlibOv3pQloYwrz8R_yXxCAe1X3DG8sEnmu3PZvzSRZGf7JvisknF83yXqMwR6IcuKLolIQBulChAOseTYP1TDglfT6clOHXzspF-DJhmmsnGasrGpLfCeOEU56Bx761CJp9xDxza5rbyXW3F1GqWNtDf9pMroBq86vS70ilRWu16VyucF" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=danny-avila/LibreChat&type=date&legend=top-left&sealed_token=CXsk3L39t1nlibOv3pQloYwrz8R_yXxCAe1X3DG8sEnmu3PZvzSRZGf7JvisknF83yXqMwR6IcuKLolIQBulChAOseTYP1TDglfT6clOHXzspF-DJhmmsnGasrGpLfCeOEU56Bx761CJp9xDxza5rbyXW3F1GqWNtDf9pMroBq86vS70ilRWu16VyucF" />
-      <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=danny-avila/LibreChat&type=date&legend=top-left&sealed_token=CXsk3L39t1nlibOv3pQloYwrz8R_yXxCAe1X3DG8sEnmu3PZvzSRZGf7JvisknF83yXqMwR6IcuKLolIQBulChAOseTYP1TDglfT6clOHXzspF-DJhmmsnGasrGpLfCeOEU56Bx761CJp9xDxza5rbyXW3F1GqWNtDf9pMroBq86vS70ilRWu16VyucF" />
-    </picture>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://trendshift.io/repositories/4685" target="_blank" style="padding: 10px;">
-    <img src="https://trendshift.io/api/badge/repositories/4685" alt="danny-avila%2FLibreChat | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/>
-  </a>
-  <a href="https://runacap.com/ross-index/q1-24/" target="_blank" rel="noopener" style="margin-left: 20px;">
-    <img style="width: 260px; height: 56px" src="https://runacap.com/wp-content/uploads/2024/04/ROSS_badge_white_Q1_2024.svg" alt="ROSS Index - Fastest Growing Open-Source Startups in Q1 2024 | Runa Capital" width="260" height="56"/>
-  </a>
-</p>
+<a href="https://github.com/danny-avila/LibreChat/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=danny-avila/LibreChat" />
+</a>
 
 ---
 
@@ -237,21 +179,13 @@ Contributions, suggestions, bug reports and fixes are welcome!
 
 For new features, components, or extensions, please open an issue and discuss before sending a PR.
 
-If you'd like to help translate LibreChat into your language, we'd love your contribution! Improving our translations not only makes LibreChat more accessible to users around the world but also enhances the overall user experience. Please check out our [Translation Guide](https://www.librechat.ai/docs/translation).
-
----
-
-## 💖 This project exists in its current state thanks to all the people who contribute
-
-<a href="https://github.com/danny-avila/LibreChat/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=danny-avila/LibreChat" />
-</a>
+If you'd like to help translate Agentic Centre into your language, we'd love your contribution! Improving translations not only makes the platform more accessible to users around the world but also enhances the overall user experience. Please check out the upstream [Translation Guide](https://www.librechat.ai/docs/translation).
 
 ---
 
 ## 🎉 Special Thanks
 
-We thank [Locize](https://locize.com) for their translation management tools that support multiple languages in LibreChat.
+We thank [Locize](https://locize.com) for their translation management tools that support multiple languages in this project.
 
 <p align="center">
   <a href="https://locize.com" target="_blank" rel="noopener noreferrer">

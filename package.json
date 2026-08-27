@@ -1,5 +1,5 @@
 {
-  "name": "LibreChat",
+  "name": "cybernetics-agentics",
   "version": "v0.8.8-rc1",
   "description": "",
   "packageManager": "npm@11.13.0",
@@ -135,16 +135,8 @@
     "migrate:code-file-duplicates": "node config/migrate-code-file-duplicates.js",
     "migrate:code-file-duplicates:batch": "node config/migrate-code-file-duplicates.js --batch-size=50"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/danny-avila/LibreChat.git"
-  },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/danny-avila/LibreChat/issues"
-  },
-  "homepage": "https://librechat.ai/",
   "devDependencies": {
     "@antithesishq/bombadil": "0.6.1",
     "@axe-core/playwright": "^4.10.1",

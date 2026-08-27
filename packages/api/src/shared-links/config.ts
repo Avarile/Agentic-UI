@@ -1,3 +1,4 @@
+import { DEFAULT_APP_TITLE } from 'librechat-data-provider';
 import type { TSharedLinkStartupConfig } from 'librechat-data-provider';
 import type { AppConfig } from '@librechat/data-schemas';
 import { isEnabled } from '~/utils';
@@ -40,7 +41,7 @@ export function buildSharedLinkStartupPayload(
   env: SharedLinkStartupEnv = process.env,
 ): TSharedLinkStartupConfig {
   const payload: TSharedLinkStartupConfig = {
-    appTitle: env.APP_TITLE || 'LibreChat',
+    appTitle: env.APP_TITLE || DEFAULT_APP_TITLE,
   };
 
   if (typeof env.ANALYTICS_GTM_ID === 'string') {

@@ -24,13 +24,11 @@ interface CredentialMetadata {
 const deprecatedVariables = [
   {
     key: 'CHECK_BALANCE',
-    description:
-      'Please use the `balance` field in the `librechat.yaml` config file instead.\nMore info: https://librechat.ai/docs/configuration/librechat_yaml/object_structure/balance#overview',
+    description: 'Please use the `balance` field in the `librechat.yaml` config file instead.',
   },
   {
     key: 'START_BALANCE',
-    description:
-      'Please use the `balance` field in the `librechat.yaml` config file instead.\nMore info: https://librechat.ai/docs/configuration/librechat_yaml/object_structure/balance#overview',
+    description: 'Please use the `balance` field in the `librechat.yaml` config file instead.',
   },
   {
     key: 'GOOGLE_API_KEY',
@@ -98,8 +96,6 @@ function checkPasswordReset() {
       This setup is insecure as password reset links will be issued with a recognized email.
       
       Please configure email service for secure password reset functionality.
-      
-      https://www.librechat.ai/docs/configuration/authentication/email
 
       ❗❗❗`,
     );
@@ -131,9 +127,6 @@ export function checkVariables(): void {
     Generate unique values with a cryptographically secure random source, for example:
     openssl rand -hex 32
     openssl rand -hex 16 for CREDS_IV
-
-    For more guidance, see:
-    https://www.librechat.ai/toolkit/creds_generator
 
     \u200B`);
   }
@@ -377,9 +370,7 @@ export function checkConfig(config: Partial<TCustomConfig>): void {
       `\nOutdated Config version: ${config.version}
 Latest version: ${Constants.CONFIG_VERSION}
 
-      Check out the Config changelogs for the latest options and features added.
-
-      https://www.librechat.ai/changelog\n\n`,
+      Check out the Config changelogs for the latest options and features added.\n\n`,
     );
   }
 }
@@ -423,9 +414,7 @@ export function checkWebSearchConfig(
           This is incorrect! You should use environment variable references in your librechat.yaml file, such as:
           ${key}: "\${YOUR_ENV_VAR_NAME}"
           
-          Then set the actual API key in your .env file or environment variables.
-          
-          More info: https://www.librechat.ai/docs/configuration/librechat_yaml/web_search`,
+          Then set the actual API key in your .env file or environment variables.`,
         );
       }
     }

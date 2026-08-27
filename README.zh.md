@@ -1,12 +1,12 @@
 <!-- Last synced with README.md: 2026-05-12 (947bfa4c40) -->
 
 <p align="center">
-  <a href="https://librechat.ai">
-    <img src="client/public/assets/logo.svg" height="256">
-  </a>
-  <h1 align="center">
-    <a href="https://librechat.ai">LibreChat</a>
-  </h1>
+  <img src="client/public/assets/logo.svg" height="256">
+  <h1 align="center">Cybernetics · Agentic Centre</h1>
+</p>
+
+<p align="center">
+  <strong>Cybernetics 的中心化智能体平台</strong>
 </p>
 
 <p align="center">
@@ -14,45 +14,8 @@
   <strong>中文</strong>
 </p>
 
-<p align="center">
-  <a href="https://discord.librechat.ai"> 
-    <img
-      src="https://img.shields.io/discord/1086345563026489514?label=&logo=discord&style=for-the-badge&logoWidth=20&logoColor=white&labelColor=000000&color=blueviolet">
-  </a>
-  <a href="https://www.youtube.com/@LibreChat"> 
-    <img
-      src="https://img.shields.io/badge/YOUTUBE-red.svg?style=for-the-badge&logo=youtube&logoColor=white&labelColor=000000&logoWidth=20">
-  </a>
-  <a href="https://docs.librechat.ai"> 
-    <img
-      src="https://img.shields.io/badge/DOCS-blue.svg?style=for-the-badge&logo=read-the-docs&logoColor=white&labelColor=000000&logoWidth=20">
-  </a>
-  <a aria-label="Sponsors" href="https://github.com/sponsors/danny-avila">
-    <img
-      src="https://img.shields.io/badge/SPONSORS-brightgreen.svg?style=for-the-badge&logo=github-sponsors&logoColor=white&labelColor=000000&logoWidth=20">
-  </a>
-</p>
-
-<p align="center">
-<a href="https://railway.com/deploy/librechat-official?referralCode=HI9hWz&utm_medium=integration&utm_source=readme&utm_campaign=librechat">
-  <img src="https://railway.com/button.svg" alt="Deploy on Railway" height="30">
-</a>
-<a href="https://zeabur.com/templates/0X2ZY8">
-  <img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur" height="30"/>
-</a>
-<a href="https://template.cloud.sealos.io/deploy?templateName=librechat">
-  <img src="https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg" alt="Deploy on Sealos" height="30">
-</a>
-</p>
-
-<p align="center">
-  <a href="https://www.librechat.ai/docs/translation">
-    <img 
-      src="https://img.shields.io/badge/dynamic/json.svg?style=for-the-badge&color=2096F3&label=locize&query=%24.translatedPercentage&url=https://api.locize.app/badgedata/4cb2598b-ed4d-469c-9b04-2ed531a8cb45&suffix=%+translated" 
-      alt="翻译进度">
-  </a>
-</p>
-
+> 基于 [LibreChat](https://github.com/danny-avila/LibreChat) 构建。相关说明及底层文档请参见
+> [上游项目](#-上游项目)。
 
 # ✨ 功能
 
@@ -148,56 +111,36 @@
   - 完全开源且在公众监督下开发。  
   - 社区驱动的开发、支持与反馈。
 
-[查看我们的文档了解更多功能详情](https://docs.librechat.ai/) 📚
+[查看上游文档了解更多功能详情](https://docs.librechat.ai/) 📚
 
-## 🪶 LibreChat：全方位的 AI 对话平台
+## 🪶 Cybernetics：全方位的 AI 对话平台
 
-LibreChat 是一个自托管的 AI 对话平台，在一个注重隐私的统一界面中整合了所有主流 AI 服务商。
+Agentic Centre 是 Cybernetics 生态的中心化应用——一个自托管的 AI 对话平台，在一个注重隐私的统一界面中整合了所有主流 AI 服务商。
 
-除了对话功能外，LibreChat 还提供 AI 智能体、模型上下文协议 (MCP) 支持、Artifacts、代码解释器、自定义操作、对话搜索，以及企业级多用户认证。
+除了对话功能外，它还提供 AI 智能体、模型上下文协议 (MCP) 支持、Artifacts、代码解释器、自定义操作、对话搜索，以及企业级多用户认证。
 
-开源、活跃开发中，专为重视 AI 基础设施自主可控的用户而构建。
+自托管，专为重视 AI 基础设施自主可控的用户而构建。
 
 ---
 
-## 🌐 资源
+## 🌐 上游项目
 
-**GitHub 仓库：**
-  - **RAG API:** [github.com/danny-avila/rag_api](https://github.com/danny-avila/rag_api)
-  - **网站:** [github.com/LibreChat-AI/librechat.ai](https://github.com/LibreChat-AI/librechat.ai)
+Agentic Centre 是 LibreChat 的一个分支。上文引用的功能文档由上游维护，同样适用于本代码库。
 
-**其他：**
-  - **官方网站:** [librechat.ai](https://librechat.ai)
+**上游项目：**
+  - **代码仓库:** [github.com/danny-avila/LibreChat](https://github.com/danny-avila/LibreChat)
   - **帮助文档:** [librechat.ai/docs](https://librechat.ai/docs)
-  - **博客:** [librechat.ai/blog](https://librechat.ai/blog)
+  - **发布页面:** [github.com/danny-avila/LibreChat/releases](https://github.com/danny-avila/LibreChat/releases)
+  - **更新日志:** [librechat.ai/changelog](https://www.librechat.ai/changelog)
+  - **RAG API:** [github.com/danny-avila/rag_api](https://github.com/danny-avila/rag_api)
 
----
+**⚠️ 在更新前请务必查看上游[更新日志](https://www.librechat.ai/changelog)以了解破坏性更改。**
 
-## 📝 更新日志
+Agentic Centre 的现状得益于每一位 LibreChat 贡献者：
 
-访问发布页面和更新日志以了解最新动态：
-- [发布页面 (Releases)](https://github.com/danny-avila/LibreChat/releases)
-- [更新日志 (Changelog)](https://www.librechat.ai/changelog)
-
-**⚠️ 在更新前请务必查看[更新日志](https://www.librechat.ai/changelog)以了解破坏性更改。**
-
----
-
-## ⭐ Star 历史
-
-<p align="center">
-  <a href="https://star-history.com/#danny-avila/LibreChat&Date">
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=danny-avila/LibreChat&type=Date&theme=dark" onerror="this.src='https://api.star-history.com/svg?repos=danny-avila/LibreChat&type=Date'" />
-  </a>
-</p>
-<p align="center">
-  <a href="https://trendshift.io/repositories/4685" target="_blank" style="padding: 10px;">
-    <img src="https://trendshift.io/api/badge/repositories/4685" alt="danny-avila%2FLibreChat | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/>
-  </a>
-  <a href="https://runacap.com/ross-index/q1-24/" target="_blank" rel="noopener" style="margin-left: 20px;">
-    <img style="width: 260px; height: 56px" src="https://runacap.com/wp-content/uploads/2024/04/ROSS_badge_white_Q1_2024.svg" alt="ROSS Index - 2024年第一季度增长最快的开源初创公司 | Runa Capital" width="260" height="56"/>
-  </a>
-</p>
+<a href="https://github.com/danny-avila/LibreChat/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=danny-avila/LibreChat" />
+</a>
 
 ---
 
@@ -207,21 +150,13 @@ LibreChat 是一个自托管的 AI 对话平台，在一个注重隐私的统一
 
 对于新功能、组件或扩展，请在发送 PR 前开启 issue 进行讨论。
 
-如果您想帮助我们将 LibreChat 翻译成您的母语，我们非常欢迎！改进翻译不仅能让全球用户更轻松地使用 LibreChat，还能提升整体用户体验。请查看我们的[翻译指南](https://www.librechat.ai/docs/translation)。
-
----
-
-## 💖 感谢所有贡献者
-
-<a href="https://github.com/danny-avila/LibreChat/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=danny-avila/LibreChat" />
-</a>
+如果您想帮助我们将 Agentic Centre 翻译成您的母语，我们非常欢迎！改进翻译不仅能让全球用户更轻松地使用本平台，还能提升整体用户体验。请查看上游[翻译指南](https://www.librechat.ai/docs/translation)。
 
 ---
 
 ## 🎉 特别鸣谢
 
-感谢 [Locize](https://locize.com) 提供的翻译管理工具，支持 LibreChat 的多语言功能。
+感谢 [Locize](https://locize.com) 提供的翻译管理工具，支持本项目的多语言功能。
 
 <p align="center">
   <a href="https://locize.com" target="_blank" rel="noopener noreferrer">

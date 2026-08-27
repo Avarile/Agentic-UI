@@ -1,6 +1,6 @@
-# DNS Configuration for LibreChat Helm Chart
+# DNS Configuration for Cybernetics - Agentic Centre Helm Chart
 
-This feature allows you to configure custom DNS settings for LibreChat pods, enabling traffic redirection to proxy servers or custom endpoints.
+This feature allows you to configure custom DNS settings for Cybernetics pods, enabling traffic redirection to proxy servers or custom endpoints.
 
 ## Use Cases
 
@@ -109,7 +109,7 @@ The feature has been tested with the following scenarios:
 - Failover happens when primary is unavailable
 
 ✅ **Integration Test**
-- Works with existing LibreChat configuration
+- Works with existing Cybernetics configuration
 - No conflicts with cluster DNS when using ClusterFirst policy
 - Compatible with all pod security contexts
 
@@ -181,6 +181,6 @@ dnsConfig:         # Top level, not under any section
 ## Compatibility
 
 - Kubernetes 1.19+
-- Compatible with all LibreChat deployment modes
+- Compatible with all Cybernetics deployment modes
 - Works with both MongoDB and Meilisearch enabled/disabled
 - No additional permissions required

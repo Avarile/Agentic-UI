@@ -136,7 +136,7 @@ describe('checkWebSearchConfig', () => {
       );
     });
 
-    it('should include documentation link in warning message', () => {
+    it('should tell the operator to use an env var reference', () => {
       const config = {
         firecrawlApiKey: 'fc-actual-key',
       };
@@ -147,7 +147,7 @@ describe('checkWebSearchConfig', () => {
 
       expect(logger.warn).toHaveBeenCalledWith(
         expect.stringContaining(
-          'More info: https://www.librechat.ai/docs/configuration/librechat_yaml/web_search',
+          'Then set the actual API key in your .env file or environment variables.',
         ),
       );
     });

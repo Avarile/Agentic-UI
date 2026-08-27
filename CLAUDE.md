@@ -1,8 +1,8 @@
-# LibreChat
+# Cybernetics - Agentic Centre
 
 ## Project Overview
 
-LibreChat is a monorepo with the following key workspaces:
+Cybernetics - Agentic Centre is a monorepo with the following key workspaces:
 
 | Workspace | Language | Side | Dependency | Purpose |
 |---|---|---|---|---|

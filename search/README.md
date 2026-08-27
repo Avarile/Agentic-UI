@@ -78,7 +78,7 @@ compose files. Existing ports (unchanged by this stack):
 
 | Port | Service | Where |
 |---|---|---|
-| 3080 | LibreChat API | `docker-compose.yml`, `deploy-compose.yml` |
+| 3080 | Cybernetics API | `docker-compose.yml`, `deploy-compose.yml` |
 | 80, 443 | nginx client | `deploy-compose.yml`, `utils/docker/test-compose.yml` |
 | 3000 | admin-panel | `docker-compose.yml`, `deploy-compose.yml` |
 | 27018 | mongodb (optional host expose) | `docker-compose.override.yml`, `utils/docker/test-compose.yml` |
@@ -92,7 +92,7 @@ New ports, this stack (`search/compose.yml`, all overridable in `search/.env`):
 
 | Port | Service | Purpose |
 |---|---|---|
-| 27021 | `ferretdb` | Mongo wire protocol - the port LibreChat's Mongo driver would point at |
+| 27021 | `ferretdb` | Mongo wire protocol - the port Cybernetics's Mongo driver would point at |
 | 8089 | `ferretdb` | FerretDB debug/metrics HTTP (`FERRETDB_DEBUG_ADDR`, container port 8088) |
 | 5434 | `ferretdb-postgres` | Direct SQL access to the DocumentDB backing store (Spike A/B poking, not needed by the app) |
 | 5435 | `chat_search_db` | PostgreSQL 17 + pgvector, the new dedicated search store |

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { DEFAULT_APP_TITLE } from 'librechat-data-provider';
 import type { TStartupConfig } from 'librechat-data-provider';
 import { TranslationKeys, useLocalize } from '~/hooks';
 import { useGetStartupConfig } from '~/data-provider';
@@ -44,7 +45,7 @@ export default function StartupLayout({ isAuthenticated }: { isAuthenticated?: b
   }, [isAuthenticated, navigate, data]);
 
   useEffect(() => {
-    document.title = startupConfig?.appTitle || 'Cybernetics -- Agentic Centre';
+    document.title = startupConfig?.appTitle || DEFAULT_APP_TITLE;
   }, [startupConfig?.appTitle]);
 
   useEffect(() => {

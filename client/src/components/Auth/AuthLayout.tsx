@@ -1,4 +1,4 @@
-import { TStartupConfig } from 'librechat-data-provider';
+import { TStartupConfig, DEFAULT_APP_TITLE } from 'librechat-data-provider';
 import { AnimatedGridPattern, ThemeSelector } from '@librechat/client';
 import { ErrorMessage } from '~/components/Auth/ErrorMessage';
 import { TranslationKeys, useLocalize } from '~/hooks';
@@ -90,7 +90,7 @@ function AuthLayout({
                   logoClassName="h-8 w-8 rounded-[2px]"
                   taglineClassName="hidden min-[360px]:flex"
                   logoAlt={localize('com_ui_logo', {
-                    0: startupConfig?.appTitle ?? 'Cybernetics - Agentic Centre',
+                    0: startupConfig?.appTitle ?? DEFAULT_APP_TITLE,
                   })}
                 />
               </BlinkAnimation>

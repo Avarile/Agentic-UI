@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Regression test for Langfuse fanout Helm selectors.
 #
-# The fanout collector must not share the main LibreChat app selector labels.
+# The fanout collector must not share the main Cybernetics app selector labels.
 # Otherwise the main Service can route HTTP traffic to the OTEL collector pod.
 
 set -euo pipefail
@@ -156,5 +156,5 @@ if (fanoutContainer.readinessProbe?.httpGet?.path !== '/healthz') {
   fail('fanout Deployment missing /healthz readiness probe');
 }
 
-console.log('PASS: Langfuse fanout selectors are isolated from the main LibreChat Service');
+console.log('PASS: Langfuse fanout selectors are isolated from the main Cybernetics Service');
 NODE

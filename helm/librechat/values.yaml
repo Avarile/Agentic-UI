@@ -19,7 +19,7 @@ global:
     existingSecretName: "librechat-credentials-env"
     # Used for Setting the Right Key, can be something like AZURE_API_KEY, if Azure OpenAI is used
     existingSecretApiKey: OPENAI_API_KEY
-    # Optionally add extra globally accessible environment variables here. These can be referenced under ConfigEnv to make them accessible inside LibreChat
+    # Optionally add extra globally accessible environment variables here. These can be referenced under ConfigEnv to make them accessible inside Cybernetics
     # env:
     #  - name: API_KEY
     #    valueFrom:
@@ -41,7 +41,7 @@ librechat:
 
   configEnv:
     # Set unique, persistent values in global.librechat.existingSecretName before production use.
-    # If omitted, LibreChat generates temporary values in .env.temp when the container filesystem is persistent.
+    # If omitted, Cybernetics generates temporary values in .env.temp when the container filesystem is persistent.
     # Set Config Params here
     # ENV_NAME: env-value
 
@@ -61,12 +61,12 @@ librechat:
   #   interface:
   #     # Privacy policy settings
   #     privacyPolicy:
-  #       externalUrl: 'https://librechat.ai/privacy-policy'
+  #       externalUrl: 'https://example.com/privacy-policy'
   #       openNewTab: true
 
   #     # Terms of service
   #     termsOfService:
-  #       externalUrl: 'https://librechat.ai/tos'
+  #       externalUrl: 'https://example.com/tos'
   #       openNewTab: true
 
   #   registration:
@@ -277,7 +277,7 @@ dnsConfig: {}
 #     - name: timeout
 #       value: "1"
 
-# Strategy for LibreChat deployment updates
+# Strategy for Cybernetics deployment updates
 updateStrategy:
   type: RollingUpdate
 
@@ -321,7 +321,7 @@ langfuseFanout:
       key: REDIS_PASSWORD
     keyPrefix: langfuse-fanout
   tenant:
-    # Destination map keys are emitted by LibreChat as trace attributes and
+    # Destination map keys are emitted by Cybernetics as trace attributes and
     # matched by the gateway. Use lowercase keys matching ^[a-z][a-z0-9_-]*$.
     destinations:
       eu:
