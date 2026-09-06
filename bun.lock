@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "LibreChat",
+      "name": "cybernetics-agentics",
       "devDependencies": {
         "@antithesishq/bombadil": "0.6.1",
         "@axe-core/playwright": "^4.10.1",

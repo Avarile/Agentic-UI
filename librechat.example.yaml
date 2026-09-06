@@ -1,5 +1,4 @@
-# For more information, see the Configuration Guide:
-# https://www.librechat.ai/docs/configuration/librechat_yaml
+# For more information, see the Configuration Guide.
 
 # Configuration version (required)
 version: 1.3.14
@@ -57,7 +56,7 @@ cache: true
 #   #   /r/{storageRegion}/t/{tenantId}/{basePath}/{userId}/{file} (non-inline files)
 #   # storageRegion defaults to AWS_REGION when omitted, but only affects new keys
 #   # when includeRegionInPath is true. Existing files are not moved automatically.
-#   # LibreChat does not configure CloudFront origins, Route53, or regional routing.
+#   # Cybernetics does not configure CloudFront origins, Route53, or regional routing.
 #   storageRegion: "us-east-2"
 #   includeRegionInPath: false
 #   # Direct-download filename/content-type overrides require the CloudFront cache/origin
@@ -77,7 +76,7 @@ cache: true
 #     intervalMinutes: 60
 #     runOnStartup: true
 #     sources:
-#       - id: librechat-skills
+#       - id: cybernetics-skills
 #         owner: your-org
 #         repo: your-skills-repo
 #         ref: main
@@ -99,32 +98,32 @@ cache: true
 
 # Custom interface configuration
 interface:
-  customWelcome: 'Welcome to LibreChat! Enjoy your experience.'
+  customWelcome: 'Welcome to Cybernetics - Agentic Centre! Enjoy your experience.'
   # Enable/disable file search as a chatarea selection (default: true)
   # Note: This setting does not disable the Agents File Search Capability.
   # To disable the Agents Capability, see the Agents Endpoint configuration instead.
   fileSearch: true
   # Privacy policy settings
   privacyPolicy:
-    externalUrl: 'https://librechat.ai/privacy-policy'
+    externalUrl: 'https://example.com/privacy-policy'
     openNewTab: true
 
   # Terms of service
   termsOfService:
-    externalUrl: 'https://librechat.ai/tos'
+    externalUrl: 'https://example.com/tos'
     openNewTab: true
     modalAcceptance: true
-    modalTitle: 'Terms of Service for LibreChat'
+    modalTitle: 'Terms of Service for Cybernetics - Agentic Centre'
     modalContent: |
-      # Terms and Conditions for LibreChat
+      # Terms and Conditions for Cybernetics - Agentic Centre
 
       *Effective Date: February 18, 2024*
 
-      Welcome to LibreChat, the informational website for the open-source AI chat platform, available at https://librechat.ai. These Terms of Service ("Terms") govern your use of our website and the services we offer. By accessing or using the Website, you agree to be bound by these Terms and our Privacy Policy, accessible at https://librechat.ai//privacy.
+      Welcome to Cybernetics - Agentic Centre, available at https://example.com. These Terms of Service ("Terms") govern your use of our website and the services we offer. By accessing or using the Website, you agree to be bound by these Terms and our Privacy Policy, accessible at https://example.com/privacy.
 
       ## 1. Ownership
 
-      Upon purchasing a package from LibreChat, you are granted the right to download and use the code for accessing an admin panel for LibreChat. While you own the downloaded code, you are expressly prohibited from reselling, redistributing, or otherwise transferring the code to third parties without explicit permission from LibreChat.
+      Upon purchasing a package from Cybernetics, you are granted the right to download and use the code for accessing an admin panel for Cybernetics - Agentic Centre. While you own the downloaded code, you are expressly prohibited from reselling, redistributing, or otherwise transferring the code to third parties without explicit permission from Cybernetics.
 
       ## 2. User Data
 
@@ -148,7 +147,7 @@ interface:
 
       ## 7. Contact Information
 
-      If you have any questions about these Terms, please contact us at contact@librechat.ai.
+      If you have any questions about these Terms, please contact us at contact@example.com.
 
       By using the Website, you acknowledge that you have read these Terms of Service and agree to be bound by them.
 
@@ -213,9 +212,9 @@ interface:
   #     de-DE: 'Ich verstehe und möchte fortfahren' # You can narrow translation to regions like (de-DE or de-CH)
   #   subLabel:
   #     en: |
-  #       Librechat hasn't reviewed this MCP server. Attackers may attempt to steal your data or trick the model into taking unintended actions, including destroying data. <a href="https://google.de" target="_blank"><strong>Learn more.</strong></a>
+  #       Cybernetics hasn't reviewed this MCP server. Attackers may attempt to steal your data or trick the model into taking unintended actions, including destroying data. <a href="https://google.de" target="_blank"><strong>Learn more.</strong></a>
   #     de: |
-  #       LibreChat hat diesen MCP-Server nicht überprüft. Angreifer könnten versuchen, Ihre Daten zu stehlen oder das Modell zu unbeabsichtigten Aktionen zu verleiten, einschließlich der Zerstörung von Daten. <a href="https://google.de" target="_blank"><strong>Mehr erfahren.</strong></a>
+  #       Cybernetics hat diesen MCP-Server nicht überprüft. Angreifer könnten versuchen, Ihre Daten zu stehlen oder das Modell zu unbeabsichtigten Aktionen zu verleiten, einschließlich der Zerstörung von Daten. <a href="https://google.de" target="_blank"><strong>Mehr erfahren.</strong></a>
 
   # Temporary chat retention period in hours (default: 720, min: 1, max: 8760)
   # temporaryChatRetention: 1
@@ -331,7 +330,6 @@ registration:
 actions:
   allowedDomains:
     - 'swapi.dev'
-    - 'librechat.ai'
     - 'google.com'
     # - 'http://10.225.26.25:7894'  # Internal IP with protocol/port (uncomment if needed)
   # `allowedAddresses` is an SSRF exemption list, NOT a strict whitelist.
@@ -416,8 +414,8 @@ actions:
 #     args:
 #       - -y
 #       - "@modelcontextprotocol/server-filesystem"
-#       - /home/user/LibreChat/
-#     iconPath: /home/user/LibreChat/client/public/assets/logo.svg
+#       - /home/user/cybernetics-agentics/
+#     iconPath: /home/user/cybernetics-agentics/client/public/assets/logo.svg
 #   mcp-obsidian:
 #     command: npx
 #     args:
@@ -452,7 +450,7 @@ endpoints:
   #   # Defense in depth against looping provider streams. Disabled by default.
   #   maxDeltaEventsPerTurn: 100000
   #   # (optional) Per-tool overrides for maxToolCallArgBytes, keyed by tool name; 0 disables that
-  #   # tool's guard. LibreChat ships { create_file: 131072 } so document-sized file writes are not
+  #   # tool's guard. Cybernetics ships { create_file: 131072 } so document-sized file writes are not
   #   # cut off; entries here merge over (and can replace) that default.
   #   maxToolCallArgBytesByTool:
   #     create_file: 131072
@@ -513,10 +511,10 @@ endpoints:
   # consumes them — native provider APIs ignore unknown headers.
   # openAI:
   #   headers:
-  #     cf-aig-metadata: '{"user_email":"{{LIBRECHAT_USER_EMAIL}}","app":"librechat"}'
+  #     cf-aig-metadata: '{"user_email":"{{LIBRECHAT_USER_EMAIL}}","app":"cybernetics"}'
   # google:
   #   headers:
-  #     cf-aig-metadata: '{"user_email":"{{LIBRECHAT_USER_EMAIL}}","app":"librechat"}'
+  #     cf-aig-metadata: '{"user_email":"{{LIBRECHAT_USER_EMAIL}}","app":"cybernetics"}'
 
   # Anthropic endpoint configuration with Vertex AI support
   # Use this to run Anthropic Claude models through Google Cloud Vertex AI
@@ -531,7 +529,7 @@ endpoints:
   #   # Useful for correlating reverse-proxied requests by conversation, since an
   #   # unknown header is simply ignored by the native Anthropic API.
   #   headers:
-  #     cf-aig-metadata: '{"user_email":"{{LIBRECHAT_USER_EMAIL}}","app":"librechat"}'
+  #     cf-aig-metadata: '{"user_email":"{{LIBRECHAT_USER_EMAIL}}","app":"cybernetics"}'
   #     X-Conversation-Id: '{{LIBRECHAT_BODY_CONVERSATIONID}}'
   #
   #   # Vertex AI Configuration - enables running Claude models via Google Cloud
@@ -703,7 +701,7 @@ endpoints:
       apiKey: '${OPENROUTER_KEY}'
       baseURL: 'https://openrouter.ai/api/v1'
       headers:
-        x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
+        x-cybernetics-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
       models:
         default: ['meta-llama/llama-3-70b-instruct']
         fetch: true
@@ -720,7 +718,7 @@ endpoints:
       apiKey: '${HELICONE_KEY}'
       baseURL: 'https://ai-gateway.helicone.ai'
       headers:
-        x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
+        x-cybernetics-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
       models:
         default:
           ['gpt-4o-mini', 'claude-4.5-sonnet', 'llama-3.1-8b-instruct', 'gemini-2.5-flash-lite']
@@ -895,8 +893,7 @@ endpoints:
 #     maxWidth: 1900  # Maximum width for resized images (default: 1900)
 #     maxHeight: 1900  # Maximum height for resized images (default: 1900)
 #     quality: 0.92  # JPEG quality for compression (0.0-1.0, default: 0.92)
-# # See the Custom Configuration Guide for more information on Assistants Config:
-# # https://www.librechat.ai/docs/configuration/librechat_yaml/object_structure/assistants_endpoint
+# # See the Custom Configuration Guide for more information on Assistants Config.
 
 # Web Search Configuration (optional)
 # webSearch:

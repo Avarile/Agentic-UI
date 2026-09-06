@@ -5,7 +5,7 @@ services:
     #   dockerfile: Dockerfile.multi
     #   target: api-build
     image: registry.librechat.ai/danny-avila/librechat-dev-api:latest
-    container_name: LibreChat-API
+    container_name: agentic-centre-api
     ports:
       - 3080:3080
     depends_on:
@@ -59,7 +59,7 @@ services:
 
   client:
     image: nginx:1.27.0-alpine
-    container_name: LibreChat-NGINX
+    container_name: agentic-centre-nginx
     ports:
       - 80:80
       - 443:443

@@ -514,18 +514,28 @@ describe('GET /api/config', () => {
     it('should include post-login informational fields', async () => {
       process.env.ANALYTICS_GTM_ID = 'GTM-XYZ';
       process.env.CUSTOM_FOOTER = 'authenticated footer text';
+      process.env.HELP_AND_FAQ_URL = 'https://internal.example.com/faq';
       mockGetAppConfig.mockResolvedValue(baseAppConfig);
       const app = createApp(mockUser);
 
       const response = await request(app).get('/api/config');
 
-      expect(response.body).toHaveProperty('helpAndFaqURL');
+      expect(response.body.helpAndFaqURL).toBe('https://internal.example.com/faq');
       expect(response.body).toHaveProperty('sharedLinksEnabled');
       expect(response.body).toHaveProperty('publicSharedLinksEnabled');
       expect(response.body).toHaveProperty('showBirthdayIcon');
       expect(response.body).toHaveProperty('openidReuseTokens');
       expect(response.body.analyticsGtmId).toBe('GTM-XYZ');
       expect(response.body.customFooter).toBe('authenticated footer text');
+    });
+
+    it('should omit helpAndFaqURL when HELP_AND_FAQ_URL is unset', async () => {
+      mockGetAppConfig.mockResolvedValue(baseAppConfig);
+      const app = createApp(mockUser);
+
+      const response = await request(app).get('/api/config');
+
+      expect(response.body).not.toHaveProperty('helpAndFaqURL');
     });
 
     it('should advertise CloudFront cookie refresh when signed-cookie mode is active', async () => {

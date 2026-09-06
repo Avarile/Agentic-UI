@@ -1,3 +1,4 @@
+import { DEFAULT_APP_TITLE } from 'librechat-data-provider';
 import type { AppConfig } from '@librechat/data-schemas';
 import { buildSharedLinkStartupPayload, isFileSnapshotEnabled } from './config';
 
@@ -80,6 +81,6 @@ describe('buildSharedLinkStartupPayload', () => {
       {},
     );
 
-    expect(payload).toEqual({ appTitle: 'LibreChat' });
+    expect(payload).toEqual({ appTitle: DEFAULT_APP_TITLE });
   });
 });

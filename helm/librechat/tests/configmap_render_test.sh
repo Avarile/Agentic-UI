@@ -6,7 +6,7 @@
 # value is already a YAML literal string, toYaml re-wrapped it in another `|`
 # block scalar, producing a mounted /app/librechat.yaml whose first line was
 # a bare `|`. js-yaml "recovered" by returning the body as a string, so
-# LibreChat silently fell back to internal defaults for every config block
+# Cybernetics silently fell back to internal defaults for every config block
 # (endpoints, interface, modelSpecs, ...).
 #
 # This test renders the ConfigMap with a sample configYamlContent and asserts

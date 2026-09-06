@@ -1,6 +1,6 @@
 # Langfuse Fanout Gateway
 
-LibreChat can send tenant-scoped agent traces to a tenant Langfuse project and
+Cybernetics can send tenant-scoped agent traces to a tenant Langfuse project and
 also copy those traces to a central Langfuse project. When trace payloads
 contain Langfuse media references, the gateway can also copy the media upload to
 central and tenant Langfuse storage. This is optional and is disabled unless you
@@ -8,7 +8,7 @@ explicitly deploy the fanout gateway.
 
 The deployment is a hybrid:
 
-- the Go gateway is the only endpoint LibreChat talks to;
+- the Go gateway is the only endpoint Cybernetics talks to;
 - trace requests are proxied to an internal OpenTelemetry collector;
 - the collector owns trace memory limiting, batching, routing, and export;
 - the Go gateway owns Langfuse media create/upload/patch fanout.
@@ -16,19 +16,19 @@ The deployment is a hybrid:
 ## How It Works
 
 - Agent traces use Langfuse OTLP ingestion.
-- LibreChat sends tenant traces to the local fanout gateway when
+- Cybernetics sends tenant traces to the local fanout gateway when
   `LANGFUSE_FANOUT_ENABLED=true` and `LANGFUSE_FANOUT_COLLECTOR_URL` points at
   the fanout gateway.
 - The gateway forwards trace requests to the internal OpenTelemetry collector
   at `LANGFUSE_FANOUT_TRACE_COLLECTOR_URL`.
 - The collector exports every trace to the central Langfuse project using
   `LANGFUSE_FANOUT_CENTRAL_AUTH_HEADER`. This prebuilt header is collector-only;
-  the LibreChat app derives central score auth from `LANGFUSE_PUBLIC_KEY` and
+  the Cybernetics app derives central score auth from `LANGFUSE_PUBLIC_KEY` and
   `LANGFUSE_SECRET_KEY`.
 - The collector also exports tenant-enabled traces to the tenant Langfuse
   project by routing on `librechat.langfuse.destination`, then forwarding the
-  tenant `Authorization` header that LibreChat attaches to the OTLP request.
-- For tenant-exportable runs, LibreChat uses a destination-scoped gateway URL
+  tenant `Authorization` header that Cybernetics attaches to the OTLP request.
+- For tenant-exportable runs, Cybernetics uses a destination-scoped gateway URL
   like `http://langfuse-fanout-collector:4318/tenant/us`. Langfuse media upload
   requests do not carry span attributes, so this path gives the gateway the
   destination needed to copy media into the tenant's Langfuse region. For
@@ -44,33 +44,33 @@ The deployment is a hybrid:
   with `LANGFUSE_FANOUT_CENTRAL_MEDIA_EXPORT_DISABLED=true`. Per-run central
   trace suppression uses a destination-scoped gateway path that also skips
   central media export for that run.
-- Tenant export is conditional. LibreChat uses a destination-scoped gateway URL
+- Tenant export is conditional. Cybernetics uses a destination-scoped gateway URL
   only when the saved connection is enabled with tenant keys, its destination
   key matches a configured startup destination, and
   `LANGFUSE_FANOUT_TENANT_EXPORT_DISABLED` is not true.
   Other traces are still exported to central through the gateway without tenant
   auth.
-- User feedback scores use Langfuse's direct REST API from the LibreChat API
-  process. Central scores use LibreChat's normal central Langfuse env config;
+- User feedback scores use Langfuse's direct REST API from the Cybernetics API
+  process. Central scores use Cybernetics's normal central Langfuse env config;
   tenant scores use tenant app configuration when tenant fanout is enabled.
 
-Tenant Langfuse keys are expected to come from LibreChat app configuration.
+Tenant Langfuse keys are expected to come from Cybernetics app configuration.
 When available, an authorized administrator can configure and verify the
-connection under **Settings > Langfuse**; LibreChat encrypts the secret key at
+connection under **Settings > Langfuse**; Cybernetics encrypts the secret key at
 rest. The keys are not defined in this gateway config.
 
 ## Limitations
 
 - Langfuse base URLs are startup configuration. `LANGFUSE_FANOUT_CENTRAL_BASE_URL`
-  and `LANGFUSE_FANOUT_TENANT_DESTINATIONS` must be known when LibreChat and the
+  and `LANGFUSE_FANOUT_TENANT_DESTINATIONS` must be known when Cybernetics and the
   gateway start. Tenant app configuration may choose any configured tenant
   destination.
 - Tenant Langfuse API keys can be added, changed, or disabled in tenant app
-  configuration at runtime without restarting LibreChat or the gateway.
+  configuration at runtime without restarting Cybernetics or the gateway.
 - Tenant app configuration must select a destination key from
   `LANGFUSE_FANOUT_TENANT_DESTINATIONS` before tenant trace/score export is
   enabled; keys alone do not enable tenant export.
-- `LANGFUSE_FANOUT_TENANT_EXPORT_DISABLED=true` can be set on LibreChat as an
+- `LANGFUSE_FANOUT_TENANT_EXPORT_DISABLED=true` can be set on Cybernetics as an
   emergency switch to stop tenant trace and score export while keeping central
   gateway export active. When omitted, false, or blank, tenant export remains
   available if tenant keys and a known destination are configured.
@@ -78,7 +78,7 @@ rest. The keys are not defined in this gateway config.
   to stop central media create/upload/patch fanout while leaving central trace
   export unchanged.
 - This supports Langfuse Cloud and self-hosted Langfuse as long as each allowed
-  tenant base URL is configured at LibreChat/gateway startup. Runtime tenant
+  tenant base URL is configured at Cybernetics/gateway startup. Runtime tenant
   config selects from those known destinations; it does not inject arbitrary
   export URLs into the gateway.
 - The provided Compose gateway config is a three-region Langfuse Cloud preset
@@ -100,14 +100,14 @@ rest. The keys are not defined in this gateway config.
   service URL. Helm derives the fanout Service DNS name unless `publicUrl` is
   set.
 - Media fanout is not transactional across central and tenant projects. If one
-  destination accepts `POST /api/public/media` and another fails, LibreChat sees
+  destination accepts `POST /api/public/media` and another fails, Cybernetics sees
   a gateway error and will not upload bytes, but the successful destination may
   retain a short-lived, unused media record.
 - Trace batching is handled by the collector. By default it flushes after 128
   items or 1 second, and tenant batches are separated by the request
   `Authorization` metadata.
 - The gateway exposes Prometheus metrics at `/metrics` using the same bearer
-  token shape as LibreChat. Set `LANGFUSE_FANOUT_METRICS_SECRET`, or provide
+  token shape as Cybernetics. Set `LANGFUSE_FANOUT_METRICS_SECRET`, or provide
   `METRICS_SECRET` in the gateway environment. When neither is set, `/metrics`
   returns 401.
 
@@ -116,7 +116,7 @@ rest. The keys are not defined in this gateway config.
 Set the central Langfuse destination in `.env`:
 
 ```dotenv
-# Used by LibreChat for central feedback scores. Set this to the same non-EU
+# Used by Cybernetics for central feedback scores. Set this to the same non-EU
 # region as LANGFUSE_FANOUT_CENTRAL_BASE_URL when applicable.
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
 
@@ -155,7 +155,7 @@ Langfuse Cloud base URL options:
 | US     | `https://us.cloud.langfuse.com` |
 | JP     | `https://jp.cloud.langfuse.com` |
 
-Then start LibreChat with the fanout override:
+Then start Cybernetics with the fanout override:
 
 ```sh
 docker compose -f docker-compose.yml -f docker-compose.langfuse-fanout.yml up -d
@@ -167,7 +167,7 @@ For the deployed compose stack:
 docker compose -f deploy-compose.yml -f deploy-compose.langfuse-fanout.yml up -d
 ```
 
-The override builds the fanout gateway image, sets `LANGFUSE_FANOUT_ENABLED=true`, and points LibreChat at
+The override builds the fanout gateway image, sets `LANGFUSE_FANOUT_ENABLED=true`, and points Cybernetics at
 `http://langfuse-fanout-collector:4318`. It also starts an internal
 `langfuse-fanout-otel` service on the private fanout network for trace export.
 
@@ -242,7 +242,7 @@ langfuseFanout:
 The chart renders one fanout Deployment with two containers: the gateway on
 `4318` and an internal OpenTelemetry collector on `4319`. The Service exposes
 only the gateway. The chart also injects `LANGFUSE_FANOUT_ENABLED` plus
-`LANGFUSE_FANOUT_COLLECTOR_URL` into the LibreChat app ConfigMap when they are
+`LANGFUSE_FANOUT_COLLECTOR_URL` into the Cybernetics app ConfigMap when they are
 not already supplied in `librechat.configEnv`.
 
 Set `langfuseFanout.redis.uri` when using an external Redis service. If Redis
@@ -277,11 +277,11 @@ already uploaded.
 
 - The gateway handles Langfuse media uploads and proxies traces to the internal
   collector. Feedback scores go directly to Langfuse's REST API from the
-  LibreChat API process.
+  Cybernetics API process.
 - `LANGFUSE_FANOUT_CENTRAL_AUTH_HEADER` must be a full Basic auth header and is
   consumed by the fanout deployment only. The app does not use it for scores.
 - `LANGFUSE_FANOUT_CENTRAL_BASE_URL` is also consumed by the fanout deployment only.
-  For non-EU central feedback scores, set LibreChat's normal `LANGFUSE_BASE_URL`
+  For non-EU central feedback scores, set Cybernetics's normal `LANGFUSE_BASE_URL`
   to the same central Langfuse region.
 - Tenant destinations default to the three configured Langfuse Cloud regions. Add or
   override `langfuseFanout.tenant.destinations` in Helm for self-hosted or
@@ -308,6 +308,6 @@ already uploaded.
   `LANGFUSE_FANOUT_MEMORY_SPIKE_LIMIT_MIB`, `LANGFUSE_FANOUT_BATCH_TIMEOUT`,
   `LANGFUSE_FANOUT_BATCH_SEND_SIZE`, and
   `LANGFUSE_FANOUT_METADATA_CARDINALITY_LIMIT` tune the internal collector.
-- `LANGFUSE_FANOUT_COLLECTOR_URL` is the local gateway URL used by LibreChat.
+- `LANGFUSE_FANOUT_COLLECTOR_URL` is the local gateway URL used by Cybernetics.
   The env name is kept for compatibility with the original collector shape; it
   is not a Langfuse Cloud base URL.

@@ -1645,7 +1645,8 @@ export type TStartupConfig = {
   passwordResetEnabled: boolean;
   emailEnabled: boolean;
   showBirthdayIcon: boolean;
-  helpAndFaqURL: string;
+  /** Only present when `HELP_AND_FAQ_URL` is configured; the Help & FAQ entry hides otherwise. */
+  helpAndFaqURL?: string;
   /** Admin panel link, only present for users with admin access */
   adminPanelURL?: string;
   customFooter?: string;

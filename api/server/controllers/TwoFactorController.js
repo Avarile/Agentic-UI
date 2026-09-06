@@ -22,9 +22,10 @@ const {
   getTOTPSecret,
   verifyTOTP,
 } = require('~/server/services/twoFactorService');
+const { BRAND_NAME } = require('librechat-data-provider');
 const { getUserById, updateUser } = require('~/models');
 
-const safeAppTitle = (process.env.APP_TITLE || 'LibreChat').replace(/\s+/g, '');
+const safeAppTitle = (process.env.APP_TITLE || BRAND_NAME).replace(/\s+/g, '');
 
 /**
  * Enable 2FA for the user by generating a new TOTP secret and backup codes.

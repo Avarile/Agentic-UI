@@ -1,10 +1,10 @@
-# LibreChat Localization Guide
+# Cybernetics - Agentic Centre Localization Guide
 
-This guide explains how to add new languages to LibreChat's localization system.
+This guide explains how to add new languages to Cybernetics's localization system.
 
 ## Adding a New Language
 
-To add a new language to LibreChat, follow these steps:
+To add a new language to Cybernetics, follow these steps:
 
 ### 1. Add the Language to Locize Project
 
@@ -108,7 +108,7 @@ fallbackLng: {
 
 After adding a new language:
 
-1. The empty translation file will be populated through LibreChat's automated translation platform
+1. The empty translation file will be populated through Cybernetics's automated translation platform
 2. Only the English (`en`) translation file should be manually updated
 3. Other language translations are managed externally
 
